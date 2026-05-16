@@ -36,3 +36,9 @@ yarn-error.log*
 .roo
 .trae
 .windsurf
+
+.env
+dist/
+*.log
+.vscode/
+
