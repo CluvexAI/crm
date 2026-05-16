@@ -1,10 +1,12 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { ROLES } from '../data/mockData';
+import { ROLES, DEPARTMENTS, DEPARTMENT_ROLES } from '../data/mockData';
 
 const Dashboard = () => {
-  const { currentUser, allUsers, allLeads, allSales, allInvoices, allProjects, allAttendance, myLeads, myProjects, allLeaves, setActivePage } = useApp();
+  const { currentUser, allUsers, allLeads, allSales, allInvoices, allProjects, allAttendance, myLeads, myCustomers, myProjects, myInvoices, allLeaves, setActivePage } = useApp();
 
+  const graphicsRoles = DEPARTMENT_ROLES['Graphics'] || [];
+  const isGraphics = graphicsRoles.includes(currentUser.role);
   const isAdmin = currentUser.role === ROLES.ADMIN;
   const isSales = currentUser.role === ROLES.SALES;
   const isHR = currentUser.role === ROLES.HR;
@@ -14,10 +16,10 @@ const Dashboard = () => {
 
   const stats = {
     totalUsers: allUsers.length,
-    activeLeads: allLeads.filter(l => !['Closed (Won)', 'Closed (Lost)', 'Expired'].includes(l.status)).length,
-    closedWon: allLeads.filter(l => l.status === 'Closed (Won)').length,
-    totalRevenue: allSales.filter(s => s.saleStatus === 'Closed').reduce((sum, s) => sum + s.amount, 0),
-    pendingInvoices: allInvoices.filter(i => i.status === 'Pending').length,
+    activeLeads: isAdmin ? allLeads.filter(l => !['Closed (Won)', 'Closed (Lost)', 'Expired'].includes(l.status)).length : myLeads.filter(l => !['Closed (Won)', 'Closed (Lost)', 'Expired'].includes(l.status)).length,
+    closedWon: isAdmin ? allLeads.filter(l => l.status === 'Closed (Won)').length : myLeads.filter(l => l.status === 'Closed (Won)').length,
+    totalRevenue: isAdmin ? allSales.filter(s => s.saleStatus === 'Closed').reduce((sum, s) => sum + s.amount, 0) : myCustomers.filter(s => s.saleStatus === 'Closed').reduce((sum, s) => sum + s.amount, 0),
+    pendingInvoices: isAdmin ? allInvoices.filter(i => i.status === 'Pending').length : myInvoices.filter(i => i.status === 'Pending').length,
     todayAttendance: allAttendance.filter(a => a.date === today).length,
     pendingLeaves: allLeaves.filter(l => l.status === 'Pending').length,
     myLeads: myLeads.length,
@@ -25,10 +27,24 @@ const Dashboard = () => {
     myConversions: myLeads.filter(l => l.status === 'Closed (Won)').length,
     myProjects: myProjects.length,
     activeProjects: myProjects.filter(p => p.status === 'In Progress').length,
+    myCustomers: myCustomers.length,
+    myTotalSales: isAdmin 
+      ? allInvoices.reduce((sum, inv) => sum + (inv.lockedTotal || inv.totalAmount || 0), 0)
+      : myInvoices.reduce((sum, inv) => sum + (inv.lockedTotal || inv.totalAmount || 0), 0),
+    myTotalCollected: isAdmin
+      ? allInvoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0)
+      : myInvoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0),
+    myTotalDue: isAdmin
+      ? allInvoices.reduce((sum, inv) => sum + (inv.dueAmount || 0), 0)
+      : myInvoices.reduce((sum, inv) => sum + (inv.dueAmount || 0), 0),
   };
 
-  const recentLeads = [...allLeads].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
-  const recentSales = [...allSales].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 4);
+  const recentLeads = isAdmin 
+    ? [...allLeads].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5)
+    : [...myLeads].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+  const recentSales = isAdmin 
+    ? [...allSales].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 4)
+    : [...myCustomers].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 4);
 
   const statusColor = (s) => {
     const map = {
@@ -130,6 +146,35 @@ const Dashboard = () => {
                 <div className="stat-value">{allProjects.length}</div>
                 <div className="stat-label">Total Projects</div>
                 <div className="stat-change up">↑ Active</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Department-wise Employee Count */}
+          <div className="card" style={{ marginBottom: 20 }}>
+            <div className="card-header">
+              <div className="card-title">🏢 Department-wise Employees</div>
+            </div>
+            <div className="card-body">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12 }}>
+                {DEPARTMENTS.map(dept => {
+                  const count = allUsers.filter(u => u.department === dept).length;
+                  const deptColors = {
+                    Sales: '#10b981', Backend: '#8b5cf6', HR: '#f59e0b',
+                    Accounts: '#ef4444', Support: '#3b82f6', Quality: '#06b6d4',
+                    Management: '#0E5491', Graphics: '#ec4899',
+                  };
+                  return (
+                    <div key={dept} style={{
+                      padding: '14px 16px', borderRadius: 12, background: `${deptColors[dept] || '#6b7280'}10`,
+                      border: `1px solid ${deptColors[dept] || '#6b7280'}30`,
+                      textAlign: 'center',
+                    }}>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: deptColors[dept] || '#6b7280' }}>{count}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 4 }}>{dept}</div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -237,17 +282,48 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="stat-card" onClick={() => setActivePage('sales')}>
-              <div className="stat-icon green">✅</div>
+              <div className="stat-icon green">🤝</div>
               <div className="stat-info">
-                <div className="stat-value">{stats.myConversions}</div>
-                <div className="stat-label">Conversions</div>
+                <div className="stat-value">{stats.myCustomers}</div>
+                <div className="stat-label">My Customers</div>
               </div>
             </div>
             <div className="stat-card">
               <div className="stat-icon purple">📈</div>
               <div className="stat-info">
-                <div className="stat-value">{stats.myLeads > 0 ? Math.round((stats.myConversions / stats.myLeads) * 100) : 0}%</div>
+                <div className="stat-value">{stats.myLeads > 0 ? Math.round((stats.myCustomers / stats.myLeads) * 100) : 0}%</div>
                 <div className="stat-label">Conversion Rate</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="stats-grid" style={{ marginTop: 16 }}>
+            <div className="stat-card" onClick={() => setActivePage('sales')}>
+              <div className="stat-icon green">💰</div>
+              <div className="stat-info">
+                <div className="stat-value">€{Number(stats.myTotalSales || 0).toLocaleString('en-IN')}</div>
+                <div className="stat-label">Total Sales Value</div>
+              </div>
+            </div>
+            <div className="stat-card" onClick={() => setActivePage('invoices')}>
+              <div className="stat-icon blue">✅</div>
+              <div className="stat-info">
+                <div className="stat-value">€{Number(stats.myTotalCollected || 0).toLocaleString('en-IN')}</div>
+                <div className="stat-label">Total Collected</div>
+              </div>
+            </div>
+            <div className="stat-card" onClick={() => setActivePage('invoices')}>
+              <div className="stat-icon red">⏳</div>
+              <div className="stat-info">
+                <div className="stat-value">€{Number(stats.myTotalDue || 0).toLocaleString('en-IN')}</div>
+                <div className="stat-label">Total Due</div>
+              </div>
+            </div>
+            <div className="stat-card" onClick={() => setActivePage('sales')}>
+              <div className="stat-icon orange">📊</div>
+              <div className="stat-info">
+                <div className="stat-value">{stats.myConversions}</div>
+                <div className="stat-label">Closed Won</div>
               </div>
             </div>
           </div>
@@ -303,6 +379,50 @@ const Dashboard = () => {
           <div className="card">
             <div className="card-header">
               <div className="card-title">🔄 Assigned Projects</div>
+              <button className="btn btn-sm btn-primary" onClick={() => setActivePage('projects')}>View All</button>
+            </div>
+            <div className="table-container">
+              <table>
+                <thead><tr><th>Project</th><th>Client</th><th>Status</th><th>Start Date</th><th>Reports</th></tr></thead>
+                <tbody>
+                  {myProjects.map(proj => (
+                    <tr key={proj.id}>
+                      <td><span style={{ fontWeight: 600 }}>{proj.projectName}</span></td>
+                      <td>{proj.clientName}</td>
+                      <td><span className={`badge ${proj.status === 'In Progress' ? 'badge-success' : proj.status === 'Planning' ? 'badge-info' : 'badge-neutral'}`}>{proj.status}</span></td>
+                      <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{proj.startDate}</td>
+                      <td>{proj.reports?.length || 0} reports</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Graphics Dashboard */}
+      {isGraphics && (
+        <>
+          <div className="stats-grid">
+            <div className="stat-card" onClick={() => setActivePage('projects')}>
+              <div className="stat-icon purple">🎨</div>
+              <div className="stat-info">
+                <div className="stat-value">{stats.myProjects}</div>
+                <div className="stat-label">My Projects</div>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon green">⚡</div>
+              <div className="stat-info">
+                <div className="stat-value">{stats.activeProjects}</div>
+                <div className="stat-label">In Progress</div>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title">🎨 Assigned Design Projects</div>
               <button className="btn btn-sm btn-primary" onClick={() => setActivePage('projects')}>View All</button>
             </div>
             <div className="table-container">

@@ -3,6 +3,20 @@ import { useApp } from '../context/AppContext';
 import ProfileImageUpload from '../components/ProfileImageUpload';
 import { can } from '../services/rbacService';
 import { formatFileSize } from '../services/uploadService';
+import { encrypt, maskPassword } from '../services/cryptoService';
+
+const InfoRow = ({ label, value, editing, field, type = 'text', readOnly = false, form, setForm }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid var(--border-light)', gap: 16 }}>
+    <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500, minWidth: 130, flexShrink: 0 }}>{label}</span>
+    {editing && !readOnly ? (
+      <input className="form-control" type={type} style={{ maxWidth: 240, marginLeft: 'auto' }}
+        value={form[field] || ''}
+        onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))} />
+    ) : (
+      <span style={{ fontWeight: 600, fontSize: 13.5, textAlign: 'right' }}>{value || '—'}</span>
+    )}
+  </div>
+);
 
 const ProfilePage = () => {
   const { currentUser, updateUser } = useApp();
@@ -60,19 +74,6 @@ const ProfilePage = () => {
 
   const getInitials = (name) =>
     name ? name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : 'U';
-
-  const InfoRow = ({ label, value, editing, field, type = 'text', readOnly = false }) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid var(--border-light)', gap: 16 }}>
-      <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500, minWidth: 130, flexShrink: 0 }}>{label}</span>
-      {editing && !readOnly ? (
-        <input className="form-control" type={type} style={{ maxWidth: 240, marginLeft: 'auto' }}
-          value={form[field] || ''}
-          onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))} />
-      ) : (
-        <span style={{ fontWeight: 600, fontSize: 13.5, textAlign: 'right' }}>{value || '—'}</span>
-      )}
-    </div>
-  );
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease', maxWidth: 940, margin: '0 auto' }}>
@@ -139,6 +140,7 @@ const ProfilePage = () => {
         <button className={`tab-btn ${tab === 'image' ? 'active' : ''}`} onClick={() => setTab('image')}>🖼️ Profile Image</button>
         <button className={`tab-btn ${tab === 'security' ? 'active' : ''}`} onClick={() => setTab('security')}>🔒 Security</button>
         <button className={`tab-btn ${tab === 'identity' ? 'active' : ''}`} onClick={() => setTab('identity')}>🔑 Identity</button>
+        <button className={`tab-btn ${tab === 'email' ? 'active' : ''}`} onClick={() => setTab('email')}>📧 Email Settings</button>
       </div>
 
       {/* ── Profile Tab ── */}
@@ -147,30 +149,30 @@ const ProfilePage = () => {
           <div className="card">
             <div className="card-header"><div className="card-title">📞 Contact</div></div>
             <div className="card-body">
-              <InfoRow label="Email" value={currentUser.email} editing={isEditing} field="email" type="email" />
-              <InfoRow label="Phone" value={currentUser.phone} editing={isEditing} field="phone" />
-              <InfoRow label="WhatsApp" value={currentUser.whatsapp} editing={isEditing} field="whatsapp" />
-              <InfoRow label="Address" value={currentUser.address} editing={isEditing} field="address" />
+              <InfoRow label="Email" value={currentUser.email} editing={isEditing} field="email" type="email" form={form} setForm={setForm} />
+              <InfoRow label="Phone" value={currentUser.phone} editing={isEditing} field="phone" form={form} setForm={setForm} />
+              <InfoRow label="WhatsApp" value={currentUser.whatsapp} editing={isEditing} field="whatsapp" form={form} setForm={setForm} />
+              <InfoRow label="Address" value={currentUser.address} editing={isEditing} field="address" form={form} setForm={setForm} />
             </div>
           </div>
           <div className="card">
             <div className="card-header"><div className="card-title">💼 Professional</div></div>
             <div className="card-body">
-              <InfoRow label="Designation" value={currentUser.designation} editing={false} />
-              <InfoRow label="Department" value={currentUser.department} editing={false} />
-              <InfoRow label="Shift" value={currentUser.shift} editing={false} />
-              <InfoRow label="Date of Joining" value={currentUser.dateOfJoining ? new Date(currentUser.dateOfJoining).toLocaleDateString('en-IN') : '—'} editing={false} />
-              <InfoRow label="Blood Group" value={currentUser.bloodGroup} editing={isEditing} field="bloodGroup" />
+              <InfoRow label="Designation" value={currentUser.designation} editing={false} form={form} setForm={setForm} />
+              <InfoRow label="Department" value={currentUser.department} editing={false} form={form} setForm={setForm} />
+              <InfoRow label="Shift" value={currentUser.shift} editing={false} form={form} setForm={setForm} />
+              <InfoRow label="Date of Joining" value={currentUser.dateOfJoining ? new Date(currentUser.dateOfJoining).toLocaleDateString('en-IN') : '—'} editing={false} form={form} setForm={setForm} />
+              <InfoRow label="Blood Group" value={currentUser.bloodGroup} editing={isEditing} field="bloodGroup" form={form} setForm={setForm} />
             </div>
           </div>
           <div className="card">
             <div className="card-header"><div className="card-title">👨‍👩‍👦 Personal</div></div>
             <div className="card-body">
-              <InfoRow label="Father's Name" value={currentUser.fatherName} editing={isEditing} field="fatherName" />
-              <InfoRow label="Mother's Name" value={currentUser.motherName} editing={isEditing} field="motherName" />
-              <InfoRow label="Food Preference" value={currentUser.foodPref} editing={isEditing} field="foodPref" />
-              <InfoRow label="Hobbies" value={currentUser.hobbies} editing={isEditing} field="hobbies" />
-              <InfoRow label="Emergency Contact" value={currentUser.emergencyContact} editing={isEditing} field="emergencyContact" />
+              <InfoRow label="Father's Name" value={currentUser.fatherName} editing={isEditing} field="fatherName" form={form} setForm={setForm} />
+              <InfoRow label="Mother's Name" value={currentUser.motherName} editing={isEditing} field="motherName" form={form} setForm={setForm} />
+              <InfoRow label="Food Preference" value={currentUser.foodPref} editing={isEditing} field="foodPref" form={form} setForm={setForm} />
+              <InfoRow label="Hobbies" value={currentUser.hobbies} editing={isEditing} field="hobbies" form={form} setForm={setForm} />
+              <InfoRow label="Emergency Contact" value={currentUser.emergencyContact} editing={isEditing} field="emergencyContact" form={form} setForm={setForm} />
             </div>
           </div>
           <div className="card">
@@ -179,9 +181,9 @@ const ProfilePage = () => {
               <div style={{ background: 'var(--warning-light)', borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#92400e', fontWeight: 500 }}>
                 🔒 Sensitive fields masked. Contact Admin to update.
               </div>
-              <InfoRow label="PAN" value={currentUser.pan ? `${currentUser.pan.slice(0, 3)}●●${currentUser.pan.slice(-1)}` : '—'} editing={false} />
-              <InfoRow label="Aadhaar" value={currentUser.aadhaar ? `●●●●-●●●●-${currentUser.aadhaar.slice(-4)}` : '—'} editing={false} />
-              <InfoRow label="Voter ID" value={currentUser.voterId ? '●●●●●●●●' : '—'} editing={false} />
+              <InfoRow label="PAN" value={currentUser.pan ? `${currentUser.pan.slice(0, 3)}●●${currentUser.pan.slice(-1)}` : '—'} editing={false} form={form} setForm={setForm} />
+              <InfoRow label="Aadhaar" value={currentUser.aadhaar ? `●●●●-●●●●-${currentUser.aadhaar.slice(-4)}` : '—'} editing={false} form={form} setForm={setForm} />
+              <InfoRow label="Voter ID" value={currentUser.voterId ? '●●●●●●●●' : '—'} editing={false} form={form} setForm={setForm} />
             </div>
           </div>
         </div>
@@ -330,8 +332,220 @@ const ProfilePage = () => {
               )}
             </div>
           </div>
-        </div>
+</div>
+        )}
+
+      {/* ── Email Settings Tab ── */}
+      {tab === 'email' && (
+        <EmailSettingsTab />
       )}
+    </div>
+  );
+};
+
+const EmailSettingsTab = () => {
+  const { currentUser, updateEmailConfig, syncEmails } = useApp();
+  const [showPassword] = useState(false);
+  const [emailForm, setEmailForm] = useState({
+    email: '',
+    password: '',
+    imap: { host: 'mail.zsmeservices.com', port: 993, secure: true },
+    smtp: { host: 'mail.zsmeservices.com', port: 465, secure: true },
+  });
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [isConfigured, setIsConfigured] = useState(false);
+
+  // Load from Canonical Store on mount
+  React.useEffect(() => {
+    const loadConfig = async () => {
+      const { getEmailByUserId } = await import('../services/emailService');
+      const accounts = getEmailByUserId(currentUser.uuid || currentUser.id, currentUser.email);
+      if (accounts && accounts.length > 0) {
+        const acc = accounts[0];
+        setEmailForm({
+          email: acc.email,
+          password: '', // Don't load password into state for security
+          imap: { host: acc.imapHost || 'mail.zsmeservices.com', port: acc.imapPort || 993, secure: true },
+          smtp: { host: acc.smtpHost || 'mail.zsmeservices.com', port: acc.smtpPort || 465, secure: true },
+        });
+        setIsConfigured(true);
+      }
+    };
+    loadConfig();
+  }, [currentUser]);
+
+  const handleTest = async () => {
+    if (!emailForm.email || !emailForm.password) {
+      setTestResult({ success: false, message: 'Please enter email and password' });
+      return;
+    }
+    setTesting(true);
+    setTestResult(null);
+    
+    const { testEmailConnection } = await import('../services/emailService');
+    
+    try {
+      const result = await testEmailConnection({
+        email: emailForm.email,
+        password: emailForm.password,
+        imap: emailForm.imap,
+        smtp: emailForm.smtp,
+      });
+      
+      setTesting(false);
+      setTestResult({ 
+        success: result.success, 
+message: result.message,
+        details: `SMTP: ${result.smtp} | IMAP: ${result.imap}`
+      });
+    } catch (error) {
+      setTesting(false);
+      setTestResult({ success: false, message: 'Connection failed: ' + error.message });
+    }
+  };
+
+  const handleSave = () => {
+    if (!emailForm.email || !emailForm.password) {
+      window.alert('Please enter email and password');
+      return;
+    }
+    setSaving(true);
+    setTimeout(() => {
+      const configToSave = {
+        ...emailForm,
+        password: encrypt(emailForm.password),
+        updatedAt: new Date().toISOString(),
+      };
+      updateEmailConfig(currentUser.id, configToSave);
+      setSaving(false);
+      window.alert('✅ Email configuration saved!\n\nSyncing your emails...');
+      setTimeout(async () => {
+        try {
+          await syncEmails();
+          window.alert('✅ Email sync complete!');
+        } catch (e) {
+          console.error('Sync error:', e);
+        }
+      }, 500);
+}, 800);
+  };
+
+
+
+  return (
+    <div className="card">
+      <div className="card-header">
+        <div className="card-title">📧 Email Configuration</div>
+      </div>
+      <div className="card-body">
+        <p style={{ marginBottom: 16, fontSize: 13, color: 'var(--text-muted)' }}>
+          Configure your email account to send and receive emails within CRM. This is used for sending proposals and personal email.
+        </p>
+        
+        <div style={{ display: 'grid', gap: 12 }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: 5, fontWeight: 600 }}>📧 Email Address</label>
+            <input 
+              className="form-control" 
+              value={emailForm.email} 
+              onChange={e => setEmailForm(p => ({ ...p, email: e.target.value }))}
+              placeholder="yourname@zsmeservices.com"
+            />
+          </div>
+          
+          <div>
+            <label style={{ display: 'block', marginBottom: 5, fontWeight: 600 }}>🔐 Password</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input 
+                className="form-control" 
+                type={showPassword ? 'text' : 'password'}
+                value={emailForm.showMasked ? maskPassword(emailForm.password) : emailForm.password} 
+                onChange={e => setEmailForm(p => ({ ...p, password: e.target.value, showMasked: false }))}
+                placeholder={isConfigured ? '••••••••••••' : 'Enter email password'}
+                style={{ flex: 1 }}
+              />
+              {isConfigured && (
+                <button 
+                  className="btn btn-ghost" 
+                  type="button"
+                  onClick={() => setEmailForm(p => ({ ...p, showMasked: true, password: currentUser.emailConfig.password }))}
+                  title="Show saved password"
+                >
+                  👁
+                </button>
+              )}
+            </div>
+            {isConfigured && (
+              <div style={{ fontSize: 11, color: 'var(--success)', marginTop: 4 }}>
+                ✅ Password encrypted and stored securely
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: 5, fontWeight: 600 }}>📥 IMAP Server</label>
+              <input 
+                className="form-control" 
+                value={emailForm.imap?.host || ''} 
+                onChange={e => setEmailForm(p => ({ ...p, imap: { ...p.imap, host: e.target.value } }))}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: 5, fontWeight: 600 }}>📥 IMAP Port</label>
+              <input 
+                className="form-control" 
+                type="number"
+                value={emailForm.imap?.port || 993} 
+                onChange={e => setEmailForm(p => ({ ...p, imap: { ...p.imap, port: parseInt(e.target.value) } }))}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: 5, fontWeight: 600 }}>📤 SMTP Server</label>
+              <input 
+                className="form-control" 
+                value={emailForm.smtp?.host || ''} 
+                onChange={e => setEmailForm(p => ({ ...p, smtp: { ...p.smtp, host: e.target.value } }))}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: 5, fontWeight: 600 }}>📤 SMTP Port</label>
+              <input 
+                className="form-control" 
+                type="number"
+                value={emailForm.smtp?.port || 465} 
+                onChange={e => setEmailForm(p => ({ ...p, smtp: { ...p.smtp, port: parseInt(e.target.value) } }))}
+              />
+            </div>
+          </div>
+        </div>
+
+        {testResult && (
+          <div style={{ 
+            marginTop: 16, 
+            padding: 12, 
+            borderRadius: 8,
+            background: testResult.success ? 'var(--success-light)' : 'var(--danger-light)',
+            color: testResult.success ? 'var(--success)' : 'var(--danger)',
+          }}>
+            {testResult.message}
+          </div>
+        )}
+
+        <div style={{ marginTop: 20, display: 'flex', gap: 12 }}>
+          <button className="btn btn-ghost" onClick={handleTest} disabled={testing}>
+            {testing ? '⏳ Testing...' : '🔗 Test Connection'}
+          </button>
+          <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+            {saving ? '⏳ Saving...' : '💾 Save Configuration'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

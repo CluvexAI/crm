@@ -1,0 +1,21 @@
+[
+  {
+    "id": "1",
+    "name": "crm.zsmeservices.com",
+    "type": "A",
+    "value": "95.111.238.145",
+    "ttl": 14400,
+    "status": "Failed",
+    "createdAt": "2026-05-13T08:41:43.592Z"
+  },
+  {
+    "id": "2",
+    "name": "mail.zsmeservices.com",
+    "type": "MX",
+    "value": "mail.zsmeservices.com",
+    "priority": 0,
+    "ttl": 14400,
+    "status": "Verified",
+    "createdAt": "2026-05-13T08:41:43.594Z"
+  }
+]

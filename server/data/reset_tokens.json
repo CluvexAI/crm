@@ -1,0 +1,22 @@
+[
+  {
+    "userId": "1",
+    "userName": "Admin User",
+    "tokenHash": "b9febb3db197ca10ee1723026df9ee5a38e5918b8d2ca22d11108f562b1f698f",
+    "expiresAt": "2026-05-13T07:59:17.020Z",
+    "used": false,
+    "createdAt": "2026-05-13T06:59:17.022Z",
+    "email": "admin@zsm.com",
+    "status": "Emergency-Generated"
+  },
+  {
+    "userId": "1",
+    "userName": "Admin User",
+    "tokenHash": "f067f279870cfec126db1bf43e6fbaae3be212efd781a4be896b23d0528d7d9a",
+    "expiresAt": "2026-05-15T08:23:27.647Z",
+    "used": false,
+    "createdAt": "2026-05-15T07:23:27.656Z",
+    "email": "admin@zsm.com",
+    "status": "Emergency-Generated"
+  }
+]

@@ -1,0 +1,84 @@
+const STORAGE_KEY = 'zsm_crm_sales';
+
+const getStorage = () => {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null;
+  } catch (e) {
+    console.error('[SalesDB] Error reading:', e);
+    return null;
+  }
+};
+
+const setStorage = (data) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return true;
+  } catch (e) {
+    console.error('[SalesDB] Error writing:', e);
+    return false;
+  }
+};
+
+export const initializeSalesDatabase = (defaultSales) => {
+  const stored = getStorage();
+  if (stored) {
+    console.log('[SalesDB] Loaded', stored.length, 'sales from storage');
+    return stored;
+  }
+  console.log('[SalesDB] Initializing with default sales');
+  setStorage(defaultSales);
+  return defaultSales;
+};
+
+export const getAllSales = () => getStorage() || [];
+
+export const getSaleById = (id) => {
+  const sales = getStorage();
+  return sales?.find(s => s.id === id) || null;
+};
+
+export const createSaleRecord = (saleData) => {
+  const sales = getStorage() || [];
+  const newSale = {
+    ...saleData,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    version: 1
+  };
+  sales.push(newSale);
+  setStorage(sales);
+  console.log('[SalesDB] Created sale:', newSale.id);
+  return newSale;
+};
+
+export const updateSaleRecord = (id, saleData) => {
+  const sales = getStorage() || [];
+  const index = sales.findIndex(s => s.id === id);
+  
+  if (index === -1) {
+    console.error('[SalesDB] Sale not found:', id);
+    throw new Error('Sale not found');
+  }
+  
+  const currentSale = sales[index];
+  const updatedSale = {
+    ...currentSale,
+    ...saleData,
+    updatedAt: new Date().toISOString(),
+    version: (currentSale.version || 0) + 1
+  };
+  
+  sales[index] = updatedSale;
+  setStorage(sales);
+  console.log('[SalesDB] Updated sale:', id, 'version:', updatedSale.version);
+  
+  return updatedSale;
+};
+
+export const deleteSaleRecord = (id) => {
+  const sales = getStorage() || [];
+  const filtered = sales.filter(s => s.id !== id);
+  setStorage(filtered);
+  console.log('[SalesDB] Deleted sale:', id);
+  return true;
+};

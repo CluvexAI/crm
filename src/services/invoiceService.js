@@ -1,7 +1,9 @@
 import { BASE_CURRENCY, CURRENCIES, getCurrencySymbol } from './currencyService';
+import { sales as salesData } from '../data/mockData';
 
 const INVOICE_STORAGE_KEY = 'zsm_invoices';
 const INVOICE_AUDIT_KEY = 'zsm_invoice_audit';
+const SALES_STORAGE_KEY = 'zsm_sales';
 
 export const PROPOSAL_TYPES = [
   'SEO Plan',
@@ -99,13 +101,22 @@ export const createInvoice = (sale) => {
 
   const companySettings = getCompanySettings();
 
+  // Determine invoice total: if installments, only bill the first installment
+  const hasInstallments = sale.installmentPlan && sale.installmentPlan.length > 0;
+  const firstInstallment = hasInstallments ? sale.installmentPlan[0] : null;
+  const invoiceTotal = hasInstallments && firstInstallment
+    ? firstInstallment.amount
+    : sale.totalAmount;
+
   const invoice = {
     id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     invoiceNumber,
     saleId: sale.id,
     leadId: sale.leadId,
+    createdBy: sale.createdBy || sale.closedBy,
     status: 'PENDING',
-    lockedTotal: sale.totalAmount,
+    lockedTotal: invoiceTotal,
+    saleTotalAmount: sale.totalAmount, // Store full sale amount separately
 
     contactDetails: {
       mailingAddress: companySettings.contactDetails.mailingAddress,
@@ -132,32 +143,44 @@ export const createInvoice = (sale) => {
 
     invoiceInfo: {
       invoiceDate: now.split('T')[0],
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      dueDate: firstInstallment?.due_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       currency,
       currencySymbol: getCurrencySymbol(currency),
     },
 
-    services: sale.proposals && sale.proposals.length > 0 
-      ? sale.proposals.map((p, index) => ({
-          id: `svc_${Date.now()}_${index}`,
-          name: p.package ? `${p.type} - ${p.package}` : p.type,
-          description: p.description || '',
-          duration: 'Monthly',
-          quantity: 1,
-          unitPrice: Number(p.amount || 0),
-          total: Number(p.amount || 0),
-        }))
-      : [
+    services: hasInstallments && firstInstallment
+      ? [
           {
             id: `svc_${Date.now()}`,
-            name: sale.proposalType || 'Web Design Plan',
-            description: '',
-            duration: 'Monthly',
+            name: `Installment 1 of ${sale.installmentPlan.length} - ${sale.proposalType || 'Project'}`,
+            description: `Current Due: ${invoiceTotal} | Remaining Balance: ${Math.max(0, sale.totalAmount - invoiceTotal)}`,
+            duration: 'One-time',
             quantity: 1,
-            unitPrice: sale.totalAmount || sale.amount || 0,
-            total: sale.totalAmount || sale.amount || 0,
-          },
-        ],
+            unitPrice: invoiceTotal,
+            total: invoiceTotal,
+          }
+        ]
+      : (sale.proposals && sale.proposals.length > 0
+          ? sale.proposals.map((p, index) => ({
+              id: `svc_${Date.now()}_${index}`,
+              name: p.package ? `${p.type} - ${p.package}` : p.type,
+              description: p.description || '',
+              duration: 'Monthly',
+              quantity: 1,
+              unitPrice: Number(p.amount || 0),
+              total: Number(p.amount || 0),
+            }))
+          : [
+              {
+                id: `svc_${Date.now()}`,
+                name: sale.proposalType || 'Web Design Plan',
+                description: '',
+                duration: 'Monthly',
+                quantity: 1,
+                unitPrice: invoiceTotal,
+                total: invoiceTotal,
+              },
+            ]),
 
     amountSummary: {
       subtotal: 0,
@@ -173,7 +196,21 @@ export const createInvoice = (sale) => {
       grandTotal: 0,
     },
 
-    installments: [],
+    installments: (() => {
+      if (hasInstallments && sale.installmentPlan) {
+        return sale.installmentPlan.map(inst => ({
+          id: `inst_${Date.now()}_${inst.installment_number}`,
+          installment_number: inst.installment_number,
+          amount: inst.amount,
+          dueDate: inst.due_date,
+          status: inst.status || 'PENDING',
+          paidAmount: 0,
+          paidAt: null,
+          paymentMethod: null,
+        }));
+      }
+      return [];
+    })(),
     payments: [],
 
     totalAmount: 0,
@@ -196,10 +233,6 @@ export const createInvoice = (sale) => {
   };
 
   recalculateAmountSummary(invoice);
-
-  if (sale.totalAmount !== undefined && Math.abs(invoice.totalAmount - sale.totalAmount) > 0.01) {
-    throw new Error("Invoice total mismatch from Sale total");
-  }
 
   saveInvoice(invoice);
   logAuditAction(invoice.id, 'CREATE', null, invoice, 'System');
@@ -276,7 +309,7 @@ export const removeServiceItem = (invoiceId, serviceId, changedBy = 'System') =>
   return updateInvoice(invoiceId, { services: newServices }, changedBy);
 };
 
-export const addPayment = (invoiceId, payment, changedBy = 'System') => {
+export const addPayment = (invoiceId, payment, changedBy = 'System', extraUpdates = {}) => {
   const invoice = getInvoice(invoiceId);
   if (!invoice) return null;
   const invoiceCurrency = invoice.invoiceInfo?.currency || 'EUR';
@@ -289,7 +322,7 @@ export const addPayment = (invoiceId, payment, changedBy = 'System') => {
   payment.paidAt = new Date().toISOString();
   payment.currency = invoiceCurrency;
 
-  invoice.payments = [...invoice.payments, payment];
+  invoice.payments = [...(invoice.payments || []), payment];
   recalculateAmountSummary(invoice);
 
   const status = invoice.dueAmount <= 0 ? 'FULL' : invoice.paidAmount > 0 ? 'PARTIAL' : 'PENDING';
@@ -299,6 +332,7 @@ export const addPayment = (invoiceId, payment, changedBy = 'System') => {
     paidAmount: invoice.paidAmount,
     dueAmount: invoice.dueAmount,
     status,
+    ...extraUpdates
   }, changedBy);
 };
 
@@ -309,7 +343,7 @@ export const addInstallment = (invoiceId, installment, changedBy = 'System') => 
   installment.id = `inst_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   installment.status = 'PENDING';
 
-  const newInstallments = [...invoice.installments, installment];
+  const newInstallments = [...(invoice.installments || []), installment];
   return updateInvoice(invoiceId, { installments: newInstallments }, changedBy);
 };
 
@@ -317,7 +351,8 @@ export const markInstallmentPaid = (invoiceId, installmentId, payment, changedBy
   const invoice = getInvoice(invoiceId);
   if (!invoice) return null;
 
-  const newInstallments = invoice.installments.map(inst => {
+  const paidInstallment = (invoice.installments || []).find(inst => inst.id === installmentId);
+  const newInstallments = (invoice.installments || []).map(inst => {
     if (inst.id === installmentId) {
       return {
         ...inst,
@@ -334,10 +369,41 @@ export const markInstallmentPaid = (invoiceId, installmentId, payment, changedBy
     amount: payment.amount,
     currency: payment.currency || invoice.invoiceInfo?.currency || BASE_CURRENCY,
     method: payment.method,
-    notes: `Installment payment for ${payment.dueDate}`,
+    notes: `Installment payment for ${paidInstallment?.dueDate || 'installment'}`,
   };
 
-  return addPayment(invoiceId, paymentRecord, changedBy);
+  // Update sale's installment plan status
+  if (invoice.saleId && paidInstallment) {
+    const sales = JSON.parse(localStorage.getItem(SALES_STORAGE_KEY) || '[]');
+    const saleIndex = sales.findIndex(s => s.id === invoice.saleId);
+    if (saleIndex >= 0 && sales[saleIndex].installmentPlan) {
+      const plan = sales[saleIndex].installmentPlan;
+      const targetIndex = plan.findIndex(inst => inst.installment_number === paidInstallment.installment_number);
+      if (targetIndex >= 0) {
+        plan[targetIndex] = { ...plan[targetIndex], status: 'paid' };
+        sales[saleIndex].installmentPlan = plan;
+        localStorage.setItem(SALES_STORAGE_KEY, JSON.stringify(sales));
+      }
+    }
+  }
+
+  // Pass installments update to addPayment
+  const result = addPayment(invoiceId, paymentRecord, changedBy, { installments: newInstallments });
+
+  // Auto-create next installment invoice if available
+  if (invoice.saleId && paidInstallment) {
+    const sales = JSON.parse(localStorage.getItem(SALES_STORAGE_KEY) || '[]');
+    const sale = sales.find(s => s.id === invoice.saleId);
+    if (sale?.installmentPlan) {
+      const nextInstNumber = paidInstallment.installment_number + 1;
+      const nextInst = sale.installmentPlan.find(inst => inst.installment_number === nextInstNumber);
+      if (nextInst && nextInst.status !== 'paid') {
+        createNextInstallmentInvoice(sale, nextInstNumber);
+      }
+    }
+  }
+
+  return result;
 };
 
 export const recalculateAmountSummary = (invoice) => {
@@ -366,6 +432,123 @@ export const recalculateAmountSummary = (invoice) => {
   } else {
     invoice.paymentLink = null;
   }
+};
+
+/**
+ * Create next installment invoice after current one is paid
+ * @param {object} sale - The sale object
+ * @param {number} installmentNumber - The installment number to bill (1-indexed)
+ * @returns {object|null} - The new invoice or null
+ */
+export const createNextInstallmentInvoice = (sale, installmentNumber) => {
+  if (!sale || !sale.installmentPlan || sale.installmentPlan.length === 0) return null;
+
+  const targetInstallment = sale.installmentPlan.find(inst => inst.installment_number === installmentNumber);
+  if (!targetInstallment || targetInstallment.status === 'paid') return null;
+
+  const now = new Date().toISOString();
+  const invoiceNumber = getNextInvoiceNumber();
+  const currency = 'EUR';
+
+  const companySettings = getCompanySettings();
+
+  const invoice = {
+    id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    invoiceNumber,
+    saleId: sale.id,
+    leadId: sale.leadId,
+    createdBy: sale.createdBy || sale.closedBy,
+    status: 'PENDING',
+    lockedTotal: targetInstallment.amount,
+    saleTotalAmount: sale.totalAmount,
+
+    contactDetails: {
+      mailingAddress: companySettings.contactDetails.mailingAddress,
+      email: companySettings.contactDetails.email,
+      contacts: { ...companySettings.contactDetails.contacts }
+    },
+
+    from: { ...companySettings },
+
+    client: {
+      businessName: sale.businessName,
+      contactName: sale.leadName,
+      email: sale.email || '',
+      phone: sale.ownerPhone || '',
+      addressLine1: sale.addressLine1 || sale.address || '',
+      city: sale.city || '',
+      state: sale.state || '',
+      country: sale.country || '',
+      countryCode: sale.countryCode || 'IN',
+      dialCode: sale.dialCode || '+91',
+    },
+
+    invoiceInfo: {
+      invoiceDate: now.split('T')[0],
+      dueDate: targetInstallment.due_date,
+      currency,
+      currencySymbol: getCurrencySymbol(currency),
+    },
+
+    services: [{
+      id: `svc_${Date.now()}`,
+      name: `Installment ${installmentNumber} - ${sale.proposalType || 'Service'}`,
+      description: `Payment for installment ${installmentNumber} of ${sale.installmentPlan.length}`,
+      duration: 'Monthly',
+      quantity: 1,
+      unitPrice: targetInstallment.amount,
+      total: targetInstallment.amount,
+    }],
+
+    amountSummary: {
+      subtotal: 0,
+      discountType: 'FLAT',
+      discountValue: 0,
+      discountAmount: 0,
+      afterDiscount: 0,
+      taxName: 'GST',
+      taxPercent: 0,
+      taxAmount: 0,
+      additionalCharges: [],
+      additionalChargesTotal: 0,
+      grandTotal: 0,
+    },
+
+    installments: (sale.installmentPlan || []).map(inst => ({
+      id: `inst_${Date.now()}_${inst.installment_number}`,
+      installment_number: inst.installment_number,
+      amount: inst.amount,
+      dueDate: inst.due_date,
+      status: inst.status === 'paid' ? 'PAID' : 'PENDING',
+      paidAmount: inst.status === 'paid' ? inst.amount : 0,
+      paidAt: inst.status === 'paid' ? (inst.paidAt || now) : null,
+      paymentMethod: inst.status === 'paid' ? (inst.paymentMethod || 'manual') : null,
+    })),
+    payments: [],
+
+    totalAmount: 0,
+    paidAmount: 0,
+    dueAmount: 0,
+
+    notes: `Thank you for your business. Payment is due by ${targetInstallment.due_date}.`,
+    terms: 'Payment terms: Net 30 days. Late payments may incur additional fees.',
+    renewalTerms: 'This service will auto-renew unless cancelled 15 days prior.',
+
+    signature: {
+      authorizedBy: companySettings.name,
+      signedAt: now,
+    },
+
+    auditLog: [],
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  recalculateAmountSummary(invoice);
+  saveInvoice(invoice);
+  logAuditAction(invoice.id, 'CREATE', null, invoice, 'System');
+
+  return invoice;
 };
 
 export const generateStripePaymentLink = async (invoiceId, amount, currency = 'usd') => {
@@ -459,11 +642,28 @@ export const getAllInvoices = () => {
     let invoices = JSON.parse(invoicesJson);
     let needsSave = false;
 
+    // Add createdBy to invoices that don't have it (migration)
+    invoices = invoices.map(inv => {
+      if (!inv.createdBy) {
+        const sale = salesData.find(s => s.id === inv.saleId);
+        if (sale) {
+          inv.createdBy = sale.createdBy || sale.closedBy;
+          needsSave = true;
+        }
+      }
+      return inv;
+    });
+
+    if (needsSave) {
+      localStorage.setItem(INVOICE_STORAGE_KEY, JSON.stringify(invoices));
+    }
+
     // Auto-heal corrupted 379.35 invoices stuck in local storage
     invoices = invoices.map(inv => {
       if (inv.invoiceNumber === 'INV-2026-004' || (Math.abs(inv.totalAmount - 379.35) < 0.1 && !inv.healed)) {
         inv.lockedTotal = 350;
         inv.totalAmount = 350;
+        inv.saleTotalAmount = inv.saleTotalAmount || 350;
         inv.amountSummary = { ...inv.amountSummary, grandTotal: 350, subtotal: 350, afterDiscount: 350, taxAmount: 0, additionalChargesTotal: 0 };
         inv.dueAmount = Math.max(0, 350 - inv.paidAmount);
         inv.services = (inv.services || []).map(s => {
@@ -472,6 +672,12 @@ export const getAllInvoices = () => {
           return s;
         });
         inv.healed = true; // prevent infinite loops
+        needsSave = true;
+      }
+
+      // Migrate: add saleTotalAmount if missing
+      if (inv.lockedTotal !== undefined && !inv.saleTotalAmount) {
+        inv.saleTotalAmount = inv.lockedTotal;
         needsSave = true;
       }
 
@@ -576,9 +782,14 @@ export const formatInvoiceAmount = (amount, currency = BASE_CURRENCY) => {
 export const getInvoiceStats = () => {
   const invoices = getAllInvoices();
 
+  // For installment invoices, total is the invoice amount (first installment or current installment)
+  // saleTotalAmount stores the full sale value for reference
   const total = invoices.reduce((sum, i) => sum + (i.totalAmount || 0), 0);
   const paid = invoices.reduce((sum, i) => sum + (i.paidAmount || 0), 0);
   const due = invoices.reduce((sum, i) => sum + (i.dueAmount || 0), 0);
+
+  // Calculate full sale value across all invoices (for reporting)
+  const totalSaleValue = invoices.reduce((sum, i) => sum + (i.saleTotalAmount || i.totalAmount || 0), 0);
 
   const pending = invoices.filter(i => i.status === 'PENDING').length;
   const partial = invoices.filter(i => i.status === 'PARTIAL').length;
@@ -589,6 +800,7 @@ export const getInvoiceStats = () => {
     total,
     paid,
     due,
+    totalSaleValue,
     count: invoices.length,
     pending,
     partial,
@@ -623,7 +835,6 @@ export const duplicateInvoice = (invoiceId, changedBy = 'System') => {
     invoiceNumber: getNextInvoiceNumber(),
     status: 'PENDING',
     paidAmount: 0,
-    dueAmount: invoice.totalAmount,
     payments: [],
     installments: [],
     createdAt: new Date().toISOString(),
@@ -644,7 +855,8 @@ export const fetchDashboardSummary = async () => {
     // Simulate backend endpoint delay
     setTimeout(() => {
       const invoices = getAllInvoices();
-      const totalSalesValue = invoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+      // Use saleTotalAmount for full sale value, fallback to totalAmount for old invoices
+      const totalSalesValue = invoices.reduce((sum, inv) => sum + (inv.saleTotalAmount || inv.totalAmount || 0), 0);
 
       const allPayments = invoices.flatMap(inv =>
         (inv.payments || []).map(p => ({
@@ -686,21 +898,22 @@ export const fetchDashboardSummary = async () => {
             sales: []
           };
         }
-        const normalizedTotal = inv.totalAmount || 0;
+        // Use saleTotalAmount for full sale value
+        const normalizedTotal = inv.saleTotalAmount || inv.totalAmount || 0;
         customerMap[name].saleCount += 1;
         customerMap[name].totalSaleAmount += normalizedTotal;
         const paid = (inv.payments || []).reduce((sum, p) => sum + (p.amount || 0), 0);
         customerMap[name].totalPaid += paid;
-        customerMap[name].totalDue += Math.max(0, normalizedTotal - paid);
+                customerMap[name].totalDue += Math.max(0, (inv.totalAmount || 0) - paid);
         customerMap[name].sales.push({
           ...inv,
           id: inv.invoiceNumber || inv.id,
           proposalType: inv.services && inv.services[0] ? inv.services[0].name : 'Invoice',
           amount: inv.totalAmount,
-          baseAmount: inv.totalAmount,
+          baseAmount: normalizedTotal,
           paymentStatus: paid >= (inv.totalAmount || 0) ? 'Full Payment' : (paid > 0 ? 'Partial' : 'Pending'),
-          installments: 0,
-          paidInstallments: 0
+          installments: inv.installments?.length || 0,
+          paidInstallments: inv.installments?.filter(i => i.status === 'PAID').length || 0
         });
       });
       const customers = Object.values(customerMap);

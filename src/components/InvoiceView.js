@@ -2,19 +2,114 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { formatInvoiceAmount, PAYMENT_METHODS, COMPANY_INFO, getInvoice, updateInvoice, addServiceItem, updateServiceItem, removeServiceItem, addPayment, addInstallment, markInstallmentPaid, getInvoiceAuditLog, cancelInvoice, getCustomerInvoice, DEFAULT_CONTACT_DETAILS } from '../services/invoiceService';
 import { CURRENCIES } from '../services/currencyService';
+import { ROLES } from '../data/mockData';
 import html2pdf from 'html2pdf.js';
+import { encrypt, decrypt } from '../services/cryptoService';
+import { getActiveBackendUsers, getProjectClientDetails } from '../services/assignmentService';
 
-const InvoiceView = ({ invoiceId, onClose }) => {
-  const { currentUser } = useApp();
+const InvoiceView = ({ invoiceId, onClose, initialEditMode = false }) => {
+  const { currentUser, allProjects, allSales, allLeads, createProject, updateProject, addNotification, allUsers, refreshInvoices } = useApp();
   const [invoice, setInvoice] = useState(null);
   const [editedInvoice, setEditedInvoice] = useState(null);
-  const [editMode, setEditMode] = useState('view');
+  const [editMode, setEditMode] = useState(initialEditMode ? 'edit' : 'view');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState('');
   const [auditLog, setAuditLog] = useState([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showInstallmentModal, setShowInstallmentModal] = useState(false);
+  const [showAssignProject, setShowAssignProject] = useState(false);
   const [newService, setNewService] = useState({ name: '', description: '', duration: 'Monthly', quantity: 1, unitPrice: 0 });
   const [newPayment, setNewPayment] = useState({ amount: 0, method: 'stripe', notes: '' });
   const [newInstallment, setNewInstallment] = useState({ dueDate: '', amount: 0, method: 'stripe' });
+
+  // Assignment states
+  const [availableBackendUsers, setAvailableBackendUsers] = useState([]);
+  const [isFetchingBackend, setIsFetchingBackend] = useState(false);
+  const [clientDetails, setClientDetails] = useState(null);
+  const [isFetchingClient, setIsFetchingClient] = useState(false);
+  const [assignmentSuccess, setAssignmentSuccess] = useState('');
+
+  const [assignForm, setAssignForm] = useState({
+    assignedTo: '',
+    assignedToName: '',
+    googleProfileLink: '',
+    websiteLink: '',
+    wpUrl: '',
+    wpUsername: '',
+    wpPassword: '',
+    domainProvider: '',
+    domainUsername: '',
+    domainPassword: '',
+    cpanelUser: '',
+    cpanelPass: '',
+    facebookPage: '',
+    fbUsername: '',
+    fbPassword: '',
+    instagramUsername: '',
+    instagramPassword: '',
+    youtubeChannel: '',
+    ytUsername: '',
+    ytPassword: '',
+    gmailAcc: '',
+    gmailPassword: '',
+  });
+  const [showPassword, setShowPassword] = useState({});
+
+  useEffect(() => {
+    if (showAssignProject && invoice) {
+      setAssignmentSuccess('');
+      setIsFetchingBackend(true);
+      setIsFetchingClient(true);
+
+      getActiveBackendUsers()
+        .then(users => {
+          setAvailableBackendUsers(users);
+          setIsFetchingBackend(false);
+        })
+        .catch(err => {
+          console.error('Failed to fetch backend users', err);
+          setIsFetchingBackend(false);
+        });
+
+      getProjectClientDetails(invoice.id)
+        .then(details => {
+          setClientDetails(details);
+          setIsFetchingClient(false);
+        })
+        .catch(err => {
+          console.error('Failed to fetch client details', err);
+          setIsFetchingClient(false);
+        });
+
+      const existingProject = allProjects?.find(p => p.saleId === invoice.saleId);
+      if (existingProject) {
+        setAssignForm({
+          assignedTo: existingProject.assignedTo || '',
+          assignedToName: existingProject.assignedToName || '',
+          googleProfileLink: existingProject.googleProfileLink || '',
+          websiteLink: existingProject.websiteLink || '',
+          wpUrl: existingProject.wpUrl || '',
+          wpUsername: existingProject.wpUsername || '',
+          wpPassword: existingProject.wpPassword ? decrypt(existingProject.wpPassword) : '',
+          domainProvider: existingProject.domainRegistrar || '',
+          domainUsername: existingProject.domainUsername || '',
+          domainPassword: existingProject.domainPassword ? decrypt(existingProject.domainPassword) : '',
+          cpanelUser: existingProject.cpanelUser || '',
+          cpanelPass: existingProject.cpanelPass ? decrypt(existingProject.cpanelPass) : '',
+          facebookPage: existingProject.facebookPage || '',
+          fbUsername: existingProject.fbUsername || '',
+          fbPassword: existingProject.fbPassword ? decrypt(existingProject.fbPassword) : '',
+          instagramUsername: existingProject.instagramUsername || '',
+          instagramPassword: existingProject.instagramPassword ? decrypt(existingProject.instagramPassword) : '',
+          youtubeChannel: existingProject.youtubeChannel || '',
+          ytUsername: existingProject.ytUsername || '',
+          ytPassword: existingProject.ytPassword ? decrypt(existingProject.ytPassword) : '',
+          gmailAcc: existingProject.gmailAcc || '',
+          gmailPassword: existingProject.gmailPassword ? decrypt(existingProject.gmailPassword) : '',
+        });
+      }
+    }
+  }, [showAssignProject, invoice, allProjects]);
 
   const canEdit = ['Accounts', 'Admin', 'Sales Agent'].includes(currentUser?.role);
   const isAccounts = ['Accounts', 'Admin'].includes(currentUser?.role);
@@ -24,8 +119,11 @@ const InvoiceView = ({ invoiceId, onClose }) => {
     setInvoice(inv);
     if (inv) {
       setAuditLog(getInvoiceAuditLog(invoiceId));
+      if (initialEditMode) {
+        setEditedInvoice(JSON.parse(JSON.stringify(inv)));
+      }
     }
-  }, [invoiceId]);
+  }, [invoiceId, initialEditMode]);
 
   if (!invoice) {
     return (
@@ -44,25 +142,26 @@ const InvoiceView = ({ invoiceId, onClose }) => {
   }
 
   const recalculateLocalTotals = (invoiceCopy) => {
-    // 🔒 STRICT COPY ARCHITECTURE - NO CALCULATIONS ALLOWED
-    const lockedTotal = invoiceCopy.lockedTotal !== undefined ? invoiceCopy.lockedTotal : invoiceCopy.totalAmount || 0;
+    const subtotal = invoiceCopy.services.reduce((sum, s) => sum + ((parseFloat(s.quantity) || 0) * (parseFloat(s.unitPrice) || 0)), 0);
+    const taxAmount = invoiceCopy.services.reduce((sum, s) => sum + (((parseFloat(s.quantity) || 0) * (parseFloat(s.unitPrice) || 0) * (parseFloat(s.taxRate) || 0)) / 100), 0);
+    const discountAmount = parseFloat(invoiceCopy.amountSummary?.discountAmount) || 0;
+    const additionalChargesTotal = (invoiceCopy.amountSummary?.additionalCharges || []).reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0);
+    
+    const grandTotal = Math.max(0, subtotal + taxAmount + additionalChargesTotal - discountAmount);
 
     invoiceCopy.amountSummary = {
       ...invoiceCopy.amountSummary,
-      subtotal: lockedTotal,
-      discountAmount: 0,
-      afterDiscount: lockedTotal,
-      taxAmount: 0,
-      additionalChargesTotal: 0,
-      grandTotal: lockedTotal,
+      subtotal,
+      discountAmount,
+      taxAmount,
+      additionalChargesTotal,
+      grandTotal,
     };
-    invoiceCopy.totalAmount = lockedTotal;
-    invoiceCopy.dueAmount = Math.max(0, lockedTotal - invoiceCopy.paidAmount);
+    invoiceCopy.totalAmount = grandTotal;
+    invoiceCopy.dueAmount = Math.max(0, grandTotal - (invoiceCopy.paidAmount || 0));
     
-    if (invoiceCopy.dueAmount > 0) {
-      invoiceCopy.paymentLink = `https://checkout.stripe.com/pay/${invoiceCopy.id}?amount=${Math.round(invoiceCopy.dueAmount * 100)}`;
-    } else {
-      invoiceCopy.paymentLink = null;
+    if (invoiceCopy.dueAmount <= 0) {
+      invoiceCopy.stripe_payment_link_url = null;
     }
     return invoiceCopy;
   };
@@ -144,10 +243,12 @@ ${safeInvoice.dueAmount > 0 ? `
   <strong>Due Date: ${safeInvoice.invoiceInfo.dueDate}</strong>
 </div>
 <p>
-  <strong>Pay Now:</strong><br/>
-  <a href="${safeInvoice.paymentLink}">
-    Complete your payment securely via Stripe
+  <strong>Pay Now — ${dueFormatted}:</strong><br/>
+  <a href="${safeInvoice.stripe_payment_link_url || '#'}">
+    Complete your payment securely via Stripe Payment Link
   </a>
+  <br/>
+  <small style="color: #666;">This link expires in 30 days.</small>
 </p>
 ` : '<p>This invoice is fully paid. Thank you!</p>'}
 
@@ -176,8 +277,11 @@ ${safeInvoice.dueAmount > 0 ? `
     const updatedServices = editedInvoice.services.map(s => {
       if (s.id === id) {
         const updated = { ...s, [field]: value };
-        if (field === 'quantity' || field === 'unitPrice') {
-          updated.total = (parseFloat(updated.quantity) || 0) * (parseFloat(updated.unitPrice) || 0);
+        if (['quantity', 'unitPrice', 'taxRate'].includes(field)) {
+          const qty = parseFloat(updated.quantity) || 0;
+          const price = parseFloat(updated.unitPrice) || 0;
+          const tax = parseFloat(updated.taxRate) || 0;
+          updated.total = qty * price * (1 + tax / 100);
         }
         return updated;
       }
@@ -193,10 +297,13 @@ ${safeInvoice.dueAmount > 0 ? `
 
   const handleAddServiceLocal = () => {
     if (!newService.name || !newService.unitPrice) return;
-    const service = { ...newService, id: `svc_${Date.now()}`, total: (parseFloat(newService.quantity) || 0) * (parseFloat(newService.unitPrice) || 0) };
+    const qty = parseFloat(newService.quantity) || 0;
+    const price = parseFloat(newService.unitPrice) || 0;
+    const tax = parseFloat(newService.taxRate) || 0;
+    const service = { ...newService, id: `svc_${Date.now()}`, total: qty * price * (1 + tax / 100) };
     const updatedServices = [...editedInvoice.services, service];
     setEditedInvoice(prev => recalculateLocalTotals({ ...prev, services: updatedServices }));
-    setNewService({ name: '', description: '', duration: 'Monthly', quantity: 1, unitPrice: 0 });
+    setNewService({ name: '', description: '', duration: 'Monthly', quantity: 1, unitPrice: 0, taxRate: 0 });
   };
 
   const handleSave = () => {
@@ -204,22 +311,44 @@ ${safeInvoice.dueAmount > 0 ? `
       window.alert('Business name is required');
       return;
     }
-    const updated = updateInvoice(invoice.id, editedInvoice, currentUser?.name);
-    if (updated) {
-      setInvoice(updated);
-      setAuditLog(getInvoiceAuditLog(invoice.id));
-      setEditMode('view');
-    }
+    
+    setIsSaving(true);
+    // Simulate save delay for UI/UX
+    setTimeout(() => {
+      try {
+        const updated = updateInvoice(invoice.id, editedInvoice, currentUser?.name);
+        if (updated) {
+          setInvoice(updated);
+          setAuditLog(getInvoiceAuditLog(invoice.id));
+          setEditMode('view');
+          setSaveSuccess('Invoice saved successfully!');
+          setTimeout(() => setSaveSuccess(''), 3000);
+        }
+      } catch (err) {
+        window.alert('Save failed: ' + err.message);
+      } finally {
+        setIsSaving(false);
+      }
+    }, 600);
   };
 
   const handleAddPayment = () => {
     if (!newPayment.amount || newPayment.amount <= 0) return;
-    const updated = addPayment(invoice.id, newPayment, currentUser?.name);
+    
+    let updated;
+    if (invoice.installments && invoice.installments.length > 0) {
+      const currentInst = invoice.installments[0];
+      updated = markInstallmentPaid(invoice.id, currentInst.id, newPayment, currentUser?.name);
+    } else {
+      updated = addPayment(invoice.id, newPayment, currentUser?.name);
+    }
+
     if (updated) {
       setInvoice(updated);
       setAuditLog(getInvoiceAuditLog(invoice.id));
       setShowPaymentModal(false);
       setNewPayment({ amount: 0, method: 'stripe', notes: '' });
+      if (refreshInvoices) refreshInvoices();
     }
   };
 
@@ -234,11 +363,35 @@ ${safeInvoice.dueAmount > 0 ? `
     }
   };
 
+  // Installment progress calculation
+  const installmentProgress = (() => {
+    if (invoice.installments.length === 0) return null;
+    const saleTotal = invoice.saleTotalAmount || invoice.totalAmount;
+    const paidAmount = invoice.installments
+      .filter(i => i.status === 'PAID')
+      .reduce((sum, i) => sum + (i.paidAmount || i.amount), 0);
+    const remainingAmount = Math.max(0, saleTotal - paidAmount);
+    const paidCount = invoice.installments.filter(i => i.status === 'PAID').length;
+    const totalCount = invoice.installments.length;
+    const nextDue = invoice.installments.find(i => i.status !== 'PAID');
+    const progressPercent = saleTotal > 0 ? (paidAmount / saleTotal) * 100 : 0;
+    return { saleTotal, paidAmount, remainingAmount, paidCount, totalCount, nextDue, progressPercent };
+  })();
+
   const handlePayInstallment = (installmentId) => {
-    const updated = markInstallmentPaid(invoice.id, installmentId, { amount: newInstallment.amount || 0, method: newInstallment.method }, currentUser?.name);
+    const inst = invoice.installments.find(i => i.id === installmentId);
+    if (!inst) return;
+    
+    // Use a default method if newInstallment.method is not set
+    const method = newInstallment.method || 'stripe';
+    
+    const updated = markInstallmentPaid(invoice.id, installmentId, { amount: inst.amount, method }, currentUser?.name);
     if (updated) {
       setInvoice(updated);
       setAuditLog(getInvoiceAuditLog(invoice.id));
+      setSaveSuccess(`Installment ${inst.installment_number} marked as paid!`);
+      setTimeout(() => setSaveSuccess(''), 3000);
+      if (refreshInvoices) refreshInvoices();
     }
   };
 
@@ -265,19 +418,29 @@ ${safeInvoice.dueAmount > 0 ? `
     <div className="modal-overlay">
       <div className="modal modal-xl" style={{ maxWidth: '900px', maxHeight: '90vh', overflow: 'auto' }}>
         <div className="modal-header">
-          <div className="modal-title">
-            🧾 Invoice {invoice.invoiceNumber}
-            <span className={`badge ${getStatusBadge(invoice.status)}`} style={{ marginLeft: 12 }}>
-              {invoice.status}
-            </span>
+          <div className="modal-title" style={{ display: 'flex', alignItems: 'center' }}>
+            🧾 Invoice 
+            {editMode === 'edit' ? (
+              <input className="form-control" style={{ marginLeft: 8, width: 120, fontSize: 16, fontWeight: 'bold' }} value={editedInvoice.invoiceNumber || editedInvoice.id} onChange={e => setEditedInvoice(p => ({ ...p, invoiceNumber: e.target.value }))} />
+            ) : (
+              <span style={{ marginLeft: 8 }}>{invoice.invoiceNumber || invoice.id}</span>
+            )}
+            {editMode !== 'edit' && (
+              <span className={`badge ${getStatusBadge(invoice.status)}`} style={{ marginLeft: 12 }}>
+                {invoice.status}
+              </span>
+            )}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             {canEdit && invoice.status !== 'CANCELLED' && (
               <>
                 {editMode === 'edit' ? (
                   <>
-                    <button className="btn btn-sm btn-success" onClick={handleSave}>💾 Save</button>
-                    <button className="btn btn-sm btn-ghost" onClick={() => setEditMode('view')}>✕ Cancel</button>
+                    <button className="btn btn-sm btn-success" onClick={handleSave} disabled={isSaving}>
+                      {isSaving ? <span className="spinner" style={{ marginRight: 8 }}>🔄</span> : '💾 '}
+                      {isSaving ? 'Saving...' : 'Save'}
+                    </button>
+                    <button className="btn btn-sm btn-ghost" onClick={() => setEditMode('view')} disabled={isSaving}>✕ Cancel</button>
                   </>
                 ) : (
                   <button className="btn btn-sm btn-outline" onClick={() => { setEditMode('edit'); setEditedInvoice(JSON.parse(JSON.stringify(invoice))); }}>✏️ Edit</button>
@@ -293,6 +456,14 @@ ${safeInvoice.dueAmount > 0 ? `
                 <button className="btn btn-sm" style={{ background: '#635BFF', color: 'white', border: 'none' }}>💳 Pay Now</button>
               </a>
             )}
+            {['FULL', 'PARTIAL', 'Paid'].includes(invoice.status) && (() => {
+              const sale = allSales?.find(s => s.id === invoice.saleId);
+              const project = allProjects?.find(p => p.saleId === invoice.saleId);
+              const isAssigned = project?.assignedTo && project.assignedTo !== null && project.assignedToName !== 'Unassigned';
+              return !isAssigned ? (
+                <button className="btn btn-sm btn-primary" onClick={() => setShowAssignProject(true)}>👨‍💻 Assign Project</button>
+              ) : null;
+            })()}
             <button className="btn btn-icon btn-ghost" onClick={onClose}>✕</button>
           </div>
         </div>
@@ -325,7 +496,13 @@ ${safeInvoice.dueAmount > 0 ? `
               )}
             </div>
 
-            {/* Client Details */}
+            {saveSuccess && (
+            <div style={{ padding: 12, background: 'var(--success-light)', color: 'var(--success)', borderRadius: 8, marginBottom: 16, fontWeight: 600 }}>
+              ✅ {saveSuccess}
+            </div>
+          )}
+
+          {/* Client Details */}
             <div>
               <h4 style={{ marginBottom: 8, fontSize: 12, color: 'var(--text-muted)' }}>BILL TO</h4>
               {editMode === 'edit' ? (
@@ -337,7 +514,7 @@ ${safeInvoice.dueAmount > 0 ? `
                   <input className="form-control" style={{ marginBottom: 4, fontSize: 12 }} placeholder="Address Line 1" value={editedInvoice.client.addressLine1} onChange={e => handleClientChange('addressLine1', e.target.value)} />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginBottom: 4 }}>
                     <input className="form-control" style={{ fontSize: 12 }} placeholder="City" value={editedInvoice.client.city} onChange={e => handleClientChange('city', e.target.value)} />
-                    <input className="form-control" style={{ fontSize: 12 }} placeholder="State / County" value={editedInvoice.client.state} onChange={e => handleClientChange('state', e.target.value)} />
+                    <input className="form-control" style={{ fontSize: 12 }} placeholder="Province / State" value={editedInvoice.client.state} onChange={e => handleClientChange('state', e.target.value)} />
                   </div>
                   <input className="form-control" style={{ fontSize: 12 }} placeholder="Country" value={editedInvoice.client.country} onChange={e => handleClientChange('country', e.target.value)} />
                 </>
@@ -360,8 +537,34 @@ ${safeInvoice.dueAmount > 0 ? `
             </div>
           </div>
 
+          {/* Sales Information */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 24, padding: 16, background: 'var(--bg-secondary)', borderRadius: 8 }}>
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Linked Sale</div>
+              {editMode === 'edit' ? (
+                <select className="form-control" style={{ fontSize: 13 }} value={editedInvoice.saleId || ''} onChange={e => setEditedInvoice(p => ({ ...p, saleId: parseInt(e.target.value) || null }))}>
+                  <option value="">No Linked Sale</option>
+                  {allSales?.map(s => <option key={s.id} value={s.id}>#{s.id} - {s.businessName}</option>)}
+                </select>
+              ) : (
+                <div style={{ fontWeight: 600 }}>{invoice.saleId ? `#${invoice.saleId} - ${allSales?.find(s => s.id === invoice.saleId)?.businessName || 'Unknown'}` : 'None'}</div>
+              )}
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Sales Agent</div>
+              {editMode === 'edit' ? (
+                <select className="form-control" style={{ fontSize: 13 }} value={editedInvoice.createdBy || ''} onChange={e => setEditedInvoice(p => ({ ...p, createdBy: parseInt(e.target.value) || null }))}>
+                  <option value="">Unassigned</option>
+                  {allUsers?.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                </select>
+              ) : (
+                <div style={{ fontWeight: 600 }}>{allUsers?.find(u => u.id === invoice.createdBy)?.name || 'System / Unassigned'}</div>
+              )}
+            </div>
+          </div>
+
           {/* Invoice Info */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24, padding: 16, background: 'var(--bg-secondary)', borderRadius: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 24, padding: 16, background: 'var(--bg-secondary)', borderRadius: 8 }}>
             <div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Invoice Date</div>
               {editMode === 'edit' ? (
@@ -389,6 +592,16 @@ ${safeInvoice.dueAmount > 0 ? `
               )}
             </div>
             <div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Status</div>
+              {editMode === 'edit' ? (
+                <select className="form-control" style={{ fontSize: 13 }} value={editedInvoice.status} onChange={e => setEditedInvoice(p => ({ ...p, status: e.target.value }))}>
+                  {['PENDING', 'PARTIAL', 'FULL', 'CANCELLED'].map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              ) : (
+                <div style={{ fontWeight: 600 }}>{invoice.status}</div>
+              )}
+            </div>
+            <div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Total Amount</div>
               <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--primary)' }}>
                 {formatInvoiceAmount(editMode === 'edit' ? editedInvoice.totalAmount : invoice.totalAmount, editMode === 'edit' ? editedInvoice.invoiceInfo.currency : invoice.invoiceInfo.currency)}
@@ -408,8 +621,9 @@ ${safeInvoice.dueAmount > 0 ? `
                   <th style={{ padding: '8px 12px', textAlign: 'left' }}>Duration</th>
                   <th style={{ padding: '8px 12px', textAlign: 'right' }}>Qty</th>
                   <th style={{ padding: '8px 12px', textAlign: 'right' }}>Unit Price</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'right' }}>Tax %</th>
                   <th style={{ padding: '8px 12px', textAlign: 'right' }}>Total</th>
-                  {isAccounts && editMode === 'edit' && <th style={{ padding: '8px 12px', width: 50 }}></th>}
+                  {canEdit && editMode === 'edit' && <th style={{ padding: '8px 12px', width: 50 }}></th>}
                 </tr>
               </thead>
               <tbody>
@@ -449,10 +663,17 @@ ${safeInvoice.dueAmount > 0 ? `
                         formatInvoiceAmount(service.unitPrice, invoice.invoiceInfo.currency)
                       )}
                     </td>
+                    <td style={{ padding: '12px', textAlign: 'right' }}>
+                      {editMode === 'edit' ? (
+                        <input className="form-control" type="number" style={{ textAlign: 'right' }} value={service.taxRate || 0} onChange={e => handleServiceChange(service.id, 'taxRate', e.target.value)} />
+                      ) : (
+                        `${service.taxRate || 0}%`
+                      )}
+                    </td>
                     <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700 }}>
                       {formatInvoiceAmount(service.total, (editMode === 'edit' ? editedInvoice : invoice).invoiceInfo.currency)}
                     </td>
-                    {isAccounts && editMode === 'edit' && (
+                    {canEdit && editMode === 'edit' && (
                       <td style={{ padding: '12px' }}>
                         <button className="btn btn-sm btn-ghost" onClick={() => handleServiceRemove(service.id)}>🗑️</button>
                       </td>
@@ -463,13 +684,14 @@ ${safeInvoice.dueAmount > 0 ? `
             </table>
 
             {/* Add Service Form */}
-            {isAccounts && editMode === 'edit' && (
+            {canEdit && editMode === 'edit' && (
               <div style={{ marginTop: 16, padding: 16, background: 'var(--bg-secondary)', borderRadius: 8 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: 8, alignItems: 'end' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr auto', gap: 8, alignItems: 'end' }}>
                   <input className="form-control" placeholder="Service name" value={newService.name} onChange={e => setNewService(p => ({ ...p, name: e.target.value }))} />
                   <input className="form-control" placeholder="Duration" value={newService.duration} onChange={e => setNewService(p => ({ ...p, duration: e.target.value }))} />
                   <input className="form-control" type="number" placeholder="Qty" value={newService.quantity} onChange={e => setNewService(p => ({ ...p, quantity: parseInt(e.target.value) || 1 }))} />
                   <input className="form-control" type="number" placeholder="Price" value={newService.unitPrice} onChange={e => setNewService(p => ({ ...p, unitPrice: parseFloat(e.target.value) || 0 }))} />
+                  <input className="form-control" type="number" placeholder="Tax %" value={newService.taxRate || ''} onChange={e => setNewService(p => ({ ...p, taxRate: parseFloat(e.target.value) || 0 }))} />
                   <button className="btn btn-success btn-sm" onClick={handleAddServiceLocal}>Add</button>
                 </div>
               </div>
@@ -482,6 +704,18 @@ ${safeInvoice.dueAmount > 0 ? `
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border-light)' }}>
                 <span>Subtotal</span>
                 <span>{formatInvoiceAmount((editMode === 'edit' ? editedInvoice : invoice).amountSummary.subtotal, (editMode === 'edit' ? editedInvoice : invoice).invoiceInfo.currency)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border-light)' }}>
+                <span>Tax</span>
+                <span>{formatInvoiceAmount((editMode === 'edit' ? editedInvoice : invoice).amountSummary.taxAmount, (editMode === 'edit' ? editedInvoice : invoice).invoiceInfo.currency)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border-light)' }}>
+                <span>Discount</span>
+                {editMode === 'edit' ? (
+                  <input className="form-control" type="number" style={{ width: 100, textAlign: 'right' }} value={editedInvoice.amountSummary.discountAmount || 0} onChange={e => handleAmountSummaryChange('discountAmount', parseFloat(e.target.value) || 0)} />
+                ) : (
+                  <span style={{ color: 'var(--danger)' }}>-{formatInvoiceAmount(invoice.amountSummary.discountAmount || 0, invoice.invoiceInfo.currency)}</span>
+                )}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', fontWeight: 700, fontSize: 16 }}>
@@ -503,20 +737,20 @@ ${safeInvoice.dueAmount > 0 ? `
           {editMode === 'edit' ? (
             <>
               <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Notes</div>
-                <textarea className="form-control" style={{ width: '100%', minHeight: 60, fontSize: 12 }} value={editedInvoice.notes} onChange={e => setEditedInvoice(p => ({ ...p, notes: e.target.value }))} />
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Notes</div>
+                <textarea className="form-control remark-textarea" style={{ width: '100%', minHeight: 60 }} value={editedInvoice.notes} onChange={e => setEditedInvoice(p => ({ ...p, notes: e.target.value }))} />
               </div>
               <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Terms</div>
-                <textarea className="form-control" style={{ width: '100%', minHeight: 40, fontSize: 12 }} value={editedInvoice.terms} onChange={e => setEditedInvoice(p => ({ ...p, terms: e.target.value }))} />
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Terms</div>
+                <textarea className="form-control remark-textarea" style={{ width: '100%', minHeight: 40 }} value={editedInvoice.terms} onChange={e => setEditedInvoice(p => ({ ...p, terms: e.target.value }))} />
               </div>
             </>
           ) : (
             <>
               {invoice.notes && (
-                <div style={{ marginBottom: 16, padding: 16, background: 'var(--bg-secondary)', borderRadius: 8 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Notes</div>
-                  <div style={{ fontSize: 12 }}>{invoice.notes}</div>
+                <div className="remark-item">
+                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Notes</div>
+                  <div className="remark-text">{invoice.notes}</div>
                 </div>
               )}
               {invoice.terms && (
@@ -525,6 +759,44 @@ ${safeInvoice.dueAmount > 0 ? `
                 </div>
               )}
             </>
+          )}
+
+          {/* Installment Info Block */}
+          {!['edit'].includes(editMode) && invoice.saleId && invoice.installments?.length > 0 && (
+            (() => {
+              const sale = allSales?.find(s => s.id === invoice.saleId);
+              if (!sale || !sale.installmentPlan || sale.installmentPlan.length <= 1) return null;
+              
+              const currentInst = invoice.installments[0];
+              const nextInst = sale.installmentPlan.find(i => i.installment_number === currentInst.installment_number + 1);
+              
+              const totalPaid = sale.installmentPlan.filter(i => i.status === 'paid').reduce((s, i) => s + i.amount, 0);
+              const remaining = Math.max(0, sale.totalAmount - totalPaid);
+              
+              return (
+                <div style={{ marginTop: '20px', padding: '16px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-secondary)' }}>
+                  <h4 style={{ margin: '0 0 12px 0', fontSize: 14, color: 'var(--primary)' }}>💳 Installment Details</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Progress</div>
+                      <div style={{ fontWeight: 600 }}>{currentInst.installment_number} of {sale.installmentPlan.length}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Current Due</div>
+                      <div style={{ fontWeight: 600 }}>{formatInvoiceAmount(currentInst.amount, invoice.invoiceInfo.currency)}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Next Due Date</div>
+                      <div style={{ fontWeight: 600 }}>{nextInst ? nextInst.due_date : 'None'}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Remaining Balance</div>
+                      <div style={{ fontWeight: 600, color: remaining > 0 ? 'var(--danger)' : 'var(--success)' }}>{formatInvoiceAmount(remaining, invoice.invoiceInfo.currency)}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()
           )}
 
           {/* Amount Due Highlight Block */}
@@ -540,18 +812,48 @@ ${safeInvoice.dueAmount > 0 ? `
           )}
 
           {/* Clickable PDF Payment Link (Only active in View Mode if Due Amount > 0) */}
-          {editMode !== 'edit' && invoice.dueAmount > 0 && invoice.paymentLink && (
+          {editMode !== 'edit' && invoice.dueAmount > 0 && invoice.stripe_payment_link_url && (
             <div style={{ marginTop: 24, padding: 16, background: 'var(--bg-secondary)', borderRadius: 8, textAlign: 'center' }}>
-              <p style={{ margin: '0 0 8px 0', fontSize: 16 }}><strong>Pay Now:</strong></p>
-              <a href={invoice.paymentLink} target="_blank" rel="noreferrer" style={{ color: '#0E5491', fontWeight: 'bold', fontSize: 14 }}>
-                Click here to complete your payment securely via Stripe
+              <p style={{ margin: '0 0 8px 0', fontSize: 16 }}><strong>💳 Pay via Stripe:</strong></p>
+              <a href={invoice.stripe_payment_link_url} target="_blank" rel="noreferrer" style={{ color: '#0E5491', fontWeight: 'bold', fontSize: 14 }}>
+                {invoice.stripe_payment_link_url}
               </a>
+              <div style={{ marginTop: 12 }}>
+                <button 
+                  className="btn btn-sm btn-outline" 
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('/api/stripe/payment-link', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          invoiceId: invoice.id,
+                          amount: invoice.totalAmount || invoice.amount,
+                          currency: 'USD',
+                          customerName: invoice.client?.businessName || invoice.leadName,
+                          customerEmail: invoice.client?.email || ''
+                        })
+                      });
+                      const data = await res.json();
+                      if (data.success) {
+                        const updated = updateInvoice(invoice.id, { stripe_payment_link_url: data.url, stripe_payment_link_id: data.id });
+                        setInvoice(updated);
+                        if (refreshInvoices) refreshInvoices();
+                      }
+                    } catch (e) {
+                      alert('Failed to regenerate link');
+                    }
+                  }}
+                >
+                  🔄 Regenerate Link
+                </button>
+              </div>
             </div>
           )}
 
           {/* Payment History */}
-          {invoice.payments.length > 0 && (
-            <div style={{ marginBottom: 24 }}>
+          {invoice.payments && invoice.payments.length > 0 && (
+            <div style={{ marginBottom: 24, marginTop: 24 }}>
               <h4 style={{ marginBottom: 12 }}>💳 Payment History</h4>
               <table style={{ width: '100%', fontSize: 12 }}>
                 <thead>
@@ -559,15 +861,17 @@ ${safeInvoice.dueAmount > 0 ? `
                     <th>Date</th>
                     <th>Amount</th>
                     <th>Method</th>
+                    <th>Transaction ID</th>
                     <th>Notes</th>
                   </tr>
                 </thead>
                 <tbody>
                   {invoice.payments.map(payment => (
                     <tr key={payment.id}>
-                      <td>{new Date(payment.paidAt).toLocaleDateString('en-IN')}</td>
+                      <td>{new Date(payment.paidAt || payment.date).toLocaleDateString('en-IN')}</td>
                       <td style={{ fontWeight: 600, color: 'var(--success)' }}>{formatInvoiceAmount(payment.amount, invoice.invoiceInfo.currency)}</td>
                       <td>{PAYMENT_METHODS.find(m => m.id === payment.method)?.name || payment.method}</td>
+                      <td>{payment.stripe_transaction_id || payment.transactionId || '—'}</td>
                       <td>{payment.notes || '—'}</td>
                     </tr>
                   ))}
@@ -576,10 +880,30 @@ ${safeInvoice.dueAmount > 0 ? `
             </div>
           )}
 
+
           {/* Installments */}
-          {invoice.installments.length > 0 && (
+          {invoice.installments.length > 0 && installmentProgress && (
             <div style={{ marginBottom: 24 }}>
-              <h4 style={{ marginBottom: 12 }}>📅 Installment Schedule</h4>
+              <h4 style={{ marginBottom: 12 }}>📅 Installment Plan</h4>
+
+              {/* Progress Bar */}
+              <div style={{ marginBottom: 16, padding: '12px 16px', background: 'var(--bg-secondary)', borderRadius: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
+                  <span><strong>Paid:</strong> {formatInvoiceAmount(installmentProgress.paidAmount, invoice.invoiceInfo.currency)} / {formatInvoiceAmount(installmentProgress.saleTotal, invoice.invoiceInfo.currency)}</span>
+                  <span><strong>Remaining:</strong> {formatInvoiceAmount(installmentProgress.remainingAmount, invoice.invoiceInfo.currency)}</span>
+                </div>
+                <div style={{ width: '100%', height: 8, background: '#e0e0e0', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ width: `${Math.min(installmentProgress.progressPercent, 100)}%`, height: '100%', background: 'var(--success)', transition: 'width 0.3s' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 12, color: 'var(--text-muted)' }}>
+                  <span>Progress: {installmentProgress.paidCount}/{installmentProgress.totalCount} installments paid</span>
+                  {installmentProgress.nextDue && (
+                    <span><strong>Next Due:</strong> {installmentProgress.nextDue.dueDate}</span>
+                  )}
+                </div>
+              </div>
+
+              <h4 style={{ marginBottom: 12 }}>Installment Schedule</h4>
               <table style={{ width: '100%', fontSize: 12 }}>
                 <thead>
                   <tr style={{ background: 'var(--bg-secondary)' }}>
@@ -737,6 +1061,303 @@ ${safeInvoice.dueAmount > 0 ? `
           </div>
         </div>
       )}
+
+      {showAssignProject && (() => {
+        const existingProject = allProjects?.find(p => p.saleId === invoice.saleId);
+        
+        const toggleShowPassword = (field) => {
+          setShowPassword(prev => ({ ...prev, [field]: !prev[field] }));
+        };
+
+        const handleAssignee = (userId) => {
+          const user = availableBackendUsers.find(u => u.id === parseInt(userId));
+          setAssignForm(p => ({ ...p, assignedTo: parseInt(userId), assignedToName: user?.name || '' }));
+        };
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          if (!assignForm.assignedTo) {
+            window.alert('Please select a Backend Staff');
+            return;
+          }
+
+          const projectData = {
+            ...existingProject,
+            assignedTo: assignForm.assignedTo,
+            assignedToName: assignForm.assignedToName,
+            status: 'In Progress',
+            // Pass full structured client snapshot as requested
+            client: clientDetails?.client || { name: 'N/A', phone: 'N/A', email: 'N/A' },
+            company: clientDetails?.company || { businessName: 'N/A', address: 'N/A', country: 'N/A', state: 'N/A' },
+            projectValue: clientDetails?.projectValue || 0,
+            assignedSalesAgent: clientDetails?.assignedSalesAgent || currentUser.id,
+            
+            googleProfileLink: assignForm.googleProfileLink,
+            websiteLink: assignForm.websiteLink,
+            wpUrl: assignForm.wpUrl,
+            wpUsername: assignForm.wpUsername,
+            wpPassword: assignForm.wpPassword ? encrypt(assignForm.wpPassword) : '',
+            domainRegistrar: assignForm.domainProvider,
+            domainUsername: assignForm.domainUsername,
+            domainPassword: assignForm.domainPassword ? encrypt(assignForm.domainPassword) : '',
+            cpanelUser: assignForm.cpanelUser,
+            cpanelPass: assignForm.cpanelPass ? encrypt(assignForm.cpanelPass) : '',
+            facebookPage: assignForm.facebookPage,
+            fbUsername: assignForm.fbUsername,
+            fbPassword: assignForm.fbPassword ? encrypt(assignForm.fbPassword) : '',
+            instagramUsername: assignForm.instagramUsername,
+            instagramPassword: assignForm.instagramPassword ? encrypt(assignForm.instagramPassword) : '',
+            youtubeChannel: assignForm.youtubeChannel,
+            ytUsername: assignForm.ytUsername,
+            ytPassword: assignForm.ytPassword ? encrypt(assignForm.ytPassword) : '',
+            gmailAcc: assignForm.gmailAcc,
+            gmailPassword: assignForm.gmailPassword ? encrypt(assignForm.gmailPassword) : '',
+          };
+
+          if (existingProject?.id) {
+            updateProject(existingProject.id, projectData);
+            
+            // Create notification for backend user
+            addNotification(
+              assignForm.assignedTo,
+              'Project Updated/Reassigned',
+              `Project updated: ${clientDetails?.businessName || 'Client Project'}`,
+              'project_assigned',
+              existingProject.id
+            );
+            
+            setAssignmentSuccess('Project assignment updated successfully!');
+            setTimeout(() => setShowAssignProject(false), 2000);
+          } else {
+            // Auto-create project if missing
+            const newProject = createProject({
+              ...projectData,
+              saleId: invoice.saleId,
+              leadId: invoice.leadId,
+              invoiceId: invoice.id,
+              projectName: `${clientDetails?.businessName || 'Client'} - ${invoice.proposalType || 'Project'}`,
+              startDate: new Date().toISOString().split('T')[0],
+              reports: [],
+            });
+
+            // Create notification for backend user
+            addNotification(
+              assignForm.assignedTo,
+              'New Project Assigned',
+              `You have been assigned a new project: ${clientDetails?.businessName || 'Client Project'}`,
+              'project_assigned',
+              newProject.id
+            );
+
+            setAssignmentSuccess('Project created and assigned to backend successfully!');
+            setTimeout(() => setShowAssignProject(false), 2000);
+          }
+        };
+
+        const PasswordField = ({ field, label, value }) => (
+          <div style={{ position: 'relative' }}>
+            <input
+              type={showPassword[field] ? 'text' : 'password'}
+              className="form-control"
+              value={value || ''}
+              onChange={e => setAssignForm(p => ({ ...p, [field]: e.target.value }))}
+              style={{ paddingRight: 40 }}
+            />
+            <button
+              type="button"
+              onClick={() => toggleShowPassword(field)}
+              style={{
+                position: 'absolute',
+                right: 8,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 14,
+              }}
+            >
+              {showPassword[field] ? '🙈' : '👁️'}
+            </button>
+          </div>
+        );
+
+        return (
+          <div className="modal-overlay" onClick={() => setShowAssignProject(false)}>
+            <div className="modal modal-lg" style={{ maxWidth: 800 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <div className="modal-title">👨‍💻 Assign Project</div>
+                <button className="btn btn-icon btn-ghost" onClick={() => setShowAssignProject(false)}>✕</button>
+              </div>
+              <form onSubmit={handleSubmit}>
+                <div className="modal-body" style={{ maxHeight: '70vh', overflow: 'auto' }}>
+                  {assignmentSuccess && (
+                    <div style={{ padding: 12, background: 'var(--success-light)', color: 'var(--success)', borderRadius: 8, marginBottom: 16, fontWeight: 600 }}>
+                      ✅ {assignmentSuccess}
+                    </div>
+                  )}
+                  
+                  <div style={{ background: 'var(--bg-secondary)', padding: 15, borderRadius: 8, marginBottom: 16 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 10 }}>👤 Client Details (Auto-fetched)</div>
+                    {isFetchingClient ? (
+                      <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)' }}>
+                        <span className="spinner" style={{ marginRight: 8 }}>🔄</span> Fetching client data...
+                      </div>
+                    ) : clientDetails ? (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 13 }}>
+                        <div><strong>Business:</strong> {clientDetails.businessName}</div>
+                        <div><strong>Contact:</strong> {clientDetails.clientName}</div>
+                        <div><strong>Email:</strong> {clientDetails.email}</div>
+                        <div><strong>Phone:</strong> {clientDetails.phone}</div>
+                        <div><strong>Country:</strong> {clientDetails.country}</div>
+                        <div><strong>Address:</strong> {clientDetails.address}</div>
+                        <div><strong>Lead Source:</strong> {clientDetails.leadSource}</div>
+                        <div><strong>Project Value:</strong> {formatInvoiceAmount(clientDetails.projectValue, invoice.invoiceInfo.currency)}</div>
+                      </div>
+                    ) : (
+                      <div style={{ color: 'var(--danger)', fontSize: 13 }}>⚠️ Unable to load client details. Proceed with caution.</div>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Assign To Team Member *</label>
+                    {isFetchingBackend ? (
+                      <div style={{ padding: 8, color: 'var(--text-muted)' }}>🔄 Loading available team members...</div>
+                    ) : (
+                      <select className="form-control" value={assignForm.assignedTo} onChange={e => handleAssignee(e.target.value)} required>
+                        <option value="">Select Team Member</option>
+                        {availableBackendUsers.length > 0 ? availableBackendUsers.map(user => (
+                          <option key={user.id} value={user.id}>{user.name} ({user.department || user.role}) - {user.status}</option>
+                        )) : (
+                          <option value="" disabled>No Team Members Available</option>
+                        )}
+                      </select>
+                    )}
+                  </div>
+
+                  <div style={{ background: 'var(--bg-secondary)', padding: 15, borderRadius: 8, marginBottom: 16 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 10 }}>🌐 Basic Links</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>Google Profile Link</label>
+                        <input className="form-control" value={assignForm.googleProfileLink} onChange={e => setAssignForm(p => ({ ...p, googleProfileLink: e.target.value }))} placeholder="https://..." />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>Website Link</label>
+                        <input className="form-control" value={assignForm.websiteLink} onChange={e => setAssignForm(p => ({ ...p, websiteLink: e.target.value }))} placeholder="https://..." />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-secondary)', padding: 15, borderRadius: 8, marginBottom: 16 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 10 }}>🌐 Website Details (WordPress)</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>WP URL</label>
+                        <input className="form-control" value={assignForm.wpUrl} onChange={e => setAssignForm(p => ({ ...p, wpUrl: e.target.value }))} placeholder="https://example.com/wp-admin" />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        <div>
+                          <label style={{ fontSize: 11, fontWeight: 600 }}>WP Username</label>
+                          <input className="form-control" value={assignForm.wpUsername} onChange={e => setAssignForm(p => ({ ...p, wpUsername: e.target.value }))} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 11, fontWeight: 600 }}>WP Password</label>
+                          <PasswordField field="wpPassword" label="WP Password" value={assignForm.wpPassword} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-secondary)', padding: 15, borderRadius: 8, marginBottom: 16 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 10 }}>📡 Domain Details</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>Provider</label>
+                        <input className="form-control" value={assignForm.domainProvider} onChange={e => setAssignForm(p => ({ ...p, domainProvider: e.target.value }))} placeholder="GoDaddy, Namecheap, etc." />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>Username</label>
+                        <input className="form-control" value={assignForm.domainUsername} onChange={e => setAssignForm(p => ({ ...p, domainUsername: e.target.value }))} />
+                      </div>
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>Password</label>
+                        <PasswordField field="domainPassword" label="Domain Password" value={assignForm.domainPassword} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-secondary)', padding: 15, borderRadius: 8, marginBottom: 16 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 10 }}>🖥️ Hosting (cPanel)</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>Username</label>
+                        <input className="form-control" value={assignForm.cpanelUser} onChange={e => setAssignForm(p => ({ ...p, cpanelUser: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>Password</label>
+                        <PasswordField field="cpanelPass" label="cPanel Password" value={assignForm.cpanelPass} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-secondary)', padding: 15, borderRadius: 8, marginBottom: 16 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 10 }}>📱 Social Media Credentials</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>Facebook Page URL</label>
+                        <input className="form-control" value={assignForm.facebookPage} onChange={e => setAssignForm(p => ({ ...p, facebookPage: e.target.value }))} placeholder="fb.com/..." />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>FB Username</label>
+                        <input className="form-control" value={assignForm.fbUsername} onChange={e => setAssignForm(p => ({ ...p, fbUsername: e.target.value }))} />
+                      </div>
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>FB Password</label>
+                        <PasswordField field="fbPassword" label="FB Password" value={assignForm.fbPassword} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>Instagram Username</label>
+                        <input className="form-control" value={assignForm.instagramUsername} onChange={e => setAssignForm(p => ({ ...p, instagramUsername: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>Instagram Password</label>
+                        <PasswordField field="instagramPassword" label="Instagram Password" value={assignForm.instagramPassword} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>YouTube Channel</label>
+                        <input className="form-control" value={assignForm.youtubeChannel} onChange={e => setAssignForm(p => ({ ...p, youtubeChannel: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>YT Username</label>
+                        <input className="form-control" value={assignForm.ytUsername} onChange={e => setAssignForm(p => ({ ...p, ytUsername: e.target.value }))} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-secondary)', padding: 15, borderRadius: 8, marginBottom: 16 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 10 }}>📧 Google Access</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>Gmail ID</label>
+                        <input className="form-control" type="email" value={assignForm.gmailAcc} onChange={e => setAssignForm(p => ({ ...p, gmailAcc: e.target.value }))} placeholder="@gmail.com" />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 600 }}>Gmail Password</label>
+                        <PasswordField field="gmailPassword" label="Gmail Password" value={assignForm.gmailPassword} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-ghost" onClick={() => setShowAssignProject(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-primary">💾 Save Project Assignment</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

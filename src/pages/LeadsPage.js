@@ -5,7 +5,7 @@ import PhoneInput from '../components/PhoneInput';
 import CountryDropdown from '../components/CountryDropdown';
 import CurrencyDropdown from '../components/CurrencyDropdown';
 import { isValidE164, isSamePhone } from '../services/phoneService';
-import { DEFAULT_COUNTRY } from '../services/countryService';
+import { DEFAULT_COUNTRY, getCountryByCode, getCountryByName } from '../services/countryService';
 import { BASE_CURRENCY, convertCurrency, formatCurrencyAmount } from '../services/currencyService';
 
 const LeadForm = ({ lead, onClose, onSave }) => {
@@ -156,7 +156,7 @@ const LeadForm = ({ lead, onClose, onSave }) => {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">County / State</label>
+                <label className="form-label">Province / State</label>
                 <input className="form-control" value={form.county} onChange={e => handleChange('county', e.target.value)} placeholder="State/Region" />
               </div>
               <div className="form-group">
@@ -221,21 +221,21 @@ const RemarkModal = ({ lead, onClose }) => {
           <button className="btn btn-icon btn-ghost" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
-          <div style={{ marginBottom: 16, maxHeight: 200, overflowY: 'auto' }}>
+          <div style={{ marginBottom: 16, maxHeight: 240, overflowY: 'auto' }}>
             {lead.remarks?.map((r, i) => (
-              <div key={i} style={{ padding: '10px 12px', background: 'var(--bg-secondary)', borderRadius: 8, marginBottom: 8 }}>
-                <div style={{ fontSize: 13 }}>{r.text}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+              <div key={i} className="remark-item">
+                <div className="remark-text">{r.text}</div>
+                <div className="remark-meta">
                   {r.by} · {new Date(r.timestamp).toLocaleString('en-IN')}
                 </div>
               </div>
             ))}
             {(!lead.remarks || lead.remarks.length === 0) && (
-              <div style={{ color: 'var(--text-muted)', fontSize: 13, textAlign: 'center', padding: 20 }}>No remarks yet</div>
+              <div className="remark-empty">No remarks yet</div>
             )}
           </div>
           <form onSubmit={handleSubmit}>
-            <textarea className="form-control" value={text} onChange={e => setText(e.target.value)} placeholder="Write your remark..." rows={3} required />
+            <textarea className="form-control remark-textarea" value={text} onChange={e => setText(e.target.value)} placeholder="Write your remark..." rows={3} required />
             <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'flex-end' }}>
               <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
               <button type="submit" className="btn btn-primary">Add Remark</button>
@@ -457,28 +457,52 @@ const LeadsPage = () => {
 
 const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
   const { currentUser } = useApp();
-  const [currency, setCurrency] = useState({ code: 'USD', symbol: '$', name: 'US Dollar' });
+  const [currency, setCurrency] = useState({ code: 'EUR', symbol: '€', name: 'Euro' });
   const [proposals, setProposals] = useState([
-    { type: lead.proposalType || '', package: '', description: '', amount: '' }
+    { type: lead?.proposalType || '', package: '', description: '', amount: '', additionalNotes: '' }
   ]);
+
+  const getLeadCountry = () => {
+    if (lead?.countryCode) {
+      const country = getCountryByCode(lead.countryCode);
+      if (country) return { countryName: country.name, countryCode: country.code, dialCode: country.dialCode };
+    }
+    if (lead?.countryName) {
+      const country = getCountryByName(lead.countryName);
+      if (country) return { countryName: country.name, countryCode: country.code, dialCode: country.dialCode };
+    }
+    return { countryName: 'Ireland', countryCode: 'IE', dialCode: '+353' };
+  };
+
+  const leadCountry = getLeadCountry();
+
   const [form, setForm] = useState({
-    leadId: lead.id, leadName: lead.contactName, businessName: lead.businessName,
-    email: lead.email || '', ownerPhone: lead.ownerPhone || '',
-    addressLine1: lead.address || '',
-    city: lead.city || lead.targetArea || '',
-    state: lead.county || '',
-    country: lead.countryName || '',
-    countryCode: lead.countryCode || 'IE',
-    dialCode: lead.dialCode || '+353',
-    closedBy: currentUser.id, closedByName: currentUser.name,
-    saleStatus: 'Closed', paymentStatus: 'Full Payment',
-    invoiceStatus: 'Generated', installments: 1, paidInstallments: 0,
-    currencyCode: 'USD',
+    leadId: lead?.id || '',
+    leadName: lead?.contactName || '',
+    businessName: lead?.businessName || '',
+    email: lead?.email || '',
+    ownerPhone: lead?.ownerPhone || lead?.phone || '',
+    addressLine1: lead?.address || '',
+    city: lead?.city || lead?.targetArea || '',
+    state: lead?.county || lead?.state || '',
+    country: leadCountry.countryName,
+    countryCode: leadCountry.countryCode,
+    dialCode: leadCountry.dialCode,
+    closedBy: currentUser?.id,
+    closedByName: currentUser?.name,
+    saleStatus: 'Closed',
+    paymentStatus: 'Full Payment',
+    invoiceStatus: 'Generated',
+    installments: 1,
+    paidInstallments: 0,
+    currencyCode: 'EUR',
   });
+  const [installmentPlan, setInstallmentPlan] = useState([]);
+  const [installmentWarning, setInstallmentWarning] = useState('');
 
   const handleCurrencyChange = (curr) => {
     setCurrency(curr);
-    setForm(p => ({ ...p, currencyCode: curr?.code || 'USD' }));
+    setForm(p => ({ ...p, currencyCode: curr?.code || 'EUR' }));
   };
 
   const updateProposal = (index, field, value) => {
@@ -488,14 +512,78 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
   };
 
   const addProposal = () => {
-    setProposals([...proposals, { type: '', package: '', description: '', amount: '' }]);
+    setProposals([...proposals, { type: '', package: '', description: '', amount: '', additionalNotes: '' }]);
   };
 
   const removeProposal = (index) => {
     setProposals(proposals.filter((_, i) => i !== index));
   };
 
-  const totalSaleAmount = proposals.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+  const totalSaleAmount = Math.round(proposals.reduce((sum, p) => sum + (Number(p.amount || 0) * 100), 0)) / 100;
+
+  const generateInstallmentPlan = (count, total) => {
+    if (!count || count < 1 || count > 12 || !total) return [];
+    
+    // Convert to cents to avoid floating point issues
+    const totalCents = Math.round(Number(total) * 100);
+    const baseCents = Math.floor(totalCents / count);
+    let remainderCents = totalCents % count;
+    
+    const plan = [];
+    const today = new Date();
+    
+    for (let i = 0; i < count; i++) {
+      const dueDate = new Date(today);
+      dueDate.setMonth(today.getMonth() + i);
+      
+      // Add 1 cent from remainder to installments until remainder is zero
+      let currentAmountCents = baseCents;
+      if (remainderCents > 0) {
+        currentAmountCents += 1;
+        remainderCents -= 1;
+      }
+      
+      plan.push({
+        installment_number: i + 1,
+        amount: currentAmountCents / 100,
+        due_date: dueDate.toISOString().split('T')[0],
+        status: 'pending',
+      });
+    }
+    return plan;
+  };
+
+  const handleInstallmentCountChange = (count) => {
+    const num = parseInt(count) || 1;
+    setForm(p => ({ ...p, installments: num }));
+    if (num >= 1 && num <= 12 && totalSaleAmount > 0) {
+      setInstallmentPlan(generateInstallmentPlan(num, totalSaleAmount));
+      setInstallmentWarning('');
+    }
+  };
+
+  const updateInstallment = (index, field, value) => {
+    const updated = [...installmentPlan];
+    if (field === 'amount') {
+      updated[index].amount = Math.max(0, parseFloat(value) || 0);
+    } else if (field === 'due_date') {
+      updated[index].due_date = value;
+    }
+    setInstallmentPlan(updated);
+    
+    // Exact cent matching for validation
+    const planTotalCents = Math.round(updated.reduce((sum, inst) => sum + (inst.amount * 100), 0));
+    const targetCents = Math.round(totalSaleAmount * 100);
+    const diffCents = planTotalCents - targetCents;
+    
+    if (diffCents !== 0) {
+      const planTotal = planTotalCents / 100;
+      const absDiff = Math.abs(diffCents) / 100;
+      setInstallmentWarning(`⚠️ Total installment amount (${currency.symbol}${planTotal.toFixed(2)}) must equal ${currency.symbol}${totalSaleAmount.toFixed(2)} (Difference: ${currency.symbol}${absDiff.toFixed(2)})`);
+    } else {
+      setInstallmentWarning('');
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -511,6 +599,10 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
       window.alert("At least one proposal is required");
       throw new Error("At least one proposal is required");
     }
+    if (form.paymentStatus === 'Installments' && installmentWarning) {
+      window.alert(installmentWarning);
+      throw new Error("Installment total mismatch");
+    }
 
     const finalProposals = proposals.map(p => ({
       ...p,
@@ -519,11 +611,12 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
 
     onConvert({
       ...form,
-      proposalType: proposals[0].type, // legacy fallback
+      proposalType: proposals[0].type,
       amount: totalSaleAmount,
       totalAmount: Number(totalSaleAmount.toFixed(2)),
       currency: 'EUR',
       proposals: finalProposals,
+      installmentPlan: form.paymentStatus === 'Installments' ? installmentPlan : [],
     });
   };
 
@@ -566,12 +659,23 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
                   <input className="form-control" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} />
                 </div>
                 <div>
-                  <label style={{ fontSize: 11, fontWeight: 600 }}>State / County</label>
+                  <label style={{ fontSize: 11, fontWeight: 600 }}>Province / State</label>
                   <input className="form-control" value={form.state} onChange={e => setForm({ ...form, state: e.target.value })} />
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={{ fontSize: 11, fontWeight: 600 }}>Country *</label>
-                  <input className="form-control" value={form.country} onChange={e => setForm({ ...form, country: e.target.value })} required />
+                  <CountryDropdown
+                    value={{ countryCode: form.countryCode, countryName: form.country, dialCode: form.dialCode }}
+                    onChange={(countryData) => {
+                      setForm(p => ({
+                        ...p,
+                        country: countryData.countryName,
+                        countryCode: countryData.countryCode,
+                        dialCode: countryData.dialCode,
+                      }));
+                    }}
+                    required
+                  />
                 </div>
               </div>
             </div>
@@ -596,7 +700,7 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
                       <input className="form-control" placeholder="e.g. Premium" value={p.package} onChange={(e) => updateProposal(index, "package", e.target.value)} />
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                     <div>
                       <label style={{ fontSize: 11, fontWeight: 600 }}>Description</label>
                       <input className="form-control" placeholder="Short description" value={p.description} onChange={(e) => updateProposal(index, "description", e.target.value)} />
@@ -605,6 +709,10 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
                       <label style={{ fontSize: 11, fontWeight: 600 }}>Amount *</label>
                       <input className="form-control" type="number" min="0" placeholder="0" value={p.amount} onChange={(e) => updateProposal(index, "amount", e.target.value)} required />
                     </div>
+                  </div>
+                  <div style={{ marginTop: 8 }}>
+                    <label style={{ fontSize: 11, fontWeight: 600 }}>📝 Additional Notes / Custom Message</label>
+                    <textarea className="form-control" rows={2} placeholder="Personalized pitch, custom scope explanation, or special offers..." value={p.additionalNotes || ''} onChange={(e) => updateProposal(index, "additionalNotes", e.target.value)} />
                   </div>
                 </div>
               ))}
@@ -634,16 +742,46 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
 
             <div className="form-group">
               <label className="form-label">Payment Type</label>
-              <select className="form-control" value={form.paymentStatus} onChange={e => setForm(p => ({ ...p, paymentStatus: e.target.value }))}>
+              <select className="form-control" value={form.paymentStatus} onChange={e => { setForm(p => ({ ...p, paymentStatus: e.target.value })); if (e.target.value === 'Installments') { handleInstallmentCountChange(form.installments); } else { setInstallmentPlan([]); setInstallmentWarning(''); } }}>
                 <option>Full Payment</option>
                 <option>Installments</option>
               </select>
             </div>
             {form.paymentStatus === 'Installments' && (
-              <div className="form-group">
-                <label className="form-label">Number of Installments (1–12)</label>
-                <input className="form-control" type="number" min={1} max={12} value={form.installments} onChange={e => setForm(p => ({ ...p, installments: parseInt(e.target.value) }))} />
-              </div>
+              <>
+                <div className="form-group">
+                  <label className="form-label">Number of Installments (1–12)</label>
+                  <input className="form-control" type="number" min={1} max={12} value={form.installments} onChange={e => handleInstallmentCountChange(e.target.value)} />
+                </div>
+                {installmentPlan.length > 0 && totalSaleAmount > 0 && (
+                  <div style={{ background: 'var(--bg-secondary)', padding: 14, borderRadius: 8, marginBottom: 16 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 10, color: 'var(--primary)' }}>💳 Installment Schedule</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 1fr 80px', gap: 8, fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      <span>#</span>
+                      <span>Due Date</span>
+                      <span>Amount ({currency.symbol})</span>
+                      <span>Status</span>
+                    </div>
+                    {installmentPlan.map((inst, idx) => (
+                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 1fr 80px', gap: 8, alignItems: 'center', marginBottom: 6, padding: '6px 0', borderBottom: idx < installmentPlan.length - 1 ? '1px solid var(--border-light)' : 'none' }}>
+                        <span style={{ fontWeight: 600, fontSize: 13 }}>{inst.installment_number}</span>
+                        <input type="date" className="form-control" style={{ padding: '6px 8px', fontSize: 12 }} value={inst.due_date} onChange={e => updateInstallment(idx, 'due_date', e.target.value)} />
+                        <input type="number" className="form-control" style={{ padding: '6px 8px', fontSize: 12 }} min="0" step="0.01" value={inst.amount} onChange={e => updateInstallment(idx, 'amount', e.target.value)} />
+                        <span className="badge badge-warning" style={{ fontSize: 10, textAlign: 'center' }}>Pending</span>
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: '2px solid var(--border)', fontWeight: 700, fontSize: 13 }}>
+                      <span>Total:</span>
+                      <span style={{ color: installmentWarning ? 'var(--danger)' : 'var(--success)' }}>{currency.symbol}{installmentPlan.reduce((sum, i) => sum + i.amount, 0).toFixed(2)} / {currency.symbol}{totalSaleAmount.toFixed(2)}</span>
+                    </div>
+                    {installmentWarning && (
+                      <div style={{ marginTop: 8, padding: '8px 10px', background: 'var(--danger-light)', borderRadius: 6, fontSize: 12, color: 'var(--danger)', fontWeight: 500 }}>
+                        {installmentWarning}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </div>
           <div className="modal-footer">

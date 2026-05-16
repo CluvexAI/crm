@@ -1,0 +1,50 @@
+[
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<04544527-0776-cf55-d180-70851c43e7da@zsmeservices.com>",
+    "timestamp": "2026-05-13T12:16:28.882Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<ce9d6803-05f0-189f-fc25-ac23a52c5543@zsmeservices.com>",
+    "timestamp": "2026-05-13T12:19:17.597Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<b208e183-97c5-874a-0003-7c877f11de7c@zsmeservices.com>",
+    "timestamp": "2026-05-13T12:25:22.229Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "Hello this is trial",
+    "status": "failed",
+    "error": "No recipients defined",
+    "timestamp": "2026-05-15T13:14:01.784Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<568f0e5f-8ee5-f9ed-ddf7-9d649f61afea@zsmeservices.com>",
+    "timestamp": "2026-05-15T13:18:34.631Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzolvemarketings@gmail.com",
+    "status": "delivered",
+    "messageId": "<abc22b44-3390-56ac-bbb5-7cd3175df2e0@zsmeservices.com>",
+    "timestamp": "2026-05-16T06:06:37.537Z"
+  }
+]

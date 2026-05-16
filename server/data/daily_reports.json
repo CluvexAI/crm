@@ -1,0 +1,21 @@
+[
+  {
+    "id": "1778677723024_eqn2gmum7",
+    "userId": 6,
+    "department": "Graphics",
+    "reportDate": "2026-05-13",
+    "reportText": "Video Editing",
+    "locked": true,
+    "createdAt": "2026-05-13T13:08:43.024Z"
+  },
+  {
+    "id": "1778835808034_ck9ej2i9t",
+    "userId": 4,
+    "userName": "Arjun Nair",
+    "department": "Backend",
+    "reportDate": "2026-05-15",
+    "reportText": "Virus Removal",
+    "locked": true,
+    "createdAt": "2026-05-15T09:03:28.035Z"
+  }
+]

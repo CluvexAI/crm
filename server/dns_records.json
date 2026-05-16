@@ -1,0 +1,28 @@
+[
+  {
+    "id": "26626ef1-1b37-46e4-b96e-3f97bcf87038",
+    "admin_id": "admin",
+    "name": "crm.zsmeservices.com",
+    "type": "MX",
+    "priority": null,
+    "ttl": 14400,
+    "value": "mail.zsmeservices.com",
+    "status": "Verified",
+    "verified_at": "2026-05-12T12:48:12.552Z",
+    "created_at": "2026-05-11T12:17:11.367Z",
+    "updated_at": "2026-05-11T12:17:11.367Z"
+  },
+  {
+    "id": "4995f388-3da1-42b3-9655-235dd6d12ea0",
+    "admin_id": "admin",
+    "name": "crm.zsmeservices.com",
+    "type": "A",
+    "priority": null,
+    "ttl": 14400,
+    "value": "95.111.238.145",
+    "status": "Verified",
+    "verified_at": "2026-05-12T12:48:07.867Z",
+    "created_at": "2026-05-11T12:35:59.541Z",
+    "updated_at": "2026-05-11T12:35:59.541Z"
+  }
+]

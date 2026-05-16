@@ -22,23 +22,26 @@ export const PERMISSIONS = {
   UPLOAD_OWN_PROFILE_IMAGE: [                          // Self-update
     ROLES.ADMIN, ROLES.HR, ROLES.SALES, ROLES.BACKEND,
     ROLES.ACCOUNTS, ROLES.SUPPORT, ROLES.QUALITY, ROLES.TRAINEE,
+    ROLES.GRAPHICS_MANAGER, ROLES.GRAPHIC_DESIGNER,
+    ROLES.JUNIOR_GRAPHIC_DESIGNER, ROLES.VIDEO_EDITOR,
+    ROLES.MOTION_GRAPHIC_DESIGNER,
   ],
   UPLOAD_ANY_PROFILE_IMAGE: [ROLES.ADMIN],             // Admin can upload for anyone
-  REPLACE_PROFILE_IMAGE:    [ROLES.ADMIN],             // Admin can replace any
-  DELETE_PROFILE_IMAGE:     [ROLES.ADMIN],             // Admin can delete any
-  VIEW_PROFILE_IMAGE:       [                          // HR + Admin can view all
+  REPLACE_PROFILE_IMAGE: [ROLES.ADMIN],             // Admin can replace any
+  DELETE_PROFILE_IMAGE: [ROLES.ADMIN],             // Admin can delete any
+  VIEW_PROFILE_IMAGE: [                          // HR + Admin can view all
     ROLES.ADMIN, ROLES.HR,
   ],
 
   // General user data
-  VIEW_ALL_EMPLOYEES:       [ROLES.ADMIN, ROLES.HR],
-  EDIT_EMPLOYEE_PROFILE:    [ROLES.ADMIN],
-  DELETE_EMPLOYEE:          [ROLES.ADMIN],
-  VIEW_SENSITIVE_DATA:      [ROLES.ADMIN],             // Salary, Aadhaar, PAN unmasked
-  VIEW_AUDIT_LOGS:          [ROLES.ADMIN],
-  
+  VIEW_ALL_EMPLOYEES: [ROLES.ADMIN, ROLES.HR],
+  EDIT_EMPLOYEE_PROFILE: [ROLES.ADMIN, ROLES.HR],
+  DELETE_EMPLOYEE: [ROLES.ADMIN],
+  VIEW_SENSITIVE_DATA: [ROLES.ADMIN, ROLES.HR],             // Salary, Aadhaar, PAN unmasked
+  VIEW_AUDIT_LOGS: [ROLES.ADMIN],
+
   // Leads
-  DELETE_LEAD:              [ROLES.ADMIN, 'Sales Manager'],
+  DELETE_LEAD: [ROLES.ADMIN, 'Sales Manager'],
 };
 
 // ─── Guard Helpers ───────────────────────────────────────────────────────────

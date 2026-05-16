@@ -1,38 +1,76 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ROLES } from '../data/mockData';
+import { getTotalUnreadCount } from '../services/chatService';
 
 const navItems = [
   { id: 'dashboard', icon: '🏠', label: 'Dashboard', roles: ['all'] },
-  { id: 'leads', icon: '📞', label: 'Lead Management', roles: [ROLES.ADMIN, ROLES.SALES] },
-  { id: 'sales', icon: '💰', label: 'Sales', roles: [ROLES.ADMIN, ROLES.SALES, ROLES.ACCOUNTS] },
-  { id: 'invoices', icon: '🧾', label: 'Invoices', roles: [ROLES.ADMIN, ROLES.ACCOUNTS] },
-  { id: 'projects', icon: '🔄', label: 'Projects', roles: [ROLES.ADMIN, ROLES.BACKEND] },
+  { id: 'leads', icon: '📞', label: 'Lead Management', roles: [ROLES.ADMIN, ROLES.SALES], excludeDepts: ['Backend', 'HR', 'Support', 'Quality', 'Graphics'] },
+  { id: 'mycustomers', icon: '🤝', label: 'My Customers', roles: [ROLES.ADMIN, ROLES.SALES], excludeDepts: ['Backend', 'HR', 'Support', 'Quality', 'Graphics'] },
+  { id: 'sales', icon: '💰', label: 'Sales', roles: [ROLES.ADMIN, ROLES.SALES, ROLES.ACCOUNTS], excludeDepts: ['Backend', 'HR', 'Support', 'Quality', 'Graphics'] },
+  { id: 'invoices', icon: '🧾', label: 'Invoices', roles: [ROLES.ADMIN, ROLES.ACCOUNTS], excludeDepts: ['Backend', 'HR', 'Support', 'Quality', 'Graphics'] },
+  { id: 'projects', icon: '🔄', label: 'Projects', roles: [ROLES.ADMIN, ROLES.BACKEND, ROLES.GRAPHICS_MANAGER, ROLES.GRAPHIC_DESIGNER, ROLES.JUNIOR_GRAPHIC_DESIGNER, ROLES.VIDEO_EDITOR, ROLES.MOTION_GRAPHIC_DESIGNER] },
   { id: 'users', icon: '👥', label: 'User Management', roles: [ROLES.ADMIN] },
   { id: 'hr', icon: '🧑‍💼', label: 'HR Module', roles: [ROLES.ADMIN, ROLES.HR] },
   { id: 'attendance', icon: '📋', label: 'Attendance', roles: ['all'] },
   { id: 'chat', icon: '💬', label: 'Internal Chat', roles: ['all'] },
+  { id: 'email', icon: '📧', label: 'Email', roles: ['all'] },
+  { id: 'email_config', icon: '⚙️', label: 'Email Configuration', roles: [ROLES.ADMIN] },
   { id: 'audit', icon: '🔒', label: 'Audit Logs', roles: [ROLES.ADMIN] },
+  { id: 'reports', icon: '📊', label: 'Activity Reports', roles: ['all'], includeDepts: ['Backend', 'Support', 'Quality', 'Graphics', 'Account'] },
+  { id: 'activity_calendar', icon: '📅', label: 'Activity Calendar', roles: ['all'], excludeRoles: [ROLES.SALES] },
+  { id: 'settings', icon: '⚙️', label: 'Settings', roles: [ROLES.ADMIN] },
   { id: 'profile', icon: '👤', label: 'My Profile', roles: ['all'] },
 ];
 
 const Sidebar = () => {
-  const { currentUser, activePage, setActivePage, unreadMessages, allLeads, allSales } = useApp();
+  const { currentUser, activePage, setActivePage, unreadMessages, allLeads, allSales, myLeads, myCustomers } = useApp();
+  const [chatUnread, setChatUnread] = useState(0);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    const poll = () => setChatUnread(getTotalUnreadCount(currentUser.id));
+    poll();
+    const iv = setInterval(poll, 2000);
+    return () => clearInterval(iv);
+  }, [currentUser]);
 
   if (!currentUser) return null;
 
+  const isAdmin = currentUser.role === ROLES.ADMIN;
   const canAccess = (item) => {
-    if (item.roles[0] === 'all') return true;
-    return item.roles.includes(currentUser.role);
+    // 1. Role-based check
+    let roleOk = item.roles[0] === 'all' || item.roles.includes(currentUser.role);
+    if (!roleOk) return false;
+
+    // 1b. Exclude specific roles (e.g., Sales Agent)
+    if (item.excludeRoles && item.excludeRoles.includes(currentUser.role)) {
+      return false;
+    }
+
+    // 2. Department-based check (Lockdown/Inclusion)
+    if (item.excludeDepts && item.excludeDepts.includes(currentUser.department)) {
+      return false;
+    }
+    
+    if (item.includeDepts && !item.includeDepts.includes(currentUser.department) && currentUser.role !== ROLES.ADMIN) {
+      return false;
+    }
+
+    return true;
   };
 
-  const pendingLeads = allLeads.filter(l => l.status === 'New Lead' || l.status === 'Follow-Up').length;
-  const pendingSales = allSales.filter(s => s.saleStatus === 'Pending').length;
+  const pendingLeads = isAdmin 
+    ? allLeads.filter(l => l.status === 'New Lead' || l.status === 'Follow-Up').length 
+    : myLeads.filter(l => l.status === 'New Lead' || l.status === 'Follow-Up').length;
+  const pendingSales = isAdmin 
+    ? allSales.filter(s => s.saleStatus === 'Pending').length
+    : myCustomers.filter(s => s.saleStatus === 'Pending').length;
 
   const getBadge = (id) => {
     if (id === 'leads') return pendingLeads > 0 ? pendingLeads : null;
     if (id === 'sales') return pendingSales > 0 ? pendingSales : null;
-    if (id === 'chat') return unreadMessages > 0 ? unreadMessages : null;
+    if (id === 'chat') return (unreadMessages + chatUnread) > 0 ? unreadMessages + chatUnread : null;
     return null;
   };
 

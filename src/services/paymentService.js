@@ -48,8 +48,15 @@ export const aggregateCustomerPayments = (sales) => {
 
 const getPaymentRatio = (sale) => {
   if (sale.paymentStatus === 'Full Payment') return 1;
-  if (sale.paymentStatus === 'Installments' && sale.installments > 0) {
-    return (sale.paidInstallments || 0) / sale.installments;
+  if (sale.paymentStatus === 'Installments') {
+    const plan = sale.installmentPlan || [];
+    if (plan.length > 0) {
+      const paidCount = plan.filter(i => i.status === 'paid').length;
+      return plan.length > 0 ? paidCount / plan.length : 0;
+    }
+    if (sale.installments > 0) {
+      return (sale.paidInstallments || 0) / sale.installments;
+    }
   }
   return 0;
 };

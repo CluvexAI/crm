@@ -6,7 +6,10 @@ import { fetchDashboardSummary, markInvoicePaid, getCompanySettings, saveCompany
 import InvoiceView from '../components/InvoiceView';
 
 const SalesPage = () => {
-  const { allInvoices, updateInvoice, refreshInvoices, currentUser } = useApp();
+  const { allInvoices, myInvoices, updateInvoice, refreshInvoices, deleteInvoice, currentUser, myCustomers, allUsers, allSales, allLeads, allProjects } = useApp();
+  const isAdmin = currentUser?.role === 'Admin';
+  const displayInvoices = isAdmin ? allInvoices : myInvoices;
+  const displayCustomers = isAdmin ? [] : myCustomers;
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [companySettings, setCompanySettings] = useState(() => getCompanySettings());
@@ -28,27 +31,26 @@ const SalesPage = () => {
     totalSalesValue: 0,
     totalCollection: 0,
     totalDue: 0,
-    totalCustomers: 0,
     invoices: [],
-    allPayments: [],
-    customers: []
+    customers: [],
+    allPayments: []
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    setLoading(true);
-    fetchDashboardSummary().then(data => {
-      setStats(data);
-      setLoading(false);
-    });
-  }, [allInvoices]); // Recalculate whenever invoices change
-
-  const totalSalesValueEUR = stats.totalSalesValue;
-  const totalCollectedEUR = stats.totalCollection;
-  const totalDueEUR = stats.totalDue;
+  // Use consistent calculations matching Dashboard
+  const displaySales = isAdmin ? allSales : allSales.filter(s => s.createdBy === currentUser.id || s.closedBy === currentUser.id);
+  const totalSalesValueEUR = displaySales.reduce((sum, sale) => sum + (sale.totalAmount || sale.amount || 0), 0);
+  
+  // Total collected should use invoices or sales? Invoices represent actual money collected.
+  const totalCollectedEUR = displayInvoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0);
+  
+  // Total Due: this is all unpaid invoiced amounts PLUS pending un-invoiced installments.
+  // Instead of complex parsing, let's just use: Total Sale Value - Total Collected
+  const totalDueEUR = totalSalesValueEUR - totalCollectedEUR;
+  const totalCustomers = isAdmin ? (stats.totalCustomers || 0) : myCustomers.length;
 
   const getFilteredInvoices = () => {
-    let filtered = stats.invoices;
+    let filtered = displayInvoices;
     if (filter === 'due') {
       filtered = filtered.filter(inv => inv.dueAmount > 0);
     }
@@ -62,8 +64,9 @@ const SalesPage = () => {
   };
 
   const getFilteredPayments = () => {
-    if (!search) return stats.allPayments;
-    return stats.allPayments.filter(p =>
+    const allPayments = stats.allPayments || [];
+    if (!search) return allPayments;
+    return allPayments.filter(p =>
       (p.client || '').toLowerCase().includes(search.toLowerCase()) ||
       (p.invoiceNumber || '').toLowerCase().includes(search.toLowerCase())
     );
@@ -144,17 +147,19 @@ const SalesPage = () => {
         <div className="stat-card" style={{ cursor: 'pointer', outline: filter === 'customers' ? '2px solid var(--primary)' : 'none' }} onClick={() => setFilter('customers')}>
           <div className="stat-icon blue">👥</div>
           <div className="stat-info">
-            <div className="stat-value">{stats.totalCustomers}</div>
+            <div className="stat-value">{totalCustomers}</div>
             <div className="stat-label">Total Customers</div>
           </div>
         </div>
       </div>
 
-      {loading ? (
+      {loading && (
         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
           Syncing with invoice records...
         </div>
-      ) : (
+      )}
+
+      {!loading && (
         <>
           <div className="toolbar" style={{ marginBottom: 16 }}>
             <div className="search-bar">
@@ -163,7 +168,7 @@ const SalesPage = () => {
           </div>
 
           {filter === 'customers' && (
-            <CustomersTab customers={stats.customers} formatCurrency={formatDual} />
+            <CustomersTab customers={isAdmin ? stats.customers : myCustomers} formatCurrency={formatDual} />
           )}
 
           {filter === 'collected' && (
@@ -171,7 +176,7 @@ const SalesPage = () => {
           )}
 
           {['sales', 'due', 'all'].includes(filter) && (
-            <InvoicesTab allInvoices={getFilteredInvoices()} updateInvoice={updateInvoice} formatCurrency={formatDual} refreshInvoices={refreshInvoices} title={filter === 'due' ? '🧾 Unpaid Invoices' : '🧾 All Invoices'} currentUser={currentUser} />
+            <InvoicesTab allInvoices={getFilteredInvoices()} updateInvoice={updateInvoice} deleteInvoice={deleteInvoice} formatCurrency={formatDual} refreshInvoices={refreshInvoices} title={filter === 'due' ? '🧾 Unpaid Invoices' : '🧾 All Invoices'} currentUser={currentUser} allUsers={allUsers} allSales={allSales} allLeads={allLeads} allProjects={allProjects} />
           )}
         </>
       )}
@@ -454,11 +459,14 @@ const CustomerDetailView = ({ customer, formatCurrency, onClose }) => {
           <tbody>
             {customer.sales.map(sale => {
               const saleAmount = sale.baseAmount || sale.amount || 0;
+              const installmentPlan = sale.installmentPlan || [];
               const salePaid = sale.paymentStatus === 'Full Payment'
                 ? saleAmount
-                : sale.paymentStatus === 'Installments' && sale.installments > 0
-                  ? saleAmount * (sale.paidInstallments || 0) / sale.installments
-                  : 0;
+                : installmentPlan.length > 0
+                  ? installmentPlan.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0)
+                  : sale.installments > 0
+                    ? saleAmount * (sale.paidInstallments || 0) / sale.installments
+                    : 0;
               const saleDue = saleAmount - salePaid;
               return (
                 <tr key={sale.id}>
@@ -471,7 +479,10 @@ const CustomerDetailView = ({ customer, formatCurrency, onClose }) => {
                     <span className={`badge ${sale.paymentStatus === 'Full Payment' ? 'badge-success' : 'badge-warning'}`}>
                       {sale.paymentStatus}
                     </span>
-                    {sale.paymentStatus === 'Installments' && (
+                    {sale.paymentStatus === 'Installments' && installmentPlan.length > 0 && (
+                      <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{installmentPlan.filter(i => i.status === 'paid').length}/{installmentPlan.length} paid</div>
+                    )}
+                    {sale.paymentStatus === 'Installments' && (!installmentPlan || installmentPlan.length === 0) && (
                       <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{sale.paidInstallments}/{sale.installments} paid</div>
                     )}
                   </td>
@@ -495,8 +506,41 @@ const CustomerDetailView = ({ customer, formatCurrency, onClose }) => {
   );
 };
 
-const InvoicesTab = ({ allInvoices, updateInvoice, formatCurrency, refreshInvoices, title, currentUser }) => {
+const InvoicesTab = ({ allInvoices, updateInvoice, deleteInvoice, formatCurrency, refreshInvoices, title, currentUser, allUsers, allSales, allLeads, allProjects }) => {
   const [viewInvoice, setViewInvoice] = useState(null);
+  const [invoiceEditMode, setInvoiceEditMode] = useState(false);
+  const [generatingLink, setGeneratingLink] = useState(null);
+
+  const handleGenerateLink = async (inv) => {
+    setGeneratingLink(inv.id);
+    try {
+      const res = await fetch('/api/stripe/payment-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invoiceId: inv.id,
+          amount: inv.totalAmount || inv.amount,
+          currency: 'USD',
+          customerName: inv.client?.businessName || inv.leadName,
+          customerEmail: inv.client?.email || ''
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        updateInvoice(inv.id, { 
+          stripe_payment_link_url: data.url, 
+          stripe_payment_link_id: data.id 
+        });
+        if (refreshInvoices) refreshInvoices();
+      } else {
+        alert('Failed to generate link: ' + data.message);
+      }
+    } catch (err) {
+      alert('Error generating link');
+    }
+    setGeneratingLink(null);
+  };
+
 
   return (
     <>
@@ -521,27 +565,82 @@ const InvoicesTab = ({ allInvoices, updateInvoice, formatCurrency, refreshInvoic
                   <th>Generated</th>
                   <th>Due Date</th>
                   <th>Status</th>
+                  <th>Payment Link</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {allInvoices.map(inv => (
+                {allInvoices.map(inv => {
+                  // Calculate installment progress for display
+                  const hasInstallments = inv.installments && inv.installments.length > 0;
+                  const paidInstallments = hasInstallments ? inv.installments.filter(i => i.status === 'PAID').length : 0;
+                  const totalInstallments = hasInstallments ? inv.installments.length : 0;
+                  const nextDueInst = hasInstallments ? inv.installments.find(i => i.status !== 'PAID') : null;
+                  const saleTotal = inv.saleTotalAmount || inv.totalAmount;
+
+                  return (
                   <tr key={inv.id}>
                     <td><span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary)' }}>{inv.invoiceNumber || inv.id}</span></td>
                     <td style={{ fontWeight: 600 }}>{inv.client?.businessName || inv.leadName}</td>
-                    <td style={{ fontWeight: 700, color: 'var(--success)' }}>{formatCurrency(inv.totalAmount || inv.amount)}</td>
+                    <td>
+                      <div style={{ fontWeight: 700, color: 'var(--success)' }}>{formatCurrency(inv.totalAmount || inv.amount)}</div>
+                      {hasInstallments && (
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                          {paidInstallments}/{totalInstallments} paid
+                          {nextDueInst && <div>Next: {nextDueInst.dueDate}</div>}
+                        </div>
+                      )}
+                      {hasInstallments && saleTotal > inv.totalAmount && (
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Sale: {formatCurrency(saleTotal)}</div>
+                      )}
+                    </td>
                     <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{inv.invoiceInfo?.invoiceDate || inv.generatedDate}</td>
                     <td style={{ fontSize: 12, color: new Date(inv.invoiceInfo?.dueDate || inv.dueDate) < new Date() && !['Paid', 'FULL'].includes(inv.status) ? 'var(--danger)' : 'var(--text-muted)' }}>
                       {inv.invoiceInfo?.dueDate || inv.dueDate}
+                      {hasInstallments && (
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Inst. {inv.installments[0]?.installment_number || 1}</div>
+                      )}
                     </td>
                     <td>
                       <span className={`badge ${['Paid', 'FULL'].includes(inv.status) ? 'badge-success' : ['Cancelled', 'CANCELLED'].includes(inv.status) ? 'badge-danger' : 'badge-warning'}`}>
                         {inv.status}
                       </span>
+                      {hasInstallments && (
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+                          Installment Plan
+                        </div>
+                      )}
+                    </td>
+                    <td>
+                      {inv.stripe_payment_link_url ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <a href={inv.stripe_payment_link_url} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: 'var(--primary)', textDecoration: 'none' }}>🔗 View Link</a>
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            <button className="btn btn-sm btn-outline" style={{ fontSize: 10, padding: '2px 4px' }} onClick={() => navigator.clipboard.writeText(inv.stripe_payment_link_url)}>📋 Copy</button>
+                            <button className="btn btn-sm btn-primary" style={{ fontSize: 10, padding: '2px 4px' }}>📧 Send</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button 
+                          className="btn btn-sm btn-outline" 
+                          onClick={() => handleGenerateLink(inv)}
+                          disabled={generatingLink === inv.id}
+                        >
+                          {generatingLink === inv.id ? 'Generating...' : '💳 Generate Link'}
+                        </button>
+                      )}
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
-                        <button className="btn btn-sm btn-ghost" onClick={() => setViewInvoice(inv)}>👁 View</button>
+                        <button className="btn btn-sm btn-ghost" onClick={() => { setViewInvoice(inv); setInvoiceEditMode(false); }}>👁 View</button>
+                        <button className="btn btn-sm btn-primary" onClick={() => { setViewInvoice(inv); setInvoiceEditMode(true); }}>✏️ Edit</button>
+                        <button className="btn btn-sm btn-danger" onClick={() => {
+                          // eslint-disable-next-line no-alert
+                          if (window.confirm('Delete invoice ' + (inv.invoiceNumber || inv.id) + '?')) {
+                            deleteInvoice(inv.id);
+                            if (refreshInvoices) refreshInvoices();
+                          }
+                        }}>🗑️</button>
                         {['Pending', 'PENDING'].includes(inv.status) && (
                           <>
                             <button className="btn btn-sm btn-success" onClick={() => {
@@ -554,7 +653,8 @@ const InvoicesTab = ({ allInvoices, updateInvoice, formatCurrency, refreshInvoic
                       </div>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           )}
@@ -562,7 +662,11 @@ const InvoicesTab = ({ allInvoices, updateInvoice, formatCurrency, refreshInvoic
       </div>
 
       {viewInvoice && (
-        <InvoiceView invoiceId={viewInvoice.id} onClose={() => { setViewInvoice(null); if (refreshInvoices) refreshInvoices(); }} />
+        <InvoiceView 
+          invoiceId={viewInvoice.id} 
+          initialEditMode={invoiceEditMode}
+          onClose={() => { setViewInvoice(null); setInvoiceEditMode(false); if (refreshInvoices) refreshInvoices(); }}
+        />
       )}
     </>
   );

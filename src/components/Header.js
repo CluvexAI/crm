@@ -1,51 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { getMeetingDuration, formatMeetingDuration } from '../services/meetingService';
 
 const Header = ({ title, subtitle }) => {
-  const { currentUser, sessionStart, setActivePage, unreadMessages, startMeeting, endMeeting, getActiveMeeting } = useApp();
+  const { currentUser, sessionStart, setActivePage, unreadMessages, startMeeting, endMeeting, getActiveMeeting, getUnreadNotificationsCount, allNotifications, markNotificationRead, setActivePage: setPage } = useApp();
   const [now, setNow] = useState(new Date());
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [activeMeeting, setActiveMeeting] = useState(null);
   const [meetingSeconds, setMeetingSeconds] = useState(0);
+
+  const unreadNotifications = currentUser ? getUnreadNotificationsCount(currentUser.id) : 0;
+  const myNotifications = currentUser ? allNotifications.filter(n => n.userId === currentUser.id).slice(0, 10) : [];
+
+  // 🧪 DEBUG LOG (Requested in FIX 5)
+  useEffect(() => {
+    if (currentUser) {
+      console.log("Meeting State Updated:", !!activeMeeting);
+    }
+  }, [activeMeeting, currentUser]);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    if (currentUser) {
-      const active = getActiveMeeting();
-      if (active) {
-        setActiveMeeting(active);
-      }
-    } else {
-      setActiveMeeting(null);
-      setMeetingSeconds(0);
+  // Sync with global meeting state
+  const syncMeetingState = useCallback(() => {
+    if (!currentUser) return;
+    const active = getActiveMeeting();
+    // Only update if state actually changed to prevent loops
+    if (JSON.stringify(active) !== JSON.stringify(activeMeeting)) {
+      setActiveMeeting(active);
     }
-  }, [currentUser, getActiveMeeting]);
+  }, [currentUser, getActiveMeeting, activeMeeting]);
 
   useEffect(() => {
-    if (activeMeeting) {
+    syncMeetingState();
+    const interval = setInterval(syncMeetingState, 2000); // Periodic sync
+    return () => clearInterval(interval);
+  }, [syncMeetingState]);
+
+  // Meeting timer
+  useEffect(() => {
+    if (activeMeeting && activeMeeting.startTime) {
       setMeetingSeconds(getMeetingDuration(activeMeeting.startTime));
-      
       const interval = setInterval(() => {
-        const currentMeeting = getActiveMeeting();
-        if (currentMeeting) {
-          const duration = getMeetingDuration(currentMeeting.startTime);
-          setMeetingSeconds(duration);
-        } else {
-          setActiveMeeting(null);
-          setMeetingSeconds(0);
-        }
+        setMeetingSeconds(getMeetingDuration(activeMeeting.startTime));
       }, 1000);
-      
       return () => clearInterval(interval);
     } else {
       setMeetingSeconds(0);
     }
-  }, [activeMeeting, getActiveMeeting]);
+  }, [activeMeeting]);
 
   const formatTime = (date) => date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
   const formatDate = (date) => date.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
@@ -60,15 +67,20 @@ const Header = ({ title, subtitle }) => {
 
   const getInitials = (name) => name ? name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : 'U';
 
-  const handleMeetingToggle = () => {
-    if (activeMeeting) {
-      endMeeting();
-      setActiveMeeting(null);
-      setMeetingSeconds(0);
-    } else {
-      const meeting = startMeeting();
-      setActiveMeeting(meeting);
-    }
+  // 🧠 FIX 1: SEPARATE START AND END LOGIC (Requested)
+  const handleStartMeeting = () => {
+    if (activeMeeting) return; // Prevent double start
+    console.log("Action: Starting Meeting");
+    const meeting = startMeeting();
+    setActiveMeeting(meeting);
+  };
+
+  const handleEndMeeting = () => {
+    if (!activeMeeting) return; // Prevent double end
+    console.log("Action: Ending Meeting");
+    endMeeting();
+    setActiveMeeting(null);
+    setMeetingSeconds(0);
   };
 
   return (
@@ -92,6 +104,8 @@ const Header = ({ title, subtitle }) => {
           <div className="session-badge">
             ⏱ Session: {getSessionDuration()}
           </div>
+
+          {/* 🖥️ FIX 2: HEADER BUTTON LOGIC (Requested) */}
           {activeMeeting ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{
@@ -108,7 +122,7 @@ const Header = ({ title, subtitle }) => {
               </div>
               <button
                 className="btn btn-sm btn-danger"
-                onClick={handleMeetingToggle}
+                onClick={handleEndMeeting}
                 style={{ padding: '4px 10px', fontSize: 12 }}
               >
                 End Meeting
@@ -117,7 +131,7 @@ const Header = ({ title, subtitle }) => {
           ) : (
             <button
               className="btn btn-sm btn-outline"
-              onClick={handleMeetingToggle}
+              onClick={handleStartMeeting}
               style={{ padding: '4px 12px', fontSize: 12 }}
             >
               📹 Start Meeting
@@ -132,6 +146,64 @@ const Header = ({ title, subtitle }) => {
             <span className="notification-dot">{unreadMessages}</span>
           )}
         </button>
+
+        <button className="btn btn-icon btn-ghost" style={{ position: 'relative' }}
+          onClick={() => setShowNotifications(!showNotifications)}>
+          🔔
+          {unreadNotifications > 0 && (
+            <span className="notification-dot" style={{ background: 'var(--danger)' }}>{unreadNotifications}</span>
+          )}
+        </button>
+
+        {showNotifications && (
+          <div style={{
+            position: 'absolute',
+            top: 50,
+            right: 60,
+            background: 'white',
+            border: '1px solid var(--border-color)',
+            borderRadius: 8,
+            width: 320,
+            maxHeight: 400,
+            overflow: 'auto',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            zIndex: 1000,
+          }}>
+            <div style={{ padding: 12, borderBottom: '1px solid var(--border-light)', fontWeight: 600 }}>
+              🔔 Notifications
+            </div>
+            {myNotifications.length === 0 ? (
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)' }}>
+                No notifications
+              </div>
+            ) : (
+              myNotifications.map(n => (
+                <div
+                  key={n.id}
+                  style={{
+                    padding: 12,
+                    borderBottom: '1px solid var(--border-light)',
+                    background: n.isRead ? 'white' : '#f0f8ff',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => {
+                    markNotificationRead(n.id);
+                    if (n.type === 'project_assigned') {
+                      setPage('projects');
+                    }
+                    setShowNotifications(false);
+                  }}
+                >
+                  <div style={{ fontWeight: n.isRead ? 400 : 600, fontSize: 13 }}>{n.title}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{n.message}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                    {new Date(n.createdAt).toLocaleString()}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
         <div className="dropdown">
           <div className="avatar" onClick={() => setShowUserMenu(!showUserMenu)}>

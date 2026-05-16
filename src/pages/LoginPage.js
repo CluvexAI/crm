@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { ForgotPasswordModal, ResetPasswordPage } from '../components/ResetPasswordFlow';
 
 const LoginPage = () => {
   const { login } = useApp();
@@ -8,6 +9,18 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+
+  // Check URL params for reset token
+  const urlParams = new URLSearchParams(window.location.search);
+  const resetToken = urlParams.get('resetToken');
+  const resetUid   = urlParams.get('uid');
+  const [showReset, setShowReset] = useState(!!(resetToken && resetUid));
+
+  const handleResetBack = () => {
+    setShowReset(false);
+    window.history.replaceState({}, '', window.location.pathname);
+  };
 
   const demoUsers = [
     { email: 'admin@zsm.com', password: 'admin123', role: 'Admin', color: '#0E5491' },
@@ -15,22 +28,28 @@ const LoginPage = () => {
     { email: 'priya@zsm.com', password: 'priya123', role: 'HR Manager', color: '#f59e0b' },
     { email: 'arjun@zsm.com', password: 'arjun123', role: 'Backend User', color: '#8b5cf6' },
     { email: 'vikram@zsm.com', password: 'vikram123', role: 'Accounts', color: '#ef4444' },
+    { email: 'neha@zsm.com', password: 'neha123', role: 'Graphics Manager', color: '#ec4899' },
+    { email: 'rohan.d@zsm.com', password: 'rohan123', role: 'Graphic Designer', color: '#ec4899' },
+    { email: 'kavya@zsm.com', password: 'kavya123', role: 'Jr. Graphic Designer', color: '#ec4899' },
+    { email: 'arun.m@zsm.com', password: 'arun123', role: 'Video Editor', color: '#ec4899' },
+    { email: 'pooja@zsm.com', password: 'pooja123', role: 'Motion Graphic Designer', color: '#ec4899' },
   ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('[LoginPage] Submitting:', email, password);
     setLoading(true);
     setError('');
-    
     try {
       const result = await login(email, password);
+      console.log('[LoginPage] Result:', result);
       if (!result.success) {
         setError(result.error || 'Invalid email or password. Please try again.');
       }
     } catch (err) {
+      console.error('[LoginPage] Error:', err);
       setError('Login failed. Please try again.');
     }
-    
     setLoading(false);
   };
 
@@ -39,6 +58,10 @@ const LoginPage = () => {
     setPassword(u.password);
     setError('');
   };
+
+  if (showReset) {
+    return <ResetPasswordPage token={resetToken} uid={resetUid} onBack={handleResetBack} />;
+  }
 
   return (
     <div className="login-page">
@@ -108,6 +131,23 @@ const LoginPage = () => {
               </span>
             ) : 'Sign In →'}
           </button>
+
+          {/* Forgot Password — right-aligned, below Sign In */}
+          <div style={{ textAlign: 'right', marginTop: 10 }}>
+            <button
+              type="button"
+              onClick={() => setShowForgot(true)}
+              id="forgot-password-link"
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: '#667eea', fontSize: 13, fontWeight: 500, padding: 0,
+              }}
+              onMouseEnter={e => e.target.style.textDecoration = 'underline'}
+              onMouseLeave={e => e.target.style.textDecoration = 'none'}
+            >
+              Forgot Password?
+            </button>
+          </div>
         </form>
 
         <div style={{ marginTop: 24, borderTop: '1px solid var(--border-light)', paddingTop: 20 }}>
@@ -131,6 +171,8 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+
+      {showForgot && <ForgotPasswordModal onClose={() => setShowForgot(false)} />}
     </div>
   );
 };

@@ -66,7 +66,9 @@ export const isNewPasswordDifferent = async (newPassword, oldHashedPassword) => 
   }
 };
 
-// Check if password is already hashed
+// Check if password is already hashed (bcrypt hashes start with $2a$, $2b$, or $2y$)
 export const isPasswordHashed = (password) => {
-  return password?.startsWith('$2a$') || password?.startsWith('$2b$');
+  if (!password) return false;
+  // bcrypt hashes are 60 characters and start with $2[aby]$
+  return password.length === 60 && /^\$2[aby]\$\d{2}\$/.test(password);
 };

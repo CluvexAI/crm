@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { ROLES, DEPARTMENTS } from '../data/mockData';
+import { ROLES, DEPARTMENTS, DEPARTMENT_ROLES } from '../data/mockData';
 import ProfileImageUpload from '../components/ProfileImageUpload';
 import { can } from '../services/rbacService';
 
@@ -79,7 +79,7 @@ const EmployeeIdModal = ({ user, onClose }) => {
 };
 
 // ── User Detail Modal ──────────────────────────────────────────────────────────
-const UserDetailModal = ({ user, onClose }) => {
+export const UserDetailModal = ({ user, onClose }) => {
   const { currentUser, rbac } = useApp();
   const canViewSensitive = can(currentUser, 'VIEW_SENSITIVE_DATA');
   const canViewImg = rbac.canUploadImageFor(user.uuid) || can(currentUser, 'VIEW_PROFILE_IMAGE');
@@ -130,7 +130,7 @@ const UserDetailModal = ({ user, onClose }) => {
             </div>
             <div>
               <h4 style={{ marginBottom: 10, color: 'var(--primary)', fontSize: 13, fontWeight: 700 }}>🔒 ID Documents</h4>
-              <InfoRow label="PAN" value={user.pan ? (canViewSensitive ? user.pan : `${user.pan.slice(0,3)}●●${user.pan.slice(-1)}`) : '—'} />
+              <InfoRow label="PAN" value={user.pan ? (canViewSensitive ? user.pan : `${user.pan.slice(0, 3)}●●${user.pan.slice(-1)}`) : '—'} />
               <InfoRow label="Aadhaar" value={user.aadhaar ? `●●●●-●●●●-${user.aadhaar.slice(-4)}` : '—'} />
             </div>
             <div>
@@ -149,36 +149,122 @@ const UserDetailModal = ({ user, onClose }) => {
   );
 };
 
-// ── User Form Modal ────────────────────────────────────────────────────────────
-const UserFormModal = React.memo(({ user, onClose, onSave }) => {
-  const getInitialForm = React.useMemo(() => user ? { ...user } : {
-    name: '', email: '', phone: '', whatsapp: '', password: '',
-    role: ROLES.SALES, department: 'Sales', designation: '',
-    dateOfJoining: '', shift: '9:00 AM - 6:00 PM', salary: '',
-    bloodGroup: '', foodPref: 'Veg', address: '', employeeId: '',
-    fatherName: '', motherName: '', pan: '', aadhaar: '', voterId: '',
-    emergencyContact: '', localStation: '', localPostOffice: '',
-    qualification: '', experience: '', referredBy: '', hobbies: '',
-  }, [user]);
+// ── Form Input Helper (Defined outside to prevent re-mounting) ──────────────────
+const FormInput = ({ label, value, onChange, type = 'text', required, hint, error }) => (
+  <div className="form-group">
+    <label className="form-label">{label}{required && <span className="required"> *</span>}</label>
+    <input
+      className="form-control"
+      type={type}
+      value={value || ''}
+      onChange={e => onChange(e.target.value)}
+    />
+    {hint && <div className="form-hint">{hint}</div>}
+    {error && <div className="form-error">{error}</div>}
+  </div>
+);
 
-  const [form, setForm] = useState(getInitialForm);
+// ── User Form Modal ────────────────────────────────────────────────────────────
+export const UserFormModal = ({ user, onClose, onSave, isHR = false }) => {
+  // Use ONE stable form state with nested sections for clarity as requested
+  const [form, setForm] = useState({
+    basic: {
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      whatsapp: user?.whatsapp || '',
+      password: '',
+      address: user?.address || '',
+    },
+    personal: {
+      fatherName: user?.fatherName || '',
+      motherName: user?.motherName || '',
+      bloodGroup: user?.bloodGroup || '',
+      foodPref: user?.foodPref || 'Veg',
+      emergencyContact: user?.emergencyContact || '',
+      hobbies: user?.hobbies || '',
+      localStation: user?.localStation || '',
+      localPostOffice: user?.localPostOffice || '',
+      referredBy: user?.referredBy || '',
+    },
+    professional: {
+      role: user?.role || '',
+      department: user?.department || '',
+      designation: user?.designation || '',
+      dateOfJoining: user?.dateOfJoining || '',
+      shift: user?.shift || '9:00 AM - 6:00 PM',
+      salary: user?.salary || '',
+      qualification: user?.qualification || '',
+      experience: user?.experience || '',
+    },
+    identification: {
+      pan: user?.pan || '',
+      aadhaar: user?.aadhaar || '',
+      voterId: user?.voterId || '',
+    },
+    mail: {
+      useCustom: false,
+      password: '',
+      imapHost: 'mail.zsmeservices.com',
+      imapPort: 993,
+      smtpHost: 'mail.zsmeservices.com',
+      smtpPort: 465,
+    }
+  });
+
   const [tab, setTab] = useState('basic');
   const [errors, setErrors] = useState({});
 
+  // Reset form ONLY when user ID changes
+  useEffect(() => {
+    if (user?.uuid) {
+      setForm({
+        basic: { name: user.name, email: user.email, phone: user.phone, whatsapp: user.whatsapp, password: '', address: user.address },
+        personal: { fatherName: user.fatherName, motherName: user.motherName, bloodGroup: user.bloodGroup, foodPref: user.foodPref || 'Veg', emergencyContact: user.emergencyContact, hobbies: user.hobbies, localStation: user.localStation, localPostOffice: user.localPostOffice, referredBy: user.referredBy },
+        professional: { role: user.role, department: user.department, designation: user.designation, dateOfJoining: user.dateOfJoining, shift: user.shift, salary: user.salary, qualification: user.qualification, experience: user.experience },
+        identification: { pan: user.pan, aadhaar: user.aadhaar, voterId: user.voterId }
+      });
+    }
+  }, [user?.uuid]);
+
   const validate = () => {
     const errs = {};
-    if (!form.name) errs.name = 'Required';
-    if (!form.email) errs.email = 'Required';
-    if (!form.phone) errs.phone = 'Required';
-    if (!user && !form.password) errs.password = 'Required';
-    if (!form.dateOfJoining) errs.dateOfJoining = 'Required';
+    if (!form.basic.name) errs.name = 'Required';
+    if (!form.basic.email) errs.email = 'Required';
+    if (!form.basic.phone) errs.phone = 'Required';
+    if (!user && !form.basic.password) errs.password = 'Required';
+    if (!form.professional.department) errs.department = 'Required';
+    if (!form.professional.role) errs.role = 'Required';
+    if (!form.professional.dateOfJoining) errs.dateOfJoining = 'Required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validate()) onSave(form);
+    if (validate()) {
+      // Flatten for parent
+      const flattened = {
+        ...form.basic,
+        ...form.personal,
+        ...form.professional,
+        ...form.identification,
+        mailConfig: form.mail
+      };
+      // If password is empty and editing, remove it so it doesn't overwrite
+      if (user && !flattened.password) delete flattened.password;
+      onSave(flattened);
+    }
+  };
+
+  const updateField = (section, field, value) => {
+    setForm(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value
+      }
+    }));
   };
 
   const tabs = [
@@ -186,17 +272,8 @@ const UserFormModal = React.memo(({ user, onClose, onSave }) => {
     { id: 'personal', label: 'Personal' },
     { id: 'professional', label: 'Professional' },
     { id: 'identification', label: 'ID Docs' },
+    { id: 'mail', label: '📧 Mail Config' },
   ];
-
-  const F = ({ label, field, type = 'text', required, hint }) => (
-    <div className="form-group">
-      <label className="form-label">{label}{required && <span className="required"> *</span>}</label>
-      <input className="form-control" type={type} value={form[field] || ''}
-        onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))} />
-      {hint && <div className="form-hint">{hint}</div>}
-      {errors[field] && <div className="form-error">{errors[field]}</div>}
-    </div>
-  );
 
   return (
     <div className="modal-overlay">
@@ -228,80 +305,116 @@ const UserFormModal = React.memo(({ user, onClose, onSave }) => {
                 )}
                 <div className="form-group" style={{ gridColumn: '1/-1' }}>
                   <label className="form-label">Full Name <span className="required">*</span></label>
-                  <input className="form-control" value={form.name}
-                    onChange={e => setForm(p => ({ ...p, name: e.target.value }))} />
+                  <input className="form-control" value={form.basic.name}
+                    onChange={e => updateField('basic', 'name', e.target.value)}
+                    readOnly={isHR}
+                    style={isHR ? { background: 'var(--bg-tertiary)', cursor: 'not-allowed' } : {}}
+                  />
                   {errors.name && <div className="form-error">{errors.name}</div>}
+                  {isHR && <div className="form-hint">🔒 Name can only be modified by an Admin</div>}
                 </div>
-                <F label="Email (Login)" field="email" type="email" required />
+                <FormInput label="Email (Login)" value={form.basic.email} onChange={v => updateField('basic', 'email', v)} type="email" required error={errors.email} />
                 <div className="form-group">
                   <label className="form-label">Password{!user && <span className="required"> *</span>}</label>
-                  <input className="form-control" type="password" value={form.password || ''}
-                    onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-                    placeholder={user ? 'Leave blank to keep current' : ''} />
+                  <input className="form-control" type="password" value={form.basic.password || ''}
+                    onChange={e => updateField('basic', 'password', e.target.value)}
+                    placeholder={user ? 'Leave blank to keep current' : 'Enter new password'} />
+                  {form.basic.password && (
+                    <div style={{ marginTop: 6 }}>
+                      <div style={{ height: 3, background: '#eee', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ 
+                          height: '100%', 
+                          width: `${Math.min(100, (form.basic.password.length / 8) * 100)}%`,
+                          background: form.basic.password.length < 8 ? '#ef4444' : '#10b981',
+                          transition: 'width 0.3s'
+                        }} />
+                      </div>
+                      <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                        {form.basic.password.length < 8 ? '❌ Min 8 characters' : '✅ Password length OK'}
+                      </div>
+                    </div>
+                  )}
                   {errors.password && <div className="form-error">{errors.password}</div>}
                 </div>
-                <F label="Phone" field="phone" required />
-                <F label="WhatsApp" field="whatsapp" />
+                <FormInput label="Phone" value={form.basic.phone} onChange={v => updateField('basic', 'phone', v)} required error={errors.phone} />
+                <FormInput label="WhatsApp" value={form.basic.whatsapp} onChange={v => updateField('basic', 'whatsapp', v)} />
                 <div className="form-group" style={{ gridColumn: '1/-1' }}>
                   <label className="form-label">Home Address</label>
-                  <textarea className="form-control" rows={2} value={form.address || ''}
-                    onChange={e => setForm(p => ({ ...p, address: e.target.value }))} />
+                  <textarea className="form-control" rows={2} value={form.basic.address || ''}
+                    onChange={e => updateField('basic', 'address', e.target.value)} />
                 </div>
               </div>
             )}
             {tab === 'personal' && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <F label="Father's Name" field="fatherName" />
-                <F label="Mother's Name" field="motherName" />
+                <FormInput label="Father's Name" value={form.personal.fatherName} onChange={v => updateField('personal', 'fatherName', v)} />
+                <FormInput label="Mother's Name" value={form.personal.motherName} onChange={v => updateField('personal', 'motherName', v)} />
                 <div className="form-group">
                   <label className="form-label">Blood Group</label>
-                  <select className="form-control" value={form.bloodGroup || ''}
-                    onChange={e => setForm(p => ({ ...p, bloodGroup: e.target.value }))}>
+                  <select className="form-control" value={form.personal.bloodGroup || ''}
+                    onChange={e => updateField('personal', 'bloodGroup', e.target.value)}>
                     <option value="">Select</option>
-                    {['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(bg => <option key={bg}>{bg}</option>)}
+                    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => <option key={bg}>{bg}</option>)}
                   </select>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Food Preference</label>
-                  <select className="form-control" value={form.foodPref || 'Veg'}
-                    onChange={e => setForm(p => ({ ...p, foodPref: e.target.value }))}>
+                  <select className="form-control" value={form.personal.foodPref || 'Veg'}
+                    onChange={e => updateField('personal', 'foodPref', e.target.value)}>
                     <option>Veg</option><option>Non-Veg</option>
                   </select>
                 </div>
-                <F label="Emergency Contact" field="emergencyContact" />
-                <F label="Hobbies" field="hobbies" />
-                <F label="Local Police Station" field="localStation" />
-                <F label="Local Post Office" field="localPostOffice" />
-                <F label="Referred By" field="referredBy" />
+                <FormInput label="Emergency Contact" value={form.personal.emergencyContact} onChange={v => updateField('personal', 'emergencyContact', v)} />
+                <FormInput label="Hobbies" value={form.personal.hobbies} onChange={v => updateField('personal', 'hobbies', v)} />
+                <FormInput label="Local Police Station" value={form.personal.localStation} onChange={v => updateField('personal', 'localStation', v)} />
+                <FormInput label="Local Post Office" value={form.personal.localPostOffice} onChange={v => updateField('personal', 'localPostOffice', v)} />
+                <FormInput label="Referred By" value={form.personal.referredBy} onChange={v => updateField('personal', 'referredBy', v)} />
               </div>
             )}
             {tab === 'professional' && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div className="form-group">
-                  <label className="form-label">Role</label>
-                  <select className="form-control" value={form.role}
-                    onChange={e => setForm(p => ({ ...p, role: e.target.value }))}>
-                    {Object.values(ROLES).map(r => <option key={r}>{r}</option>)}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Department</label>
-                  <select className="form-control" value={form.department || 'Sales'}
-                    onChange={e => setForm(p => ({ ...p, department: e.target.value }))}>
+                  <label className="form-label">Department <span className="required">*</span></label>
+                  <select className="form-control" value={form.professional.department || ''}
+                    onChange={e => {
+                      const dept = e.target.value;
+                      const allowedRoles = DEPARTMENT_ROLES[dept] || [];
+                      const currentRole = form.professional.role;
+                      // Auto-select first valid role if current role not in new department
+                      if (!allowedRoles.includes(currentRole) && allowedRoles.length > 0) {
+                        updateField('professional', 'role', allowedRoles[0]);
+                      }
+                      updateField('professional', 'department', dept);
+                    }}
+                    required>
+                    <option value="">-- Select Department --</option>
                     {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
                   </select>
                 </div>
-                <F label="Designation" field="designation" />
+                <div className="form-group">
+                  <label className="form-label">Role <span className="required">*</span></label>
+                  <select className="form-control" value={form.professional.role}
+                    onChange={e => updateField('professional', 'role', e.target.value)}
+                    disabled={isHR}
+                  >
+                    {form.professional.department
+                      ? (DEPARTMENT_ROLES[form.professional.department] || []).map(r => <option key={r} value={r}>{r}</option>)
+                      : <option value="">-- Select Department First --</option>
+                    }
+                  </select>
+                  {isHR && <div className="form-hint">🔒 Role can only be modified by an Admin</div>}
+                </div>
+                <FormInput label="Designation" value={form.professional.designation} onChange={v => updateField('professional', 'designation', v)} />
                 <div className="form-group">
                   <label className="form-label">Date of Joining <span className="required">*</span></label>
-                  <input className="form-control" type="date" value={form.dateOfJoining || ''}
-                    onChange={e => setForm(p => ({ ...p, dateOfJoining: e.target.value }))} />
+                  <input className="form-control" type="date" value={form.professional.dateOfJoining || ''}
+                    onChange={e => updateField('professional', 'dateOfJoining', e.target.value)} />
                   {errors.dateOfJoining && <div className="form-error">{errors.dateOfJoining}</div>}
                 </div>
-                <F label="Shift Timing" field="shift" hint="e.g. 9:00 AM - 6:00 PM" />
-                <F label="Salary (₹)" field="salary" type="number" />
-                <F label="Qualification" field="qualification" />
-                <F label="Experience" field="experience" />
+                <FormInput label="Shift Timing" value={form.professional.shift} onChange={v => updateField('professional', 'shift', v)} hint="e.g. 9:00 AM - 6:00 PM" />
+                <FormInput label="Salary (₹)" value={form.professional.salary} onChange={v => updateField('professional', 'salary', v)} type="number" />
+                <FormInput label="Qualification" value={form.professional.qualification} onChange={v => updateField('professional', 'qualification', v)} />
+                <FormInput label="Experience" value={form.professional.experience} onChange={v => updateField('professional', 'experience', v)} />
               </div>
             )}
             {tab === 'identification' && (
@@ -311,9 +424,27 @@ const UserFormModal = React.memo(({ user, onClose, onSave }) => {
                     🔒 Sensitive data is encrypted at rest and masked in UI for non-Admin roles.
                   </div>
                 </div>
-                <F label="PAN Number" field="pan" hint="Format: ABCDE1234F" />
-                <F label="Aadhaar Number" field="aadhaar" hint="Format: XXXX-XXXX-XXXX" />
-                <F label="Voter ID" field="voterId" />
+                <FormInput label="PAN Number" value={form.identification.pan} onChange={v => updateField('identification', 'pan', v)} hint="Format: ABCDE1234F" />
+                <FormInput label="Aadhaar Number" value={form.identification.aadhaar} onChange={v => updateField('identification', 'aadhaar', v)} hint="Format: XXXX-XXXX-XXXX" />
+                <FormInput label="Voter ID" value={form.identification.voterId} onChange={v => updateField('identification', 'voterId', v)} />
+              </div>
+            )}
+            {tab === 'mail' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div style={{ gridColumn: '1/-1', background: 'var(--info-light)', padding: '12px 16px', borderRadius: 10, border: '1px solid var(--info)' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--info-dark)', marginBottom: 5 }}>📧 Mail Provisioning</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Set the password for the <strong>{form.basic.email || 'user mailbox'}</strong>. This can be different from the CRM login password.</div>
+                </div>
+                <div className="form-group" style={{ gridColumn: '1/-1' }}>
+                  <label className="form-label">Mailbox Password</label>
+                  <input className="form-control" type="password" value={form.mail.password} 
+                    onChange={e => updateField('mail', 'password', e.target.value)}
+                    placeholder="Enter mailbox password (AES-256 encrypted)" />
+                </div>
+                <FormInput label="IMAP Host" value={form.mail.imapHost} onChange={v => updateField('mail', 'imapHost', v)} />
+                <FormInput label="IMAP Port" value={form.mail.imapPort} onChange={v => updateField('mail', 'imapPort', v)} type="number" />
+                <FormInput label="SMTP Host" value={form.mail.smtpHost} onChange={v => updateField('mail', 'smtpHost', v)} />
+                <FormInput label="SMTP Port" value={form.mail.smtpPort} onChange={v => updateField('mail', 'smtpPort', v)} type="number" />
               </div>
             )}
           </div>
@@ -327,22 +458,25 @@ const UserFormModal = React.memo(({ user, onClose, onSave }) => {
       </div>
     </div>
   );
-});
+};
 
 // ── Main Users Page ────────────────────────────────────────────────────────────
 const UsersPage = () => {
-  const { currentUser, allUsers, createUser, updateUser, deleteUser, rbac, addAuditLog } = useApp();
-  const [showForm, setShowForm]   = useState(false);
-  const [editUser, setEditUser]   = useState(null);
-  const [viewUser, setViewUser]   = useState(null);
+  const ctx = useApp() || {};
+  const { currentUser, allUsers, createUser, updateUser, deleteUser, rbac, addAuditLog } = ctx;
+  const safeAddAuditLog = (typeof addAuditLog === 'function') ? addAuditLog : ((...args) => console.warn('addAuditLog not available'));
+  const [showForm, setShowForm] = useState(false);
+  const [editUser, setEditUser] = useState(null);
+  const [viewUser, setViewUser] = useState(null);
   const [empIdUser, setEmpIdUser] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [search, setSearch]       = useState('');
+  const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
-  const [formError, setFormError]   = useState('');
+  const [deptFilter, setDeptFilter] = useState('All');
+  const [formError, setFormError] = useState('');
 
   const isAdmin = currentUser.role === ROLES.ADMIN;
-  const isHR    = currentUser.role === ROLES.HR;
+  const isHR = currentUser.role === ROLES.HR;
 
   if (!isAdmin && !isHR) {
     return (
@@ -360,7 +494,8 @@ const UsersPage = () => {
       u.email.toLowerCase().includes(search.toLowerCase()) ||
       u.employeeId.toLowerCase().includes(search.toLowerCase());
     const matchRole = roleFilter === 'All' || u.role === roleFilter;
-    return matchSearch && matchRole;
+    const matchDept = deptFilter === 'All' || u.department === deptFilter;
+    return matchSearch && matchRole && matchDept;
   });
 
   const handleSave = (formData) => {
@@ -369,11 +504,11 @@ const UsersPage = () => {
       if (editUser) {
         const { uuid, id, ...safe } = formData;
         updateUser(editUser.uuid, safe);
-        try { addAuditLog('User Updated', currentUser.name, `Updated employee: ${formData.name}`); } catch (e) { console.warn('Audit log failed:', e.message); }
+        try { safeAddAuditLog('User Updated', currentUser.name, `Updated employee: ${formData.name}`); } catch (e) { console.warn('Audit log failed:', e.message); }
         showFeedback('✅ Employee updated successfully!');
       } else {
         createUser(formData);
-        try { addAuditLog('User Created', currentUser.name, `Created employee: ${formData.name}`); } catch (e) { console.warn('Audit log failed:', e.message); }
+        try { safeAddAuditLog('User Created', currentUser.name, `Created employee: ${formData.name}`); } catch (e) { console.warn('Audit log failed:', e.message); }
         showFeedback('✅ Employee created successfully!');
       }
       setShowForm(false);
@@ -398,8 +533,13 @@ const UsersPage = () => {
             placeholder="Search by name, email, or Employee ID…" />
         </div>
         <select className="form-control" style={{ width: 'auto' }}
+          value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
+          <option value="All">All Departments</option>
+          {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
+        </select>
+        <select className="form-control" style={{ width: 'auto' }}
           value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
-          <option>All</option>
+          <option>All Roles</option>
           {Object.values(ROLES).map(r => <option key={r}>{r}</option>)}
         </select>
         {isAdmin && (
@@ -412,6 +552,18 @@ const UsersPage = () => {
         )}
       </div>
 
+      {/* Department chips */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        {DEPARTMENTS.map(dept => {
+          const count = allUsers.filter(u => u.department === dept).length;
+          if (!count) return null;
+          return (
+            <div key={dept} style={{ padding: '5px 12px', background: 'white', borderRadius: 20, border: '1px solid var(--border-light)', fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
+              {dept}: <span style={{ color: 'var(--primary)' }}>{count}</span>
+            </div>
+          );
+        })}
+      </div>
       {/* Role chips */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
         {Object.values(ROLES).map(role => {
@@ -480,7 +632,7 @@ const UsersPage = () => {
                     </span>
                   </td>
                   <td>
-                    <span className={`badge ${user.role === ROLES.ADMIN ? 'badge-danger' : user.role === ROLES.HR ? 'badge-warning' : user.role === ROLES.SALES ? 'badge-success' : 'badge-primary'}`}>
+                    <span className={`badge ${user.role === ROLES.ADMIN ? 'badge-danger' : user.role === ROLES.HR ? 'badge-warning' : user.role === ROLES.SALES ? 'badge-success' : (DEPARTMENT_ROLES['Graphics'] || []).includes(user.role) ? 'badge-info' : 'badge-primary'}`}>
                       {user.role}
                     </span>
                   </td>
@@ -519,8 +671,8 @@ const UsersPage = () => {
           ⚠️ {formError}
         </div>
       )}
-      {viewUser    && <UserDetailModal user={viewUser} onClose={() => setViewUser(null)} />}
-      {empIdUser   && <EmployeeIdModal user={empIdUser} onClose={() => setEmpIdUser(null)} />}
+      {viewUser && <UserDetailModal user={viewUser} onClose={() => setViewUser(null)} />}
+      {empIdUser && <EmployeeIdModal user={empIdUser} onClose={() => setEmpIdUser(null)} />}
       {deleteConfirm && (
         <div className="modal-overlay">
           <div className="modal modal-sm">
