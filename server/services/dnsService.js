@@ -257,7 +257,7 @@ class DNSService {
     * Verify SPF record
     */
    async verifySPFRecord(domain) {
-     const result = { type: 'SPF', domain, timestamp: new Date().toISOString(), status: 'Error', currentRecord: '', expectedRecord: `v=spf1 include:mail.${domain} ~all`, message: '', issues: [], log: {} };
+     const result = { type: 'SPF', domain, timestamp: new Date().toISOString(), status: 'Error', currentRecord: '', expectedRecord: `v=spf1 include:mail.${domain} mx ~all`, message: '', issues: [], log: {} };
      try {
        const spfRecords = await resolveTxtWithRetry(domain);
        const spfRecord = spfRecords ? spfRecords.join(' ') : '';

@@ -92,7 +92,7 @@ const DNSAuthenticationSetup = ({ domain = 'zsmeservices.com' }) => {
   };
 
   const handleCopySPF = async () => {
-    const record = `v=spf1 include:mail.${domainInput} ~all`;
+    const record = `v=spf1 include:mail.${domainInput} mx ~all`;
     await copyToClipboard(record);
     showMessage('spf', 'SPF record copied!');
   };
@@ -211,7 +211,7 @@ const DNSAuthenticationSetup = ({ domain = 'zsmeservices.com' }) => {
         <div style={{ background: '#f8f9fa', padding: 12, borderRadius: 6, marginBottom: 12, borderLeft: '4px solid #3498db' }}>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Value:</div>
           <div style={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all', color: '#2c3e50' }}>
-            v=spf1 include:mail.{domainInput} ~all
+            v=spf1 include:mail.{domainInput} mx ~all
           </div>
         </div>
 

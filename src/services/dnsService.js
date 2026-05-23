@@ -20,7 +20,7 @@ const fetchJson = async (url, options = {}) => {
 export const DEFAULT_DNS_CONFIG = {
   spf: {
     enabled: true,
-    record: 'v=spf1 include:mail.zsmeservices.com ~all',
+    record: 'v=spf1 include:mail.zsmeservices.com mx ~all',
     status: 'unknown',
     verifiedAt: null,
   },
