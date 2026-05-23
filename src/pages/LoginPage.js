@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { ForgotPasswordModal, ResetPasswordPage } from '../components/ResetPasswordFlow';
+import { ForgotPasswordModal } from '../components/ResetPasswordFlow';
 
 const LoginPage = () => {
   const { login } = useApp();
@@ -11,28 +11,17 @@ const LoginPage = () => {
   const [showPass, setShowPass] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
 
-  // Check URL params for reset token
-  const urlParams = new URLSearchParams(window.location.search);
-  const resetToken = urlParams.get('resetToken');
-  const resetUid   = urlParams.get('uid');
-  const [showReset, setShowReset] = useState(!!(resetToken && resetUid));
-
-  const handleResetBack = () => {
-    setShowReset(false);
-    window.history.replaceState({}, '', window.location.pathname);
-  };
-
   const demoUsers = [
-    { email: 'admin@zsm.com', password: 'admin123', role: 'Admin', color: '#0E5491' },
-    { email: 'rahul@zsm.com', password: 'rahul123', role: 'Sales Agent', color: '#10b981' },
-    { email: 'priya@zsm.com', password: 'priya123', role: 'HR Manager', color: '#f59e0b' },
-    { email: 'arjun@zsm.com', password: 'arjun123', role: 'Backend User', color: '#8b5cf6' },
-    { email: 'vikram@zsm.com', password: 'vikram123', role: 'Accounts', color: '#ef4444' },
-    { email: 'neha@zsm.com', password: 'neha123', role: 'Graphics Manager', color: '#ec4899' },
-    { email: 'rohan.d@zsm.com', password: 'rohan123', role: 'Graphic Designer', color: '#ec4899' },
-    { email: 'kavya@zsm.com', password: 'kavya123', role: 'Jr. Graphic Designer', color: '#ec4899' },
-    { email: 'arun.m@zsm.com', password: 'arun123', role: 'Video Editor', color: '#ec4899' },
-    { email: 'pooja@zsm.com', password: 'pooja123', role: 'Motion Graphic Designer', color: '#ec4899' },
+    { email: 'admin@zsmeservices.com', password: 'admin123', role: 'Admin', color: '#0E5491' },
+    { email: 'rahul@zsmeservices.com', password: 'rahul123', role: 'Sales Agent', color: '#10b981' },
+    { email: 'priya@zsmeservices.com', password: 'priya123', role: 'HR Manager', color: '#f59e0b' },
+    { email: 'arjun@zsmeservices.com', password: 'arjun123', role: 'Backend User', color: '#8b5cf6' },
+    { email: 'vikram@zsmeservices.com', password: 'vikram123', role: 'Accounts', color: '#ef4444' },
+    { email: 'neha@zsmeservices.com', password: 'neha123', role: 'Graphics Manager', color: '#ec4899' },
+    { email: 'rohan.d@zsmeservices.com', password: 'rohan123', role: 'Graphic Designer', color: '#ec4899' },
+    { email: 'kavya@zsmeservices.com', password: 'kavya123', role: 'Jr. Graphic Designer', color: '#ec4899' },
+    { email: 'arun.m@zsmeservices.com', password: 'arun123', role: 'Video Editor', color: '#ec4899' },
+    { email: 'pooja@zsmeservices.com', password: 'pooja123', role: 'Motion Graphic Designer', color: '#ec4899' },
   ];
 
   const handleSubmit = async (e) => {
@@ -58,10 +47,6 @@ const LoginPage = () => {
     setPassword(u.password);
     setError('');
   };
-
-  if (showReset) {
-    return <ResetPasswordPage token={resetToken} uid={resetUid} onBack={handleResetBack} />;
-  }
 
   return (
     <div className="login-page">

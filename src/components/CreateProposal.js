@@ -42,6 +42,13 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
   const [discount, setDiscount] = useState(0);
   const [taxPercent, setTaxPercent] = useState(18);
   
+  const [savedSignature, setSavedSignature] = useState(() => {
+    return localStorage.getItem(`zsm_signature_${currentUser?.id || 'default'}`) || '';
+  });
+  const [tempSignature, setTempSignature] = useState('');
+  const [tempSignatureName, setTempSignatureName] = useState('');
+  const [uploadError, setUploadError] = useState('');
+  
   const agentName = currentUser?.name || 'Sales Agent';
   const agentPhone = currentUser?.phone || '+91 98765 43210';
   const agentEmail = currentUser?.email || 'info@zsmeservices.com';
@@ -49,11 +56,15 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
 
   const totals = calculateProposalTotal(items, discount);
 
-  useEffect(() => {
-    loadTemplate(selectedTemplate);
-  }, []);
+  const getHtmlSignature = (sig) => {
+    const baseSignature = `<br/><br/>---<br/><strong>Best regards,</strong><br/>${agentName}<br/>${companyName}<br/>Phone: ${agentPhone}<br/>Email: ${agentEmail}`;
+    if (sig) {
+      return `${baseSignature}<br/><br/><img src="${sig}" alt="Signature" style="max-height: 60px; max-width: 200px; object-fit: contain; margin-top: 10px; border-radius: 4px;" />`;
+    }
+    return baseSignature;
+  };
 
-  const loadTemplate = (templateId) => {
+  const loadTemplate = (templateId, sig = savedSignature) => {
     const template = EMAIL_TEMPLATES.find(t => t.id === templateId);
     if (template) {
       const mergedSubject = replaceMergeTags(template.subject, {
@@ -71,10 +82,15 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
         agentName,
         companyName
       });
-      body += getSignature(agentName, agentPhone, agentEmail, companyName);
+      body = body.replace(/\n/g, '<br/>');
+      body += getHtmlSignature(sig);
       setEmailBody(body);
     }
   };
+
+  useEffect(() => {
+    loadTemplate(selectedTemplate);
+  }, []);
 
   const handleTemplateChange = (e) => {
     const templateId = e.target.value;
@@ -87,8 +103,61 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
   };
 
   const handleInsertSignature = () => {
-    const signature = getSignature(agentName, agentPhone, agentEmail, companyName);
-    setEmailBody(prev => prev + signature);
+    if (savedSignature) {
+      const signatureHtml = `<br/><br/><img src="${savedSignature}" alt="Signature" style="max-height: 60px; max-width: 200px; object-fit: contain; margin-top: 10px; border-radius: 4px;" />`;
+      setEmailBody(prev => prev + signatureHtml);
+    }
+  };
+
+  const handleSignatureFileChange = (e) => {
+    const file = e.target.files[0];
+    setUploadError('');
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Please select a valid image file (PNG, JPG, WEBP).');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setUploadError('Image size exceeds 2MB limit.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setTempSignature(event.target.result);
+      setTempSignatureName(file.name);
+    };
+    reader.onerror = () => {
+      setUploadError('Error reading file. Please try again.');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveSignature = () => {
+    if (tempSignature) {
+      const key = `zsm_signature_${currentUser?.id || 'default'}`;
+      localStorage.setItem(key, tempSignature);
+      setSavedSignature(tempSignature);
+      setTempSignature('');
+      setTempSignatureName('');
+      // Proactively reload the template to include the newly saved signature!
+      loadTemplate(selectedTemplate, tempSignature);
+      window.alert('Signature saved successfully!');
+    }
+  };
+
+  const handleClearSignature = () => {
+    if (window.confirm('Are you sure you want to remove your saved signature?')) {
+      const key = `zsm_signature_${currentUser?.id || 'default'}`;
+      localStorage.removeItem(key);
+      setSavedSignature('');
+      setTempSignature('');
+      setTempSignatureName('');
+      // Reload template without signature
+      loadTemplate(selectedTemplate, '');
+    }
   };
 
   const updateItem = (index, field, value) => {
@@ -317,9 +386,135 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
                 <button className="btn btn-ghost" onClick={handleResetTemplate}>
                   🔄 Reset
                 </button>
-                <button className="btn btn-primary" onClick={handleInsertSignature}>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={handleInsertSignature}
+                  disabled={!savedSignature}
+                  title={!savedSignature ? 'Please save a signature first in the Signature Settings below' : 'Insert saved signature'}
+                >
                   ✍️ Signature
                 </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Agent Signature Settings Card */}
+          <div className="card" style={{ background: 'var(--bg-secondary)', padding: 20 }}>
+            <h4 style={{ margin: '0 0 15px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              ✍️ Agent Signature Settings
+            </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+              {/* Left Column: Upload / Preview */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <label style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-muted)' }}>
+                  Upload Signature Image (PNG, JPG, Max 2MB)
+                </label>
+                
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleSignatureFileChange}
+                    style={{ display: 'none' }}
+                    id="signature-file-upload"
+                  />
+                  <label
+                    htmlFor="signature-file-upload"
+                    className="btn btn-ghost"
+                    style={{
+                      cursor: 'pointer',
+                      border: '2px dashed var(--border-color)',
+                      padding: '12px 20px',
+                      borderRadius: 8,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      background: 'white',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <span>📁 Choose File</span>
+                  </label>
+                  {tempSignatureName && (
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)', wordBreak: 'break-all' }}>
+                      {tempSignatureName}
+                    </span>
+                  )}
+                </div>
+
+                {uploadError && (
+                  <div style={{ color: 'red', fontSize: 12 }}>
+                    ⚠️ {uploadError}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleSaveSignature}
+                    disabled={!tempSignature}
+                  >
+                    💾 Save Signature
+                  </button>
+                  {savedSignature && (
+                    <button
+                      className="btn btn-ghost"
+                      onClick={handleClearSignature}
+                      style={{ color: 'red', borderColor: '#ffccd5' }}
+                    >
+                      🗑️ Remove Saved Signature
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Visual Preview Box */}
+              <div style={{ 
+                border: '1px solid var(--border-color)', 
+                borderRadius: 8, 
+                padding: 15, 
+                background: 'white', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                minHeight: 120,
+                position: 'relative'
+              }}>
+                <span style={{ 
+                  position: 'absolute', 
+                  top: 5, 
+                  left: 8, 
+                  fontSize: 10, 
+                  color: 'var(--text-muted)', 
+                  fontWeight: 600 
+                }}>
+                  PREVIEW
+                </span>
+                
+                {tempSignature ? (
+                  <div style={{ textAlign: 'center' }}>
+                    <img 
+                      src={tempSignature} 
+                      alt="Temp Signature" 
+                      style={{ maxHeight: 60, maxWidth: 200, objectFit: 'contain', border: '1px dashed #4caf50', padding: 4, borderRadius: 4 }} 
+                    />
+                    <div style={{ fontSize: 10, color: '#4caf50', marginTop: 4 }}>Staged (Click Save)</div>
+                  </div>
+                ) : savedSignature ? (
+                  <div style={{ textAlign: 'center' }}>
+                    <img 
+                      src={savedSignature} 
+                      alt="Saved Signature" 
+                      style={{ maxHeight: 60, maxWidth: 200, objectFit: 'contain', padding: 4 }} 
+                    />
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>Saved Signature</div>
+                  </div>
+                ) : (
+                  <div style={{ color: 'var(--text-muted)', fontSize: 12, fontStyle: 'italic' }}>
+                    No signature uploaded yet
+                  </div>
+                )}
               </div>
             </div>
           </div>

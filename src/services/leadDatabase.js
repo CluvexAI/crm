@@ -56,8 +56,17 @@ export const updateLeadRecord = (id, leadData) => {
   const index = leads.findIndex(l => l.id === id);
   
   if (index === -1) {
-    console.error('[LeadDB] Lead not found:', id);
-    throw new Error('Lead not found');
+    console.warn('[LeadDB] Lead not found, creating dynamic fallback record for:', id);
+    const newLead = {
+      id,
+      ...leadData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: 1
+    };
+    leads.push(newLead);
+    setStorage(leads);
+    return newLead;
   }
   
   const currentLead = leads[index];

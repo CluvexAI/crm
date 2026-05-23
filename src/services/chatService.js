@@ -30,6 +30,31 @@ export const initializeChatDatabase = (currentUser) => {
     store = defaults();
     setStorage(store);
   }
+
+  // Clean up legacy invalid/self direct chats
+  if (store && store.conversations) {
+    let changed = false;
+    Object.keys(store.conversations).forEach(chatId => {
+      const chat = store.conversations[chatId];
+      if (chat && chat.type === 'direct') {
+        const uniqueParticipants = [...new Set(chat.participants?.map(String) || [])];
+        if (uniqueParticipants.length < 2) {
+          delete store.conversations[chatId];
+          if (store.messages && store.messages[chatId]) {
+            delete store.messages[chatId];
+          }
+          if (store.typing && store.typing[chatId]) {
+            delete store.typing[chatId];
+          }
+          changed = true;
+        }
+      }
+    });
+    if (changed) {
+      setStorage(store);
+    }
+  }
+
   if (currentUser) {
     registerUser(currentUser);
   }
@@ -39,7 +64,8 @@ export const initializeChatDatabase = (currentUser) => {
 export const registerUser = (user) => {
   const store = getStorage() || defaults();
   if (!store.presence) store.presence = {};
-  store.presence[user.id] = {
+  const uid = String(user.id);
+  store.presence[uid] = {
     status: 'online',
     lastSeen: new Date().toISOString(),
     userName: user.name,
@@ -53,40 +79,32 @@ export const registerUser = (user) => {
 export const updatePresence = (userId, status) => {
   const store = getStorage() || defaults();
   if (!store.presence) store.presence = {};
-  if (store.presence[userId]) {
-    store.presence[userId].status = status;
-    store.presence[userId].lastSeen = new Date().toISOString();
+  const uid = String(userId);
+  if (store.presence[uid]) {
+    store.presence[uid].status = status;
+    store.presence[uid].lastSeen = new Date().toISOString();
   }
   setStorage(store);
-};
-
-const generateChatId = (participantIds, type) => {
-  if (type === 'direct') {
-    const sorted = [...participantIds].sort((a, b) => a - b);
-    return `direct_${sorted.join('_')}`;
-  }
-  return `group_${participantIds.sort((a, b) => a - b).join('_')}_${Date.now()}`;
 };
 
 export const getOrCreateDirectChat = (user1Id, user2Id, allUsers) => {
   const store = getStorage() || defaults();
   if (!store.conversations) store.conversations = {};
 
-  const sorted = [user1Id, user2Id].sort((a, b) => a - b);
+  const sorted = [user1Id, user2Id].map(id => String(id)).sort();
   const chatId = `direct_${sorted.join('_')}`;
 
   if (store.conversations[chatId]) {
     return chatId;
   }
 
-  const user1 = allUsers.find(u => u.id === user1Id);
-  const user2 = allUsers.find(u => u.id === user2Id);
+  const user2 = allUsers.find(u => String(u.id) === String(user2Id));
 
   store.conversations[chatId] = {
     id: chatId,
     type: 'direct',
     name: user2?.name || 'Unknown',
-    participants: [user1Id, user2Id],
+    participants: [String(user1Id), String(user2Id)],
     createdAt: new Date().toISOString(),
     lastMessage: null,
     pinned: false,
@@ -239,7 +257,8 @@ export const markMessagesRead = (chatId, userId) => {
   if (!store.messages[chatId]) return;
   let changed = false;
   store.messages[chatId] = store.messages[chatId].map(m => {
-    if (!m.readBy?.includes(userId)) {
+    const readByStrings = (m.readBy || []).map(String);
+    if (!readByStrings.includes(String(userId))) {
       changed = true;
       return { ...m, readBy: [...(m.readBy || []), userId] };
     }
@@ -251,7 +270,7 @@ export const markMessagesRead = (chatId, userId) => {
 export const getUnreadCount = (chatId, userId) => {
   const store = getStorage() || defaults();
   if (!store.messages[chatId]) return 0;
-  return store.messages[chatId].filter(m => m.senderId !== userId && !m.readBy?.includes(userId)).length;
+  return store.messages[chatId].filter(m => String(m.senderId) !== String(userId) && !m.readBy?.map(String).includes(String(userId))).length;
 };
 
 export const getTotalUnreadCount = (userId) => {
@@ -279,7 +298,7 @@ export const getTypingUsers = (chatId, excludeUserId) => {
   if (!store.typing || !store.typing[chatId]) return [];
   const now = Date.now();
   return Object.entries(store.typing[chatId])
-    .filter(([id, data]) => Number(id) !== excludeUserId && (now - data.timestamp) < 3000)
+    .filter(([id, data]) => String(id) !== String(excludeUserId) && (now - data.timestamp) < 3000)
     .map(([id, data]) => data.userName);
 };
 
@@ -325,4 +344,39 @@ export const getAllChatUsers = (allUsers) => {
 export const getChatById = (chatId) => {
   const store = getStorage() || defaults();
   return store.conversations?.[chatId] || null;
+};
+
+export const syncChatUsers = (allUsers) => {
+  if (!allUsers || !Array.isArray(allUsers)) return;
+  const store = getStorage() || defaults();
+  if (!store.presence) store.presence = {};
+
+  let changed = false;
+  const now = new Date().toISOString();
+
+  allUsers.forEach(user => {
+    if (!user || !user.id) return;
+    const uid = String(user.id);
+    if (!store.presence[uid]) {
+      store.presence[uid] = {
+        status: 'offline',
+        lastSeen: now,
+        userName: user.name || '',
+        department: user.department || '',
+        role: user.role || '',
+      };
+      changed = true;
+    } else {
+      if (store.presence[uid].userName !== user.name) {
+        store.presence[uid].userName = user.name;
+        changed = true;
+      }
+      if (store.presence[uid].department !== user.department) {
+        store.presence[uid].department = user.department;
+        changed = true;
+      }
+    }
+  });
+
+  if (changed) setStorage(store);
 };

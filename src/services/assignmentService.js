@@ -49,6 +49,16 @@ export const getProjectClientDetails = async (invoiceId) => {
 
       // Merge and return complete client details with requested priority: Lead > Invoice > Sale
       const clientDetails = {
+        // Flattened fields for direct component rendering (Lead > Invoice > Sale)
+        businessName: lead?.businessName || invoice.client?.businessName || sale?.businessName || 'N/A',
+        clientName: lead?.contactName || lead?.name || invoice.client?.contactName || sale?.contactName || sale?.leadName || 'N/A',
+        email: lead?.email || invoice.client?.email || sale?.email || 'N/A',
+        phone: lead?.ownerPhone || lead?.phone || invoice.client?.phone || sale?.ownerPhone || sale?.phone || 'N/A',
+        country: lead?.country || invoice.client?.country || sale?.country || 'N/A',
+        address: lead?.address || invoice.client?.addressLine1 || sale?.addressLine1 || 'N/A',
+        state: lead?.state || invoice.client?.state || sale?.state || 'N/A',
+
+        // Legacy structures for backwards compatibility
         client: {
           name: lead?.contactName || lead?.name || invoice.client?.contactName || sale?.contactName || sale?.leadName || 'N/A',
           phone: lead?.ownerPhone || lead?.phone || invoice.client?.phone || sale?.ownerPhone || sale?.phone || 'N/A',

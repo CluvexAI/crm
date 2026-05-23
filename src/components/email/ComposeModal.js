@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { colors, generateId } from './emailStyles';
+import { useApp } from '../../context/AppContext';
 
 /* ─── Rich Text Toolbar ─────────────────────────────── */
 const ToolbarBtn = ({ title, icon, onClick, active }) => (
@@ -86,23 +87,239 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const fileRef = useRef();
   const editorRef = useRef();
-  const autoSaveRef = useRef();
 
-  // Prefill To if provided
+  const draftIdRef = useRef(initialData?.id || null);
+  const isInitializedRef = useRef(false);
+  const prevInitialDataRef = useRef(null);
+
+  // Signature States
+  const { currentUser } = useApp();
+  const [includeSignature, setIncludeSignature] = useState(true);
+  const [showSigSettings, setShowSigSettings] = useState(false);
+  const [savedSignature, setSavedSignature] = useState(() => {
+    return localStorage.getItem(`zsm_signature_${currentUser?.id || 'default'}`) || '';
+  });
+  const [tempSignature, setTempSignature] = useState('');
+  const [tempSignatureName, setTempSignatureName] = useState('');
+  const [sigUploadError, setSigUploadError] = useState('');
+
+  const getSignature = (sig = savedSignature) => {
+    if (!currentUser) return '';
+    const baseSig = `<br><br><div class="agent-signature" style="color: #666; font-size: 13px; border-top: 1px solid #ddd; padding-top: 10px; margin-top: 20px; text-align: left;">
+      <b>Regards,</b><br>
+      ${currentUser.name || 'Agent'}<br>
+      ${currentUser.role || 'Sales Representative'}<br>
+      ${currentUser.department || 'ZSM CRM'}
+    </div>`;
+    if (sig) {
+      return `${baseSig}<br><img src="${sig}" alt="Signature" style="max-height: 60px; max-width: 200px; object-fit: contain; margin-top: 10px; border-radius: 4px;" />`;
+    }
+    return baseSig;
+  };
+
+  const handleIncludeSignatureToggle = (checked) => {
+    setIncludeSignature(checked);
+    if (!editorRef.current) return;
+
+    let currentHtml = editorRef.current.innerHTML || '';
+    if (checked) {
+      const sigHtml = getSignature();
+      const updated = currentHtml + sigHtml;
+      setBody(updated);
+      editorRef.current.innerHTML = updated;
+    } else {
+      // Strip signature using the exact match or general pattern
+      const sigRegex = /<br\s*\/?>\s*<br\s*\/?>\s*<div class="agent-signature"[\s\S]*?<\/div>(\s*<br\s*\/?>\s*<img[\s\S]*?>)?/gi;
+      const updated = currentHtml.replace(sigRegex, '');
+      setBody(updated);
+      editorRef.current.innerHTML = updated;
+    }
+  };
+
+  const handleSigFileChange = (e) => {
+    const file = e.target.files[0];
+    setSigUploadError('');
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setSigUploadError('Please select a valid image file (PNG, JPG, WEBP).');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setSigUploadError('Image size exceeds 2MB limit.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setTempSignature(event.target.result);
+      setTempSignatureName(file.name);
+    };
+    reader.onerror = () => {
+      setSigUploadError('Error reading file. Please try again.');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveSig = () => {
+    if (tempSignature) {
+      const key = `zsm_signature_${currentUser?.id || 'default'}`;
+      localStorage.setItem(key, tempSignature);
+      setSavedSignature(tempSignature);
+      setTempSignature('');
+      setTempSignatureName('');
+      
+      // Update active body if includeSignature is checked
+      if (includeSignature && editorRef.current) {
+        const sigRegex = /<br\s*\/?>\s*<br\s*\/?>\s*<div class="agent-signature"[\s\S]*?<\/div>(\s*<br\s*\/?>\s*<img[\s\S]*?>)?/gi;
+        let currentHtml = editorRef.current.innerHTML || '';
+        const stripped = currentHtml.replace(sigRegex, '');
+        const updated = stripped + getSignature(tempSignature);
+        setBody(updated);
+        editorRef.current.innerHTML = updated;
+      }
+      
+      alert('Signature saved successfully!');
+    }
+  };
+
+  const handleClearSig = () => {
+    if (window.confirm('Are you sure you want to remove your saved signature?')) {
+      const key = `zsm_signature_${currentUser?.id || 'default'}`;
+      localStorage.removeItem(key);
+      setSavedSignature('');
+      setTempSignature('');
+      setTempSignatureName('');
+      
+      // Update active body if includeSignature is checked
+      if (includeSignature && editorRef.current) {
+        const sigRegex = /<br\s*\/?>\s*<br\s*\/?>\s*<div class="agent-signature"[\s\S]*?<\/div>(\s*<br\s*\/?>\s*<img[\s\S]*?>)?/gi;
+        let currentHtml = editorRef.current.innerHTML || '';
+        const stripped = currentHtml.replace(sigRegex, '');
+        const updated = stripped + getSignature('');
+        setBody(updated);
+        editorRef.current.innerHTML = updated;
+      }
+    }
+  };
+
+  // Prefill fields if provided (robust parsing for reply/forward and editing drafts)
   useEffect(() => {
-    if (initialData?.to) setTo([initialData.to]);
+    if (initialData) {
+      draftIdRef.current = initialData.id || null;
+
+      // To field
+      if (initialData.to) {
+        if (Array.isArray(initialData.to)) {
+          setTo(initialData.to);
+        } else if (typeof initialData.to === 'string') {
+          setTo(initialData.to.split(',').map(s => s.trim()).filter(Boolean));
+        }
+      } else if (initialData.toEmail) {
+        if (Array.isArray(initialData.toEmail)) {
+          setTo(initialData.toEmail);
+        } else if (typeof initialData.toEmail === 'string') {
+          setTo(initialData.toEmail.split(',').map(s => s.trim()).filter(Boolean));
+        }
+      }
+
+      // CC field
+      if (initialData.cc) {
+        if (Array.isArray(initialData.cc)) {
+          setCc(initialData.cc);
+          setShowCC(true);
+        } else if (typeof initialData.cc === 'string') {
+          setCc(initialData.cc.split(',').map(s => s.trim()).filter(Boolean));
+          setShowCC(true);
+        }
+      }
+
+      // BCC field
+      if (initialData.bcc) {
+        if (Array.isArray(initialData.bcc)) {
+          setBcc(initialData.bcc);
+          setShowCC(true);
+        } else if (typeof initialData.bcc === 'string') {
+          setBcc(initialData.bcc.split(',').map(s => s.trim()).filter(Boolean));
+          setShowCC(true);
+        }
+      }
+
+      // Subject field
+      if (initialData.subject) {
+        setSubject(initialData.subject);
+      }
+
+      // Attachments field
+      if (initialData.attachments) {
+        setAttachments(initialData.attachments);
+      }
+    }
   }, [initialData]);
 
-  // Autosave every 10s
+  // Handle mounting and initialData loading (e.g. templates, reply, forward, edits)
   useEffect(() => {
-    autoSaveRef.current = setInterval(() => {
-      if (subject || body) {
-        onSaveDraft && onSaveDraft({ to, cc, bcc, subject, body, attachments });
-        setLastSaved(new Date());
+    if (currentUser) {
+      const dataChanged = prevInitialDataRef.current !== initialData;
+      if (!isInitializedRef.current || dataChanged) {
+        let initialBody = '';
+        if (initialData?.body) {
+          initialBody = initialData.body;
+          if (includeSignature && !initialBody.includes('class="agent-signature"')) {
+            initialBody += getSignature();
+          }
+        } else {
+          if (includeSignature) {
+            initialBody = '<p><br></p>' + getSignature();
+          }
+        }
+        setBody(initialBody);
+        if (editorRef.current) {
+          editorRef.current.innerHTML = initialBody;
+        }
+        isInitializedRef.current = true;
+        prevInitialDataRef.current = initialData;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData, currentUser]);
+
+  // Create a mutable state ref to avoid resetting the interval on keystrokes
+  const stateRef = useRef({ to, cc, bcc, subject, body, attachments });
+  useEffect(() => {
+    stateRef.current = { to, cc, bcc, subject, body, attachments };
+  }, [to, cc, bcc, subject, body, attachments]);
+
+  // Autosave every 10s using stateRef
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const { to, cc, bcc, subject, body, attachments } = stateRef.current;
+      if (!subject && !body && to.length === 0 && cc.length === 0 && bcc.length === 0) return;
+      
+      if (onSaveDraft) {
+        try {
+          const savedDraft = await onSaveDraft({
+            id: draftIdRef.current,
+            to,
+            cc,
+            bcc,
+            subject,
+            body,
+            attachments
+          });
+          if (savedDraft && savedDraft.id) {
+            draftIdRef.current = savedDraft.id;
+          }
+          setLastSaved(new Date());
+        } catch (err) {
+          console.error('[ComposeModal] Autosave failed:', err);
+        }
       }
     }, 10000);
-    return () => clearInterval(autoSaveRef.current);
-  }, [to, cc, bcc, subject, body, attachments, onSaveDraft]);
+
+    return () => clearInterval(interval);
+  }, [onSaveDraft]);
 
   const execCmd = (cmd, val = null) => {
     document.execCommand(cmd, false, val);
@@ -114,7 +331,7 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
     if (!subject)        { alert('Please add a subject.'); return; }
     setSending(true);
     try {
-      await onSend({ to: to.join(', '), cc: cc.join(', '), bcc: bcc.join(', '), subject, body, attachments });
+      await onSend({ to: to.join(', '), cc: cc.join(', '), bcc: bcc.join(', '), subject, body, attachments }, draftIdRef.current);
       onClose();
     } catch (err) {
       alert('Failed to send: ' + err.message);
@@ -143,7 +360,9 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
   const dim = dims[mode];
   const HEADER = 48, FIELDS = 44 * (showCC ? 4 : 2), TOOLBAR = 44, FOOTER = 64;
   const ATTACH_BAR = attachments.length > 0 ? 48 : 0;
-  const editorH = (mode === 'maximized' ? window.innerHeight : 680) - HEADER - FIELDS - TOOLBAR - FOOTER - ATTACH_BAR;
+  const SIG_BAR = 36;
+  const SIG_SETTINGS = showSigSettings ? 140 : 0;
+  const editorH = (mode === 'maximized' ? window.innerHeight : 680) - HEADER - FIELDS - TOOLBAR - FOOTER - ATTACH_BAR - SIG_BAR - SIG_SETTINGS;
 
   const scheduleOptions = [
     'Tonight at 7:00 PM', 'Tomorrow morning at 8:00 AM',
@@ -266,9 +485,12 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
               if (e) execCmd('insertText', e);
             }} />
             <Divider />
-            <ToolbarBtn icon="✍" title="Insert Signature" onClick={() => {
-              execCmd('insertHTML', '<br><hr style="margin:8px 0"><div style="color:#6b7280;font-size:13px;border-left:3px solid #e5e7eb;padding-left:12px">Signature</div>');
-            }} />
+            <ToolbarBtn 
+              icon="✍" 
+              title="Manage Signature Settings" 
+              active={showSigSettings}
+              onClick={() => setShowSigSettings(!showSigSettings)} 
+            />
           </div>
 
           {/* Attachment Bar */}
@@ -306,6 +528,180 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
               wordBreak: 'break-word',
             }}
           />
+
+          {/* Signature Control Bar */}
+          <div style={{
+            height: SIG_BAR,
+            borderTop: `1px solid ${colors.borderLight}`,
+            borderBottom: showSigSettings ? `1px solid ${colors.borderLight}` : 'none',
+            background: '#f8fafc',
+            padding: '0 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: 12,
+            color: colors.textSecondary,
+            flexShrink: 0,
+          }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: 500 }}>
+              <input
+                type="checkbox"
+                checked={includeSignature}
+                onChange={(e) => handleIncludeSignatureToggle(e.target.checked)}
+                style={{ cursor: 'pointer' }}
+              />
+              <span>Include email signature at the bottom</span>
+            </label>
+            <button
+              onClick={() => setShowSigSettings(!showSigSettings)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: colors.primary,
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 12,
+                fontFamily: 'DM Sans, sans-serif',
+                padding: '4px 8px',
+                borderRadius: 4,
+                transition: 'background 0.2s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = colors.primaryLight}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+            >
+              ✍️ {showSigSettings ? 'Hide Settings' : 'Manage Signature'}
+            </button>
+          </div>
+
+          {/* Signature Settings Card */}
+          {showSigSettings && (
+            <div style={{
+              height: SIG_SETTINGS,
+              background: '#ffffff',
+              borderBottom: `1px solid ${colors.border}`,
+              padding: '12px 20px',
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 16,
+              flexShrink: 0,
+              overflowY: 'auto',
+              animation: 'settingsSlide 0.2s ease-out',
+            }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: colors.text }}>Agent Signature Settings</div>
+                <div style={{ fontSize: 11, color: colors.textMuted }}>
+                  Upload an image of your signature (PNG, JPG or WEBP, max 2MB).
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id="sig-file-input"
+                    onChange={handleSigFileChange}
+                    style={{ display: 'none' }}
+                  />
+                  <label
+                    htmlFor="sig-file-input"
+                    style={{
+                      padding: '6px 12px',
+                      border: `1px dashed ${colors.primary}`,
+                      borderRadius: 6,
+                      background: colors.primaryLight,
+                      color: colors.primaryDark,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}
+                  >
+                    📁 {tempSignatureName ? 'Change Image' : 'Choose Image'}
+                  </label>
+                  {tempSignatureName && (
+                    <span style={{ fontSize: 11, color: colors.textSecondary, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {tempSignatureName}
+                    </span>
+                  )}
+                  
+                  {tempSignature && (
+                    <button
+                      onClick={handleSaveSig}
+                      style={{
+                        padding: '6px 12px',
+                        border: 'none',
+                        borderRadius: 6,
+                        background: '#10b981',
+                        color: 'white',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      💾 Save
+                    </button>
+                  )}
+                  
+                  {savedSignature && (
+                    <button
+                      onClick={handleClearSig}
+                      style={{
+                        padding: '6px 12px',
+                        border: `1px solid ${colors.danger}`,
+                        borderRadius: 6,
+                        background: 'transparent',
+                        color: colors.danger,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      🗑 Delete Saved
+                    </button>
+                  )}
+                </div>
+                {sigUploadError && (
+                  <div style={{ fontSize: 11, color: colors.danger, fontWeight: 500, marginTop: 2 }}>
+                    ⚠️ {sigUploadError}
+                  </div>
+                )}
+              </div>
+
+              {/* Signature Image Preview */}
+              <div style={{
+                width: 160,
+                height: 72,
+                border: `1px dashed ${tempSignature ? '#10b981' : colors.border}`,
+                borderRadius: 8,
+                background: colors.bg,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                position: 'relative',
+                padding: 4,
+              }}>
+                {tempSignature ? (
+                  <>
+                    <img src={tempSignature} alt="Temp Sig Preview" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                    <div style={{ position: 'absolute', bottom: 2, right: 2, background: 'rgba(16, 185, 129, 0.9)', color: 'white', fontSize: 8, padding: '1px 3px', borderRadius: 2, fontWeight: 700 }}>STAGED</div>
+                  </>
+                ) : savedSignature ? (
+                  <>
+                    <img src={savedSignature} alt="Saved Sig Preview" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                    <div style={{ position: 'absolute', bottom: 2, right: 2, background: 'rgba(37, 99, 235, 0.9)', color: 'white', fontSize: 8, padding: '1px 3px', borderRadius: 2, fontWeight: 700 }}>ACTIVE</div>
+                  </>
+                ) : (
+                  <span style={{ fontSize: 10, color: colors.textFaint, textAlign: 'center' }}>No Signature<br/>Image Saved</span>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Footer */}
           <div style={{
@@ -351,9 +747,26 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
               </div>
 
               {/* Save Draft */}
-              <button onClick={() => {
-                onSaveDraft && onSaveDraft({ to, cc, bcc, subject, body, attachments });
-                setLastSaved(new Date());
+              <button onClick={async () => {
+                if (onSaveDraft) {
+                  try {
+                    const savedDraft = await onSaveDraft({
+                      id: draftIdRef.current,
+                      to,
+                      cc,
+                      bcc,
+                      subject,
+                      body,
+                      attachments
+                    });
+                    if (savedDraft && savedDraft.id) {
+                      draftIdRef.current = savedDraft.id;
+                    }
+                    setLastSaved(new Date());
+                  } catch (err) {
+                    console.error('[ComposeModal] Manual save failed:', err);
+                  }
+                }
               }} style={outlineBtn}>
                 💾 Save Draft
               </button>
@@ -380,6 +793,10 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
         @keyframes composeIn {
           from { transform: ${mode === 'normal' ? 'translate(-50%, calc(-50% + 20px))' : 'translateY(20px)'} scale(0.97); opacity: 0; }
           to   { transform: ${mode === 'normal' ? 'translate(-50%, -50%)' : 'translateY(0)'} scale(1); opacity: 1; }
+        }
+        @keyframes settingsSlide {
+          from { height: 0; opacity: 0; }
+          to   { height: 140px; opacity: 1; }
         }
         [contenteditable]:empty:before {
           content: attr(data-placeholder);

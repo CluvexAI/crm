@@ -6,9 +6,10 @@ import { ROLES } from '../data/mockData';
 import html2pdf from 'html2pdf.js';
 import { encrypt, decrypt } from '../services/cryptoService';
 import { getActiveBackendUsers, getProjectClientDetails } from '../services/assignmentService';
+import EmailComposer from './EmailComposer';
 
-const InvoiceView = ({ invoiceId, onClose, initialEditMode = false }) => {
-  const { currentUser, allProjects, allSales, allLeads, createProject, updateProject, addNotification, allUsers, refreshInvoices } = useApp();
+const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowAssign = false }) => {
+  const { currentUser, allProjects, allSales, allLeads, createProject, updateProject, addNotification, allUsers, refreshInvoices, updateSale } = useApp();
   const [invoice, setInvoice] = useState(null);
   const [editedInvoice, setEditedInvoice] = useState(null);
   const [editMode, setEditMode] = useState(initialEditMode ? 'edit' : 'view');
@@ -17,7 +18,10 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false }) => {
   const [auditLog, setAuditLog] = useState([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showInstallmentModal, setShowInstallmentModal] = useState(false);
-  const [showAssignProject, setShowAssignProject] = useState(false);
+  const [showAssignProject, setShowAssignProject] = useState(initialShowAssign);
+  const [showEmailComposer, setShowEmailComposer] = useState(false);
+  const [invoicePdfBase64, setInvoicePdfBase64] = useState(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [newService, setNewService] = useState({ name: '', description: '', duration: 'Monthly', quantity: 1, unitPrice: 0 });
   const [newPayment, setNewPayment] = useState({ amount: 0, method: 'stripe', notes: '' });
   const [newInstallment, setNewInstallment] = useState({ dueDate: '', amount: 0, method: 'stripe' });
@@ -210,58 +214,43 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false }) => {
   };
 
   const handleSendEmail = () => {
-    if (!invoice.client.email) {
-      window.alert('Client has no email address specified.');
+    if (!invoice.client?.email) {
+      window.alert('Client has no BILL TO email address specified.');
       return;
     }
-    const safeInvoice = getCustomerInvoice(invoice);
-    const totalFormatted = formatInvoiceAmount(safeInvoice.totalAmount, safeInvoice.invoiceInfo.currency);
-    const paidFormatted = formatInvoiceAmount(safeInvoice.paidAmount, safeInvoice.invoiceInfo.currency);
-    const dueFormatted = formatInvoiceAmount(safeInvoice.dueAmount, safeInvoice.invoiceInfo.currency);
+    
+    setIsGeneratingPdf(true);
+    const element = document.getElementById('invoice-print-area');
+    if (!element) {
+      console.error('Invoice print area element not found!');
+      setIsGeneratingPdf(false);
+      setShowEmailComposer(true);
+      return;
+    }
 
-    const emailBody = `
-<h1 style="font-size:30px; font-weight:bold; text-align:center; margin-bottom:20px;">
-  INVOICE
-</h1>
-
-<p>
-  <strong>${safeInvoice.from?.name || safeInvoice.company?.name || ''}</strong><br/>
-  ${safeInvoice.from?.address || safeInvoice.company?.address || ''}<br/>
-  Email: ${safeInvoice.from?.email || safeInvoice.company?.email || ''}<br/>
-  Phone: ${safeInvoice.from?.phone || safeInvoice.company?.phone || ''}
-</p>
-
-<h2>Invoice #${safeInvoice.invoiceNumber}</h2>
-
-<p>Total: ${totalFormatted}</p>
-<p>Paid: ${paidFormatted}</p>
-<p>Due: ${dueFormatted}</p>
-
-${safeInvoice.dueAmount > 0 ? `
-<div style="padding:12px; border:2px solid #f0c040; background:#fff8e5; margin:20px 0;">
-  <strong>Amount Due: ${dueFormatted}</strong><br/>
-  <strong>Due Date: ${safeInvoice.invoiceInfo.dueDate}</strong>
-</div>
-<p>
-  <strong>Pay Now — ${dueFormatted}:</strong><br/>
-  <a href="${safeInvoice.stripe_payment_link_url || '#'}">
-    Complete your payment securely via Stripe Payment Link
-  </a>
-  <br/>
-  <small style="color: #666;">This link expires in 30 days.</small>
-</p>
-` : '<p>This invoice is fully paid. Thank you!</p>'}
-
-<div style="margin-top:25px; font-size:13px;">
-  <strong>CONTACT DETAILS</strong><br/>
-
-  Mailing Address: ${safeInvoice.contactDetails?.mailingAddress || DEFAULT_CONTACT_DETAILS.mailingAddress}, 
-  Email Address: ${safeInvoice.contactDetails?.email || DEFAULT_CONTACT_DETAILS.email}<br/>
-
-  Contact: AUS: ${safeInvoice.contactDetails?.contacts?.AUS || DEFAULT_CONTACT_DETAILS.contacts.AUS}; IRE: ${safeInvoice.contactDetails?.contacts?.IRE || DEFAULT_CONTACT_DETAILS.contacts.IRE}; IND: ${safeInvoice.contactDetails?.contacts?.IND || DEFAULT_CONTACT_DETAILS.contacts.IND}
-</div>
-    `.trim();
-    window.alert(`Email HTML sent to ${safeInvoice.client.email}!\n\n---\n\n${emailBody}`);
+    const opt = {
+      margin: 0.5,
+      filename: `Invoice_${invoice.invoiceNumber || invoice.id}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    
+    html2pdf()
+      .set(opt)
+      .from(element)
+      .outputPdf('datauristring')
+      .then((pdfDataUri) => {
+        const base64String = pdfDataUri.split(',')[1];
+        setInvoicePdfBase64(base64String);
+        setShowEmailComposer(true);
+        setIsGeneratingPdf(false);
+      })
+      .catch((err) => {
+        console.error('PDF generation failed:', err);
+        setShowEmailComposer(true);
+        setIsGeneratingPdf(false);
+      });
   };
 
   const handleFromChange = (field, value) => setEditedInvoice(prev => ({ ...prev, from: { ...(prev.from || prev.company), [field]: value } }));
@@ -313,11 +302,13 @@ ${safeInvoice.dueAmount > 0 ? `
     }
     
     setIsSaving(true);
-    // Simulate save delay for UI/UX
     setTimeout(() => {
       try {
         const updated = updateInvoice(invoice.id, editedInvoice, currentUser?.name);
         if (updated) {
+          if (invoice.saleId && editedInvoice.lockedTotal !== undefined) {
+            updateSale(invoice.saleId, { amount: editedInvoice.lockedTotal, totalAmount: editedInvoice.lockedTotal });
+          }
           setInvoice(updated);
           setAuditLog(getInvoiceAuditLog(invoice.id));
           setEditMode('view');
@@ -344,6 +335,13 @@ ${safeInvoice.dueAmount > 0 ? `
     }
 
     if (updated) {
+      if (invoice.saleId) {
+        updateSale(invoice.saleId, {
+          amount: updated.paidAmount,
+          totalAmount: updated.paidAmount,
+          saleStatus: updated.dueAmount <= 0 ? 'Closed' : 'Pending',
+        });
+      }
       setInvoice(updated);
       setAuditLog(getInvoiceAuditLog(invoice.id));
       setShowPaymentModal(false);
@@ -451,8 +449,8 @@ ${safeInvoice.dueAmount > 0 ? `
             )}
             <button className="btn btn-sm btn-outline" onClick={handleDownloadPDF}>📄 Download PDF</button>
             <button className="btn btn-sm btn-outline" onClick={handleSendEmail}>📧 Send via Email</button>
-            {!['FULL', 'CANCELLED', 'Paid'].includes(invoice.status) && invoice.dueAmount > 0 && invoice.paymentLink && (
-              <a href={invoice.paymentLink} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+            {!['FULL', 'CANCELLED', 'Paid'].includes(invoice.status) && invoice.dueAmount > 0 && invoice.stripe_payment_link_url && (
+              <a href={invoice.stripe_payment_link_url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                 <button className="btn btn-sm" style={{ background: '#635BFF', color: 'white', border: 'none' }}>💳 Pay Now</button>
               </a>
             )}
@@ -801,53 +799,186 @@ ${safeInvoice.dueAmount > 0 ? `
 
           {/* Amount Due Highlight Block */}
           {editMode !== 'edit' && invoice.dueAmount > 0 && (
-            <div style={{ marginTop: '20px', padding: '12px', border: '2px solid #f0c040', background: '#fff8e5' }}>
-              <p style={{ fontSize: '16px', fontWeight: 'bold', margin: '0' }}>
-                Amount Due: {formatInvoiceAmount(invoice.dueAmount, invoice.invoiceInfo.currency)}
-              </p>
-              <p style={{ fontSize: '14px', fontWeight: 'bold', margin: '5px 0 0 0' }}>
-                Due Date: {invoice.invoiceInfo.dueDate}
-              </p>
-            </div>
+            (() => {
+              const hasInstallments = invoice.installments && invoice.installments.length > 0;
+              const isFirstInstDue = hasInstallments && invoice.installments[0].status !== 'PAID';
+              
+              if (isFirstInstDue) {
+                return (
+                  <div style={{ 
+                    marginTop: '20px', 
+                    padding: '16px 20px', 
+                    border: '1.5px solid var(--primary)', 
+                    background: 'linear-gradient(135deg, rgba(14, 84, 145, 0.08), rgba(26, 107, 181, 0.04))', 
+                    borderRadius: '12px',
+                    boxShadow: '0 8px 24px rgba(14, 84, 145, 0.08)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '18px' }}>⭐</span>
+                      <span style={{ 
+                        fontSize: '11px', 
+                        background: 'var(--primary)', 
+                        color: '#ffffff', 
+                        padding: '3px 10px', 
+                        borderRadius: '20px', 
+                        fontWeight: '800',
+                        letterSpacing: '0.5px',
+                        textTransform: 'uppercase'
+                      }}>
+                        First Installment Due
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '20px', fontWeight: '800', color: 'var(--primary-dark)', margin: '4px 0 0 0' }}>
+                      Amount Due: {formatInvoiceAmount(invoice.installments[0].amount, invoice.invoiceInfo.currency)}
+                    </p>
+                    <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', margin: '0' }}>
+                      📅 Due Date: <span style={{ color: 'var(--primary)', fontWeight: '700' }}>{invoice.installments[0].dueDate}</span>
+                    </p>
+                  </div>
+                );
+              }
+              
+              return (
+                <div style={{ marginTop: '20px', padding: '12px', border: '2px solid #f0c040', background: '#fff8e5', borderRadius: '8px' }}>
+                  <p style={{ fontSize: '16px', fontWeight: 'bold', margin: '0' }}>
+                    Amount Due: {formatInvoiceAmount(invoice.dueAmount, invoice.invoiceInfo.currency)}
+                  </p>
+                  <p style={{ fontSize: '14px', fontWeight: 'bold', margin: '5px 0 0 0' }}>
+                    Due Date: {invoice.invoiceInfo.dueDate}
+                  </p>
+                </div>
+              );
+            })()
           )}
 
           {/* Clickable PDF Payment Link (Only active in View Mode if Due Amount > 0) */}
-          {editMode !== 'edit' && invoice.dueAmount > 0 && invoice.stripe_payment_link_url && (
-            <div style={{ marginTop: 24, padding: 16, background: 'var(--bg-secondary)', borderRadius: 8, textAlign: 'center' }}>
-              <p style={{ margin: '0 0 8px 0', fontSize: 16 }}><strong>💳 Pay via Stripe:</strong></p>
-              <a href={invoice.stripe_payment_link_url} target="_blank" rel="noreferrer" style={{ color: '#0E5491', fontWeight: 'bold', fontSize: 14 }}>
-                {invoice.stripe_payment_link_url}
-              </a>
-              <div style={{ marginTop: 12 }}>
-                <button 
-                  className="btn btn-sm btn-outline" 
-                  onClick={async () => {
-                    try {
-                      const res = await fetch('/api/stripe/payment-link', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          invoiceId: invoice.id,
-                          amount: invoice.totalAmount || invoice.amount,
-                          currency: 'USD',
-                          customerName: invoice.client?.businessName || invoice.leadName,
-                          customerEmail: invoice.client?.email || ''
-                        })
-                      });
-                      const data = await res.json();
-                      if (data.success) {
-                        const updated = updateInvoice(invoice.id, { stripe_payment_link_url: data.url, stripe_payment_link_id: data.id });
-                        setInvoice(updated);
-                        if (refreshInvoices) refreshInvoices();
+          {editMode !== 'edit' && invoice.dueAmount > 0 && (
+            <div style={{ 
+              marginTop: 24, 
+              padding: 20, 
+              background: '#fcfdfe', 
+              borderRadius: 12, 
+              textAlign: 'center', 
+              border: '1.5px dashed rgba(14, 84, 145, 0.25)',
+              boxShadow: '0 8px 16px rgba(14, 84, 145, 0.04)'
+            }}>
+              {invoice.stripe_payment_link_url ? (
+                <>
+                  <p style={{ margin: '0 0 10px 0', fontSize: 15, fontWeight: '700', color: 'var(--primary-dark)' }}>
+                    💳 Pay Outstanding Due (${formatInvoiceAmount(invoice.dueAmount, invoice.invoiceInfo?.currency)}) via Stripe:
+                  </p>
+                  <div style={{ marginBottom: 16 }}>
+                    <a 
+                      href={invoice.stripe_payment_link_url} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      style={{ 
+                        color: '#0E5491', 
+                        fontWeight: 'bold', 
+                        fontSize: 14, 
+                        wordBreak: 'break-all',
+                        textDecoration: 'underline'
+                      }}
+                    >
+                      {invoice.stripe_payment_link_url}
+                    </a>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
+                    <a 
+                      href={invoice.stripe_payment_link_url} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <button className="btn btn-sm btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        🚀 Pay Securely Now
+                      </button>
+                    </a>
+                    <button 
+                      className="btn btn-sm btn-outline" 
+                      onClick={() => {
+                        navigator.clipboard.writeText(invoice.stripe_payment_link_url);
+                        alert('Stripe Payment Link copied to clipboard!');
+                      }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                    >
+                      📋 Copy Link
+                    </button>
+                    <button 
+                      className="btn btn-sm btn-outline" 
+                      onClick={async () => {
+                        if (!window.confirm('Are you sure you want to regenerate this link? It will update the payment amount to the current outstanding due.')) return;
+                        try {
+                          const res = await fetch('/api/stripe/payment-link', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              invoiceId: invoice.id,
+                              amount: invoice.dueAmount,
+                              currency: invoice.invoiceInfo?.currency || 'USD',
+                              customerName: invoice.client?.businessName || invoice.leadName || 'Customer',
+                              customerEmail: invoice.client?.email || ''
+                            })
+                          });
+                          const data = await res.json();
+                          if (data.success) {
+                            const updated = updateInvoice(invoice.id, { stripe_payment_link_url: data.url, stripe_payment_link_id: data.id });
+                            setInvoice(updated);
+                            if (refreshInvoices) refreshInvoices();
+                          } else {
+                            alert('Failed to regenerate: ' + data.message);
+                          }
+                        } catch (e) {
+                          alert('Failed to regenerate link');
+                        }
+                      }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                    >
+                      🔄 Update/Regenerate Link
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p style={{ margin: '0 0 10px 0', fontSize: 14, color: 'var(--text-secondary)', fontWeight: '600' }}>
+                    No active Stripe Payment Link is registered for this invoice's outstanding due balance.
+                  </p>
+                  <button 
+                    className="btn btn-sm btn-primary" 
+                    onClick={async () => {
+                      try {
+                        const res = await fetch('/api/stripe/payment-link', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            invoiceId: invoice.id,
+                            amount: invoice.dueAmount,
+                            currency: invoice.invoiceInfo?.currency || 'USD',
+                            customerName: invoice.client?.businessName || invoice.leadName || 'Customer',
+                            customerEmail: invoice.client?.email || ''
+                          })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                          const updated = updateInvoice(invoice.id, { stripe_payment_link_url: data.url, stripe_payment_link_id: data.id });
+                          setInvoice(updated);
+                          if (refreshInvoices) refreshInvoices();
+                        } else {
+                          alert('Failed to generate link: ' + data.message);
+                        }
+                      } catch (e) {
+                        alert('Failed to generate link');
                       }
-                    } catch (e) {
-                      alert('Failed to regenerate link');
-                    }
-                  }}
-                >
-                  🔄 Regenerate Link
-                </button>
-              </div>
+                    }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '0 auto' }}
+                  >
+                    💳 Generate Stripe Payment Link
+                  </button>
+                </>
+              )}
             </div>
           )}
 
@@ -914,22 +1045,51 @@ ${safeInvoice.dueAmount > 0 ? `
                   </tr>
                 </thead>
                 <tbody>
-                  {invoice.installments.map(inst => (
-                    <tr key={inst.id}>
-                      <td>{inst.dueDate}</td>
-                      <td style={{ fontWeight: 600 }}>{formatInvoiceAmount(inst.amount, invoice.invoiceInfo.currency)}</td>
-                      <td>
-                        <span className={`badge ${inst.status === 'PAID' ? 'badge-success' : 'badge-warning'}`}>
-                          {inst.status}
-                        </span>
-                      </td>
-                      <td>
-                        {inst.status !== 'PAID' && canEdit && (
-                          <button className="btn btn-sm btn-success" onClick={() => handlePayInstallment(inst.id)}>Mark Paid</button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {invoice.installments.map(inst => {
+                    const isFirst = inst.installment_number === 1;
+                    return (
+                      <tr 
+                        key={inst.id}
+                        style={{
+                          background: isFirst ? 'rgba(14, 84, 145, 0.08)' : 'transparent',
+                          borderLeft: isFirst ? '4px solid var(--primary)' : 'none',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <td style={{ padding: isFirst ? '10px 8px' : '8px', fontWeight: isFirst ? 'bold' : 'normal' }}>{inst.dueDate}</td>
+                        <td style={{ padding: isFirst ? '10px 8px' : '8px', fontWeight: 800, color: isFirst ? 'var(--primary-dark)' : 'inherit' }}>
+                          {formatInvoiceAmount(inst.amount, invoice.invoiceInfo.currency)}
+                          {isFirst && (
+                            <span style={{ 
+                              fontSize: '10px', 
+                              background: 'var(--primary)', 
+                              color: '#ffffff', 
+                              padding: '2px 8px', 
+                              borderRadius: '12px', 
+                              marginLeft: '8px',
+                              fontWeight: '700',
+                              letterSpacing: '0.3px',
+                              textTransform: 'uppercase',
+                              display: 'inline-block',
+                              verticalAlign: 'middle'
+                            }}>
+                              First Due
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: isFirst ? '10px 8px' : '8px' }}>
+                          <span className={`badge ${inst.status === 'PAID' ? 'badge-success' : 'badge-warning'}`}>
+                            {inst.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: isFirst ? '10px 8px' : '8px' }}>
+                          {inst.status !== 'PAID' && canEdit && (
+                            <button className="btn btn-sm btn-success" onClick={() => handlePayInstallment(inst.id)}>Mark Paid</button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1358,6 +1518,101 @@ ${safeInvoice.dueAmount > 0 ? `
           </div>
         );
       })()}
+
+      {showEmailComposer && (
+        <div className="modal-overlay" style={{ background: 'rgba(14, 30, 54, 0.65)', backdropFilter: 'blur(8px)', zIndex: 1050 }}>
+          <div className="modal modal-lg" style={{ background: '#ffffff', borderRadius: '16px', maxWidth: '850px', height: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <EmailComposer 
+              currentUser={currentUser}
+              onClose={() => setShowEmailComposer(false)}
+              onSend={async (emailData) => {
+                try {
+                  const response = await fetch('/api/mail/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      config: {
+                        user: currentUser?.email || 'noreply@zsmeservices.com',
+                        pass: 'Admin#2026@zsm',
+                        name: currentUser?.name || 'ZSM Team'
+                      },
+                      mailOptions: {
+                        to: emailData.to,
+                        subject: emailData.subject,
+                        html: emailData.body,
+                        text: emailData.body.replace(/<[^>]*>/g, ''),
+                        attachments: (emailData.attachments || []).map(att => ({
+                          filename: att.name,
+                          content: att.content || att.file || 'Mock Invoice PDF Content',
+                        }))
+                      },
+                      userId: currentUser?.id
+                    })
+                  });
+                  const resData = await response.json();
+                  if (resData.success) {
+                    alert('✅ Email sent successfully!');
+                    setShowEmailComposer(false);
+                  } else {
+                    alert('Failed to send email: ' + resData.message);
+                  }
+                } catch (error) {
+                  alert('Failed to send email: ' + error.message);
+                }
+              }}
+              initialData={{
+                to: invoice.client?.email || '',
+                subject: `Invoice #${invoice.invoiceNumber || invoice.id} from ${invoice.from?.name || 'ZSM e-Services'}`,
+                body: `
+                  <p>Dear ${invoice.client?.contactName || invoice.client?.businessName || 'Customer'},</p>
+                  <p>We hope this email finds you well.</p>
+                  <p>Please find attached your invoice <strong>#${invoice.invoiceNumber || invoice.id}</strong> for services detailed below.</p>
+                  <div style="padding:16px; border:1px solid #e2e8f0; background:#f8fafc; border-radius:8px; margin:20px 0; max-width: 500px; font-family: sans-serif;">
+                    <h3 style="margin-top:0; color:#0E5491; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">Invoice Summary</h3>
+                    <table style="width:100%; font-size:14px; border-collapse:collapse;">
+                      <tr>
+                        <td style="padding:6px 0; color:#64748b;">Invoice Number:</td>
+                        <td style="padding:6px 0; font-weight:bold; text-align:right;">${invoice.invoiceNumber || invoice.id}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 0; color:#64748b;">Due Date:</td>
+                        <td style="padding:6px 0; font-weight:bold; text-align:right;">${invoice.invoiceInfo?.dueDate || invoice.dueDate}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 0; color:#64748b;">Total Amount:</td>
+                        <td style="padding:6px 0; font-weight:bold; text-align:right;">${formatInvoiceAmount(invoice.totalAmount, invoice.invoiceInfo?.currency)}</td>
+                      </tr>
+                      <tr style="border-top:1px dashed #cbd5e1;">
+                        <td style="padding:10px 0; font-weight:bold; color:#0e5491; font-size:15px;">Outstanding Balance:</td>
+                        <td style="padding:10px 0; font-weight:bold; text-align:right; color:#ef4444; font-size:15px;">${formatInvoiceAmount(invoice.dueAmount, invoice.invoiceInfo?.currency)}</td>
+                      </tr>
+                    </table>
+                    ${invoice.dueAmount > 0 && invoice.stripe_payment_link_url ? `
+                      <div style="margin-top:20px; text-align:center;">
+                        <a href="${invoice.stripe_payment_link_url}" target="_blank" rel="noreferrer" style="display:inline-block; padding:12px 24px; color:#ffffff; background:linear-gradient(135deg, #0E5491 0%, #1a6fb5 100%); text-decoration:none; font-weight:bold; border-radius:6px; box-shadow:0 4px 12px rgba(14,84,145,0.2);">
+                          💳 Pay Outstanding Due Online
+                        </a>
+                      </div>
+                    ` : ''}
+                  </div>
+                  <p>Thank you for your business!</p>
+                  <p>Regards,</p>
+                  <p><strong>${invoice.from?.name || 'ZSM e-Services Pvt. Ltd.'}</strong></p>
+                `.trim(),
+                attachments: [
+                  {
+                    name: `Invoice_${invoice.invoiceNumber || invoice.id}.pdf`,
+                    size: invoicePdfBase64 ? Math.round((invoicePdfBase64.length * 3) / 4) : 15420,
+                    type: 'application/pdf',
+                    file: null,
+                    content: invoicePdfBase64
+                  }
+                ]
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

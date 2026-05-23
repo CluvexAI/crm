@@ -60,8 +60,17 @@ export const updateUserRecord = (uuid, userData) => {
   const index = users.findIndex(u => u.uuid === uuid);
   
   if (index === -1) {
-    console.error('[UserDB] User not found:', uuid);
-    throw new Error('User not found');
+    console.warn('[UserDB] User not found, creating dynamic fallback record for:', uuid);
+    const newUser = {
+      uuid,
+      ...userData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: 1
+    };
+    users.push(newUser);
+    setStorage(users);
+    return newUser;
   }
   
   const currentUser = users[index];

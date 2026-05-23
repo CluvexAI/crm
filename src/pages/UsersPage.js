@@ -222,7 +222,15 @@ export const UserFormModal = ({ user, onClose, onSave, isHR = false }) => {
         basic: { name: user.name, email: user.email, phone: user.phone, whatsapp: user.whatsapp, password: '', address: user.address },
         personal: { fatherName: user.fatherName, motherName: user.motherName, bloodGroup: user.bloodGroup, foodPref: user.foodPref || 'Veg', emergencyContact: user.emergencyContact, hobbies: user.hobbies, localStation: user.localStation, localPostOffice: user.localPostOffice, referredBy: user.referredBy },
         professional: { role: user.role, department: user.department, designation: user.designation, dateOfJoining: user.dateOfJoining, shift: user.shift, salary: user.salary, qualification: user.qualification, experience: user.experience },
-        identification: { pan: user.pan, aadhaar: user.aadhaar, voterId: user.voterId }
+        identification: { pan: user.pan, aadhaar: user.aadhaar, voterId: user.voterId },
+        mail: {
+          useCustom: user.mailConfig?.useCustom || false,
+          password: user.mailConfig?.password || '',
+          imapHost: user.mailConfig?.imapHost || 'mail.zsmeservices.com',
+          imapPort: user.mailConfig?.imapPort || 993,
+          smtpHost: user.mailConfig?.smtpHost || 'mail.zsmeservices.com',
+          smtpPort: user.mailConfig?.smtpPort || 465,
+        }
       });
     }
   }, [user?.uuid]);
@@ -539,7 +547,7 @@ const UsersPage = () => {
         </select>
         <select className="form-control" style={{ width: 'auto' }}
           value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
-          <option>All Roles</option>
+          <option value="All">All Roles</option>
           {Object.values(ROLES).map(r => <option key={r}>{r}</option>)}
         </select>
         {isAdmin && (

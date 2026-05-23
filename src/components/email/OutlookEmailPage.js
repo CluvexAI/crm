@@ -111,7 +111,7 @@ const OutlookEmailPage = () => {
     const refreshAccount = () => {
       // Look for account by UUID OR by the user's email address as fallback
       const accounts = getEmailByUserId(currentUser.uuid || currentUser.id, currentUser.email);
-      if (accounts && accounts.length > 0) {
+      if (accounts && accounts.length > 0 && accounts[0]?.email) {
         setEmailAccount(accounts[0]);
       } else {
         // Demo mode: Use shared demo email for non-admin users when no account configured
@@ -260,6 +260,11 @@ const OutlookEmailPage = () => {
       setEmails(prev => prev.map(e => e.id === email.id ? { ...e, isStarred: !e.isStarred } : e));
       return;
     }
+    if (email.type === 'draft') {
+      setComposeData(email);
+      setComposeOpen(true);
+      return;
+    }
     // Mark as read
     if (email.status === 'unread') {
       setEmails(prev => prev.map(e => e.id === email.id ? { ...e, status: 'read' } : e));
@@ -311,7 +316,7 @@ const OutlookEmailPage = () => {
     setComposeOpen(true);
   }, []);
 
-  const handleSend = useCallback(async (emailData) => {
+  const handleSend = useCallback(async (emailData, draftId) => {
     if (!emailAccount) {
       throw new Error('No email account configured. Please go to Email Configuration to set up your account.');
     }
@@ -334,7 +339,15 @@ const OutlookEmailPage = () => {
         attachments: emailData.attachments,
         createdAt: new Date().toISOString(),
       };
-      setEmails(prev => [sent, ...prev]);
+      
+      setEmails(prev => {
+        let filtered = prev;
+        if (draftId) {
+          filtered = prev.filter(e => e.id !== draftId);
+        }
+        return [sent, ...filtered];
+      });
+      
       addToast('Email sent successfully! ✉️');
     } catch (err) {
       throw new Error(err.message);
@@ -342,18 +355,47 @@ const OutlookEmailPage = () => {
   }, [uid, currentUser, emailAccount, addToast]);
 
   const handleSaveDraft = useCallback((draftData) => {
+    let draftId = draftData.id;
+    if (!draftId) {
+      draftId = `draft_${generateId()}`;
+    }
+
+    const toStr = Array.isArray(draftData.to) ? draftData.to.join(', ') : (draftData.to || '');
+    const ccStr = Array.isArray(draftData.cc) ? draftData.cc.join(', ') : (draftData.cc || '');
+    const bccStr = Array.isArray(draftData.bcc) ? draftData.bcc.join(', ') : (draftData.bcc || '');
+
     const draft = {
-      id: generateId(), userId: uid,
-      fromEmail: currentUser?.email, fromName: currentUser?.name,
-      toEmail: (draftData.to || []).join(', '),
+      id: draftId,
+      userId: uid,
+      fromEmail: currentUser?.email || emailAccount?.email,
+      fromName: currentUser?.name,
+      toEmail: toStr,
+      cc: ccStr,
+      bcc: bccStr,
       subject: draftData.subject || '(No Subject)',
       body: draftData.body || '',
       preview: (draftData.body || '').replace(/<[^>]*>/g, '').substring(0, 80) || '(No content)',
-      type: 'draft', status: 'draft', isStarred: false,
-      hasAttachments: false, createdAt: new Date().toISOString(),
+      type: 'draft',
+      status: 'draft',
+      isStarred: false,
+      hasAttachments: (draftData.attachments || []).length > 0,
+      attachments: draftData.attachments || [],
+      createdAt: new Date().toISOString(),
     };
-    setEmails(prev => [draft, ...prev]);
-  }, [uid, currentUser]);
+
+    setEmails(prev => {
+      const idx = prev.findIndex(e => e.id === draftId);
+      if (idx !== -1) {
+        const updated = [...prev];
+        updated[idx] = { ...updated[idx], ...draft, createdAt: updated[idx].createdAt };
+        return updated;
+      } else {
+        return [draft, ...prev];
+      }
+    });
+
+    return draft;
+  }, [uid, currentUser, emailAccount]);
 
   const handleCompose = useCallback(() => {
     if (!perms.canComposeExternal && activeFolder !== 'drafts') {

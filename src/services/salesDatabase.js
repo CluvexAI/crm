@@ -56,8 +56,17 @@ export const updateSaleRecord = (id, saleData) => {
   const index = sales.findIndex(s => s.id === id);
   
   if (index === -1) {
-    console.error('[SalesDB] Sale not found:', id);
-    throw new Error('Sale not found');
+    console.warn('[SalesDB] Sale not found, creating dynamic fallback record for:', id);
+    const newSale = {
+      id,
+      ...saleData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: 1
+    };
+    sales.push(newSale);
+    setStorage(sales);
+    return newSale;
   }
   
   const currentSale = sales[index];

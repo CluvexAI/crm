@@ -4,9 +4,10 @@ import { BASE_CURRENCY, formatCurrencyAmount, getCurrencySymbol } from '../servi
 import { aggregateCustomerPayments, getOverallPaymentStats, calculateAgingBuckets, getAgingSummary } from '../services/paymentService';
 import { fetchDashboardSummary, markInvoicePaid, getCompanySettings, saveCompanySettings } from '../services/invoiceService';
 import InvoiceView from '../components/InvoiceView';
+import CreateInvoiceModal from '../components/CreateInvoiceModal';
 
 const SalesPage = () => {
-  const { allInvoices, myInvoices, updateInvoice, refreshInvoices, deleteInvoice, currentUser, myCustomers, allUsers, allSales, allLeads, allProjects } = useApp();
+  const { allInvoices, myInvoices, updateInvoice, refreshInvoices, deleteInvoice, currentUser, myCustomers, allUsers, allSales, allLeads, allProjects, updateSale } = useApp();
   const isAdmin = currentUser?.role === 'Admin';
   const displayInvoices = isAdmin ? allInvoices : myInvoices;
   const displayCustomers = isAdmin ? [] : myCustomers;
@@ -176,7 +177,7 @@ const SalesPage = () => {
           )}
 
           {['sales', 'due', 'all'].includes(filter) && (
-            <InvoicesTab allInvoices={getFilteredInvoices()} updateInvoice={updateInvoice} deleteInvoice={deleteInvoice} formatCurrency={formatDual} refreshInvoices={refreshInvoices} title={filter === 'due' ? '🧾 Unpaid Invoices' : '🧾 All Invoices'} currentUser={currentUser} allUsers={allUsers} allSales={allSales} allLeads={allLeads} allProjects={allProjects} />
+            <InvoicesTab allInvoices={getFilteredInvoices()} updateInvoice={updateInvoice} deleteInvoice={deleteInvoice} formatCurrency={formatDual} refreshInvoices={refreshInvoices} title={filter === 'due' ? '🧾 Unpaid Invoices' : '🧾 All Invoices'} currentUser={currentUser} allUsers={allUsers} allSales={allSales} allLeads={allLeads} allProjects={allProjects} updateSale={updateSale} />
           )}
         </>
       )}
@@ -506,10 +507,14 @@ const CustomerDetailView = ({ customer, formatCurrency, onClose }) => {
   );
 };
 
-const InvoicesTab = ({ allInvoices, updateInvoice, deleteInvoice, formatCurrency, refreshInvoices, title, currentUser, allUsers, allSales, allLeads, allProjects }) => {
+const InvoicesTab = ({ allInvoices, updateInvoice, deleteInvoice, formatCurrency, refreshInvoices, title, currentUser, allUsers, allSales, allLeads, allProjects, updateSale }) => {
   const [viewInvoice, setViewInvoice] = useState(null);
   const [invoiceEditMode, setInvoiceEditMode] = useState(false);
+  const [invoiceShowAssign, setInvoiceShowAssign] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const canCreateInvoice = ['Accounts', 'Admin'].includes(currentUser?.role);
 
   const handleGenerateLink = async (inv) => {
     setGeneratingLink(inv.id);
@@ -547,6 +552,11 @@ const InvoicesTab = ({ allInvoices, updateInvoice, deleteInvoice, formatCurrency
       <div className="card">
         <div className="card-header">
           <div className="card-title">{title || `🧾 Invoice Registry`} ({allInvoices.length})</div>
+          {canCreateInvoice && (
+            <button className="btn btn-sm btn-primary" onClick={() => setShowCreateModal(true)}>
+              ➕ Add Invoice
+            </button>
+          )}
         </div>
         <div className="table-container">
           {allInvoices.length === 0 ? (
@@ -638,18 +648,38 @@ const InvoicesTab = ({ allInvoices, updateInvoice, deleteInvoice, formatCurrency
                           // eslint-disable-next-line no-alert
                           if (window.confirm('Delete invoice ' + (inv.invoiceNumber || inv.id) + '?')) {
                             deleteInvoice(inv.id);
+                            if (inv.saleId && updateSale) {
+                              updateSale(inv.saleId, { amount: 0, totalAmount: 0, saleStatus: 'Deleted' });
+                            }
                             if (refreshInvoices) refreshInvoices();
                           }
                         }}>🗑️</button>
                         {['Pending', 'PENDING'].includes(inv.status) && (
                           <>
                             <button className="btn btn-sm btn-success" onClick={() => {
-                              markInvoicePaid(inv.id, currentUser?.name);
+                              const updated = markInvoicePaid(inv.id, currentUser?.name);
+                              if (updated && inv.saleId && updateSale) {
+                                updateSale(inv.saleId, {
+                                  amount: updated.paidAmount,
+                                  totalAmount: updated.paidAmount,
+                                  saleStatus: 'Closed',
+                                });
+                              }
                               if (refreshInvoices) refreshInvoices();
                             }}>✅ Mark Paid</button>
                             <button className="btn btn-sm btn-danger" onClick={() => updateInvoice(inv.id, { status: 'CANCELLED' })}>✕</button>
                           </>
                         )}
+                        {(() => {
+                          const project = allProjects?.find(p => p.saleId === inv.saleId);
+                          const isAssigned = project?.assignedTo && project.assignedTo !== null && project.assignedToName !== 'Unassigned';
+                          const isPaid = ['Paid', 'FULL'].includes(inv.status);
+                          return isPaid && !isAssigned ? (
+                            <button className="btn btn-sm btn-primary" onClick={() => { setViewInvoice(inv); setInvoiceShowAssign(true); }}>
+                              👨‍💻 Assign Project
+                            </button>
+                          ) : null;
+                        })()}
                       </div>
                     </td>
                   </tr>
@@ -665,7 +695,15 @@ const InvoicesTab = ({ allInvoices, updateInvoice, deleteInvoice, formatCurrency
         <InvoiceView 
           invoiceId={viewInvoice.id} 
           initialEditMode={invoiceEditMode}
-          onClose={() => { setViewInvoice(null); setInvoiceEditMode(false); if (refreshInvoices) refreshInvoices(); }}
+          initialShowAssign={invoiceShowAssign}
+          onClose={() => { setViewInvoice(null); setInvoiceEditMode(false); setInvoiceShowAssign(false); if (refreshInvoices) refreshInvoices(); }}
+        />
+      )}
+
+      {showCreateModal && (
+        <CreateInvoiceModal
+          onClose={() => setShowCreateModal(false)}
+          refreshInvoices={refreshInvoices}
         />
       )}
     </>

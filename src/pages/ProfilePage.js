@@ -360,17 +360,35 @@ const EmailSettingsTab = () => {
   // Load from Canonical Store on mount
   React.useEffect(() => {
     const loadConfig = async () => {
-      const { getEmailByUserId } = await import('../services/emailService');
-      const accounts = getEmailByUserId(currentUser.uuid || currentUser.id, currentUser.email);
-      if (accounts && accounts.length > 0) {
+      try {
+        const { getEmailByUserId } = await import('../services/emailService');
+        const uid = currentUser && (currentUser.uuid || currentUser.id);
+        const uEmail = currentUser && currentUser.email;
+        if (!uid) return;
+
+        const accounts = getEmailByUserId(uid, uEmail);
+        if (!accounts || !Array.isArray(accounts) || accounts.length === 0) return;
+
         const acc = accounts[0];
+        if (!acc || typeof acc !== 'object' || !acc.email || typeof acc.email !== 'string') return;
+
         setEmailForm({
-          email: acc.email,
-          password: '', // Don't load password into state for security
-          imap: { host: acc.imapHost || 'mail.zsmeservices.com', port: acc.imapPort || 993, secure: true },
-          smtp: { host: acc.smtpHost || 'mail.zsmeservices.com', port: acc.smtpPort || 465, secure: true },
+          email: acc.email || '',
+          password: '',
+          imap: {
+            host: (acc.imapHost && typeof acc.imapHost === 'string') ? acc.imapHost : 'mail.zsmeservices.com',
+            port: parseInt(acc.imapPort) || 993,
+            secure: true
+          },
+          smtp: {
+            host: (acc.smtpHost && typeof acc.smtpHost === 'string') ? acc.smtpHost : 'mail.zsmeservices.com',
+            port: parseInt(acc.smtpPort) || 465,
+            secure: true
+          },
         });
         setIsConfigured(true);
+      } catch (e) {
+        console.warn('[EmailSettingsTab] loadConfig failed:', e.message);
       }
     };
     loadConfig();
@@ -470,7 +488,7 @@ message: result.message,
                 <button 
                   className="btn btn-ghost" 
                   type="button"
-                  onClick={() => setEmailForm(p => ({ ...p, showMasked: true, password: currentUser.emailConfig.password }))}
+                  onClick={() => setEmailForm(p => ({ ...p, showMasked: true, password: currentUser?.emailConfig?.password || '' }))}
                   title="Show saved password"
                 >
                   👁

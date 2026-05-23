@@ -12,7 +12,7 @@ const ReportsPage = () => {
   const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
   const alreadySubmitted = reports.find(r => r.reportDate === todayStr && r.userId === currentUser.id);
   
-  const allowedDepts = ['Backend', 'Support', 'Quality', 'Graphics', 'Account'];
+  const allowedDepts = ['Backend', 'Support', 'Quality', 'Graphics', 'Account', 'Accounts'];
   const isAdmin = currentUser.role === 'Admin';
   const isAllowed = allowedDepts.includes(currentUser.department) || isAdmin;
   const isTimeWindowOk = new Date().getHours() >= 9;

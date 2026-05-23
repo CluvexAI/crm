@@ -25,14 +25,51 @@ const EmailComposer = ({ currentUser, onClose, onSend, onSaveDraft, initialData 
 
   const fileInputRef = useRef(null);
 
-  const getSignature = () => {
+  // Signature States
+  const [showSigSettings, setShowSigSettings] = useState(false);
+  const [savedSignature, setSavedSignature] = useState(() => {
+    return localStorage.getItem(`zsm_signature_${currentUser?.id || 'default'}`) || '';
+  });
+  const [tempSignature, setTempSignature] = useState('');
+  const [tempSignatureName, setTempSignatureName] = useState('');
+  const [sigUploadError, setSigUploadError] = useState('');
+
+  const getSignature = (sig = savedSignature) => {
     if (!currentUser) return '';
-    return `<br><br><div style="color: #666; font-size: 13px; border-top: 1px solid #ddd; padding-top: 10px; margin-top: 20px;">
+    const baseSig = `<br><br><div class="agent-signature" style="color: #666; font-size: 13px; border-top: 1px solid #ddd; padding-top: 10px; margin-top: 20px;">
       <b>Regards,</b><br>
       ${currentUser.name}<br>
       ${currentUser.role}<br>
       ${currentUser.department || 'ZSM CRM'}
     </div>`;
+    if (sig) {
+      return `${baseSig}<br><img src="${sig}" alt="Signature" style="max-height: 60px; max-width: 200px; object-fit: contain; margin-top: 10px; border-radius: 4px;" />`;
+    }
+    return baseSig;
+  };
+
+  // Mount logic: Pre-populate body if creating new message
+  useEffect(() => {
+    if (!initialData?.body && includeSignature) {
+      setBody('<p><br></p>' + getSignature());
+    }
+  }, []);
+
+  const handleIncludeSignatureToggle = (checked) => {
+    setIncludeSignature(checked);
+    if (checked) {
+      setBody(prev => prev + getSignature());
+    } else {
+      // Strip signature using the exact match or general pattern
+      const sigHtml = getSignature();
+      if (sigHtml && body.endsWith(sigHtml)) {
+        setBody(prev => prev.substring(0, prev.length - sigHtml.length));
+      } else {
+        // Strip out the regards block using regex
+        const sigRegex = /<br><br><div class="agent-signature"[\s\S]*?<\/div>(<br><img[\s\S]*?\/>)?/g;
+        setBody(prev => prev.replace(sigRegex, ''));
+      }
+    }
   };
 
   const handleTemplateChange = (e) => {
@@ -43,7 +80,77 @@ const EmailComposer = ({ currentUser, onClose, onSend, onSaveDraft, initialData 
     const template = EMAIL_TEMPLATES.find(t => t.id === parseInt(tplId));
     if (template) {
       setSubject(template.subject);
-      setBody(template.body);
+      let newBody = template.body;
+      if (includeSignature) {
+        newBody += getSignature();
+      }
+      setBody(newBody);
+    }
+  };
+
+  const handleSigFileChange = (e) => {
+    const file = e.target.files[0];
+    setSigUploadError('');
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setSigUploadError('Please select a valid image file (PNG, JPG, WEBP).');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setSigUploadError('Image size exceeds 2MB limit.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setTempSignature(event.target.result);
+      setTempSignatureName(file.name);
+    };
+    reader.onerror = () => {
+      setSigUploadError('Error reading file. Please try again.');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveSig = () => {
+    if (tempSignature) {
+      const key = `zsm_signature_${currentUser?.id || 'default'}`;
+      localStorage.setItem(key, tempSignature);
+      setSavedSignature(tempSignature);
+      setTempSignature('');
+      setTempSignatureName('');
+      
+      // Update active body if includeSignature is checked
+      if (includeSignature) {
+        const sigRegex = /<br><br><div class="agent-signature"[\s\S]*?<\/div>(<br><img[\s\S]*?\/>)?/g;
+        setBody(prev => {
+          const stripped = prev.replace(sigRegex, '');
+          return stripped + getSignature(tempSignature);
+        });
+      }
+      
+      alert('Signature saved successfully!');
+    }
+  };
+
+  const handleClearSig = () => {
+    if (window.confirm('Are you sure you want to remove your saved signature?')) {
+      const key = `zsm_signature_${currentUser?.id || 'default'}`;
+      localStorage.removeItem(key);
+      setSavedSignature('');
+      setTempSignature('');
+      setTempSignatureName('');
+      
+      // Update active body if includeSignature is checked
+      if (includeSignature) {
+        const sigRegex = /<br><br><div class="agent-signature"[\s\S]*?<\/div>(<br><img[\s\S]*?\/>)?/g;
+        setBody(prev => {
+          const stripped = prev.replace(sigRegex, '');
+          return stripped + getSignature('');
+        });
+      }
     }
   };
 
@@ -101,10 +208,6 @@ const EmailComposer = ({ currentUser, onClose, onSend, onSaveDraft, initialData 
     
     setSending(true);
     let finalBody = body;
-    if (includeSignature) {
-      finalBody += getSignature();
-    }
-    
     finalBody = sanitizeHtml(finalBody);
 
     try {
@@ -133,9 +236,6 @@ const EmailComposer = ({ currentUser, onClose, onSend, onSaveDraft, initialData 
 
   if (previewMode) {
     let finalBody = body;
-    if (includeSignature) {
-      finalBody += getSignature();
-    }
     
     return (
       <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -242,12 +342,115 @@ const EmailComposer = ({ currentUser, onClose, onSend, onSaveDraft, initialData 
               </button>
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Or drag and drop files here</span>
             </div>
-            
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
-              <input type="checkbox" checked={includeSignature} onChange={e => setIncludeSignature(e.target.checked)} />
-              Include Signature
-            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
+                <input type="checkbox" checked={includeSignature} onChange={e => handleIncludeSignatureToggle(e.target.checked)} />
+                Include Signature
+              </label>
+              <button 
+                type="button" 
+                className="btn btn-ghost btn-sm" 
+                style={{ fontSize: 12, padding: '2px 8px', height: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}
+                onClick={() => setShowSigSettings(!showSigSettings)}
+              >
+                ✍️ Manage Signature
+              </button>
+            </div>
           </div>
+          
+          {showSigSettings && (
+            <div style={{ 
+              marginTop: 15, 
+              padding: 15, 
+              background: 'white', 
+              border: '1px solid var(--border-color)', 
+              borderRadius: 8,
+              animation: 'fadeIn 0.2s ease'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, borderBottom: '1px solid #eee', paddingBottom: 6 }}>
+                <strong style={{ fontSize: 13, color: 'var(--text-color)' }}>✍️ Email Signature Settings</strong>
+                <button type="button" className="btn btn-ghost btn-sm" style={{ padding: '0 4px', height: 'auto' }} onClick={() => setShowSigSettings(false)}>✕</button>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 15 }}>
+                {/* Left side: upload triggers */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleSigFileChange}
+                      style={{ display: 'none' }}
+                      id="composer-sig-file-upload"
+                    />
+                    <label
+                      htmlFor="composer-sig-file-upload"
+                      className="btn btn-outline btn-sm"
+                      style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                    >
+                      📁 Choose Image
+                    </label>
+                    {tempSignatureName && (
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }} title={tempSignatureName}>
+                        {tempSignatureName}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {sigUploadError && (
+                    <div style={{ color: 'red', fontSize: 11 }}>
+                      ⚠️ {sigUploadError}
+                    </div>
+                  )}
+                  
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={handleSaveSig}
+                      disabled={!tempSignature}
+                      style={{ height: 28, fontSize: 11 }}
+                    >
+                      Save
+                    </button>
+                    {savedSignature && (
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        onClick={handleClearSig}
+                        style={{ height: 28, fontSize: 11, color: 'red', borderColor: '#ffccd5' }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Right side: visual preview panel */}
+                <div style={{ 
+                  border: '1px dashed var(--border-color)', 
+                  borderRadius: 6, 
+                  background: '#fafafa', 
+                  padding: 8, 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  minHeight: 70,
+                  position: 'relative'
+                }}>
+                  <span style={{ position: 'absolute', top: 2, left: 4, fontSize: 8, color: 'var(--text-muted)', fontWeight: 600 }}>PREVIEW</span>
+                  {tempSignature ? (
+                    <img src={tempSignature} alt="Temp Sig" style={{ maxHeight: 40, maxWidth: 120, objectFit: 'contain', border: '1px dashed #4caf50' }} />
+                  ) : savedSignature ? (
+                    <img src={savedSignature} alt="Saved Sig" style={{ maxHeight: 40, maxWidth: 120, objectFit: 'contain' }} />
+                  ) : (
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)', fontStyle: 'italic' }}>No signature</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -850,6 +850,12 @@ export const duplicateInvoice = (invoiceId, changedBy = 'System') => {
   return newInvoice;
 };
 
+export const saveCustomInvoice = (invoice, changedBy = 'System') => {
+  saveInvoice(invoice);
+  logAuditAction(invoice.id, 'CREATE', null, null, invoice, changedBy);
+  return invoice;
+};
+
 export const fetchDashboardSummary = async () => {
   return new Promise((resolve) => {
     // Simulate backend endpoint delay

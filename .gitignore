@@ -42,3 +42,11 @@ dist/
 *.log
 .vscode/
 
+# ZSM CRM Local dynamic JSON databases
+server/data/emails.json
+server/data/otp_store.json
+server/data/projects.json
+server/data/project_delete_logs.json
+server/data/stripe_config.json
+
+

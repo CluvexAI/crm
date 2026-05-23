@@ -90,6 +90,12 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
     }
   }, []);
 
+  useEffect(() => {
+    if (isInitialized.current && editorRef.current && editorRef.current.innerHTML !== (value || '')) {
+      editorRef.current.innerHTML = value || '';
+    }
+  }, [value]);
+
   const saveSelection = useCallback(() => {
     const sel = window.getSelection();
     if (sel.rangeCount > 0 && editorRef.current?.contains(sel.anchorNode)) {

@@ -46,5 +46,469 @@
     "status": "delivered",
     "messageId": "<abc22b44-3390-56ac-bbb5-7cd3175df2e0@zsmeservices.com>",
     "timestamp": "2026-05-16T06:06:37.537Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "alainskey.ie@gmail.com",
+    "status": "delivered",
+    "messageId": "<f465367a-c28e-9fe6-651b-b0315210f856@zsmeservices.com>",
+    "timestamp": "2026-05-20T06:10:12.124Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "admin@zsm.com",
+    "status": "failed",
+    "error": "Can't send mail - all recipients were rejected: 550 SMTP AUTH is required for message submission on port 587",
+    "attempt": 1,
+    "timestamp": "2026-05-20T07:33:46.029Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "admin@zsm.com",
+    "status": "failed",
+    "error": "Can't send mail - all recipients were rejected: 550 SMTP AUTH is required for message submission on port 587",
+    "attempt": 2,
+    "timestamp": "2026-05-20T07:33:49.932Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "admin@zsm.com",
+    "status": "failed",
+    "error": "Can't send mail - all recipients were rejected: 550 SMTP AUTH is required for message submission on port 587",
+    "attempt": 1,
+    "timestamp": "2026-05-20T07:39:13.760Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "admin@zsm.com",
+    "status": "failed",
+    "error": "Can't send mail - all recipients were rejected: 550 SMTP AUTH is required for message submission on port 587",
+    "attempt": 2,
+    "timestamp": "2026-05-20T07:39:18.395Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "admin@zsm.com",
+    "status": "failed",
+    "error": "Can't send mail - all recipients were rejected: 550 SMTP AUTH is required for message submission on port 587",
+    "attempt": 1,
+    "timestamp": "2026-05-20T07:41:10.281Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "admin@zsm.com",
+    "status": "failed",
+    "error": "Can't send mail - all recipients were rejected: 550 SMTP AUTH is required for message submission on port 587",
+    "attempt": 1,
+    "timestamp": "2026-05-20T08:18:10.916Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "admin@zsm.com",
+    "status": "failed",
+    "error": "Can't send mail - all recipients were rejected: 550 SMTP AUTH is required for message submission on port 587",
+    "attempt": 2,
+    "timestamp": "2026-05-20T08:18:14.662Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "Can't send mail - all recipients were rejected: 454 4.7.1 <tanmoy.mondal@zsmeservices.com>: Relay access denied",
+    "attempt": 1,
+    "timestamp": "2026-05-20T08:39:55.286Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "hr@zsmeservices.com",
+    "status": "failed",
+    "error": "Can't send mail - all recipients were rejected: 454 4.7.1 <hr@zsmeservices.com>: Relay access denied",
+    "attempt": 1,
+    "timestamp": "2026-05-20T08:54:06.195Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "hr@zsmeservices.com",
+    "status": "failed",
+    "error": "Can't send mail - all recipients were rejected: 454 4.7.1 <hr@zsmeservices.com>: Relay access denied",
+    "attempt": 2,
+    "timestamp": "2026-05-20T08:54:09.788Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<a15472c1-c67f-a300-6a10-b9d70e265054@zsmeservices.com>",
+    "attempt": 1,
+    "timestamp": "2026-05-20T09:45:51.218Z"
+  },
+  {
+    "type": "password_reset",
+    "email": "tanmoy.mondal@zsmeservices.com",
+    "status": "completed",
+    "timestamp": "2026-05-20T09:47:42.838Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<7ad14571-80af-670d-ce8f-5fb7a4570607@zsmeservices.com>",
+    "attempt": 1,
+    "timestamp": "2026-05-20T09:49:09.509Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<56020728-26bd-3bee-5e01-6d6d7eb42855@zsmeservices.com>",
+    "attempt": 1,
+    "timestamp": "2026-05-20T09:51:50.773Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<25d5f7f7-03cb-7e95-ce38-ce2998803784@zsmeservices.com>",
+    "attempt": 1,
+    "timestamp": "2026-05-20T09:56:24.421Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<499329c5-5872-de7b-c719-4aa3f64093ef@zsmeservices.com>",
+    "attempt": 1,
+    "timestamp": "2026-05-20T09:58:09.070Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<91696138-907f-971f-d180-e29d06f2ee3d@zsmeservices.com>",
+    "attempt": 1,
+    "timestamp": "2026-05-20T10:22:46.801Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "Can't send mail - all recipients were rejected: 454 4.7.1 <tanmoy.mondal@zsmeservices.com>: Relay access denied",
+    "attempt": 1,
+    "smtpSource": "postmark_fallback",
+    "timestamp": "2026-05-20T10:32:45.422Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "Can't send mail - all recipients were rejected: 454 4.7.1 <tanmoy.mondal@zsmeservices.com>: Relay access denied",
+    "attempt": 2,
+    "smtpSource": "postmark_fallback",
+    "timestamp": "2026-05-20T10:32:49.718Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "Can't send mail - all recipients were rejected: 454 4.7.1 <tanmoy.mondal@zsmeservices.com>: Relay access denied",
+    "attempt": 3,
+    "smtpSource": "postmark_fallback",
+    "timestamp": "2026-05-20T10:32:54.019Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "md.ayan@zsmeservices.com",
+    "recipient": "webzy.fred@gmail.com",
+    "status": "delivered",
+    "messageId": "<cea33fd9-f2b6-7648-bd1a-60b6d585f3ac@zsmeservices.com>",
+    "timestamp": "2026-05-20T12:11:38.983Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "mahin.khan@zsmeservices.com",
+    "recipient": "mdmahinkhan868@gmail.com",
+    "status": "delivered",
+    "messageId": "<1eef7eb1-79ea-1326-5980-61adefa81159@zsmeservices.com>",
+    "timestamp": "2026-05-20T12:15:56.553Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "muzammil.hussain@zsmeservices.com",
+    "recipient": "hussainmuzammil9383@gmail.com",
+    "status": "failed",
+    "error": "Invalid login: 535 Incorrect authentication data",
+    "timestamp": "2026-05-20T12:30:21.332Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "muzammil.hussain@zsmeservices.com",
+    "recipient": "hussainmuzammil9383@gmail.com",
+    "status": "delivered",
+    "messageId": "<e686b9b2-8c98-78ce-c2b0-2fbcea23f6f9@zsmeservices.com>",
+    "timestamp": "2026-05-20T13:00:03.294Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "achena.aich@zsmeservices.com",
+    "recipient": "sarkarachena@gmail.com",
+    "status": "delivered",
+    "messageId": "<dc17d487-deaf-8538-35cd-98d35737c95a@zsmeservices.com>",
+    "timestamp": "2026-05-20T13:08:12.149Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "arindam.samanta@zsmeservices.com",
+    "recipient": "arindamsamanta40@gmail.com",
+    "status": "delivered",
+    "messageId": "<72f41b60-d251-e256-72a3-151c8526b607@zsmeservices.com>",
+    "timestamp": "2026-05-20T13:22:51.942Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<13af3910-0ccf-34f2-2276-acfbf028348e@zsmeservices.com>",
+    "timestamp": "2026-05-21T08:09:46.316Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "arshee.khatoon@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<02af9bb3-4221-4030-19d3-bdb01a5d4ef3@zsmeservices.com>",
+    "timestamp": "2026-05-21T08:14:13.821Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "alainskey.ie@gmail.com",
+    "status": "delivered",
+    "messageId": "<8f1db2ca-a778-7177-a6c5-f0c9a378c08e@zsmeservices.com>",
+    "timestamp": "2026-05-21T09:02:44.525Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "alainskey.ie@gmail.com",
+    "status": "delivered",
+    "messageId": "<b5f4cb51-bdd2-57f0-06c7-e3e028a2065b@zsmeservices.com>",
+    "timestamp": "2026-05-21T09:29:03.847Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<75efa82a-9864-e6bf-968f-e326441c1544@zsmeservices.com>",
+    "timestamp": "2026-05-21T09:33:03.621Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<62dc53d5-b03b-9f9e-635f-9d8434647c62@zsmeservices.com>",
+    "timestamp": "2026-05-21T09:38:35.015Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "alainskey.ie@gmail.com",
+    "status": "delivered",
+    "messageId": "<4fc99347-465e-39a0-b02a-b939d124c59b@zsmeservices.com>",
+    "timestamp": "2026-05-21T09:40:36.008Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "alainskey.ie@gmail.com",
+    "status": "delivered",
+    "messageId": "<1e41014d-d1b9-f186-fd40-e0948669e4ef@zsmeservices.com>",
+    "timestamp": "2026-05-21T09:46:18.297Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "chayan.gayen@zsmeservices.com",
+    "recipient": "chayangayen6@gmail.com",
+    "status": "delivered",
+    "messageId": "<2b1d8e70-3601-5620-576b-e5fc9d4b6669@zsmeservices.com>",
+    "timestamp": "2026-05-21T09:57:29.459Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "gourab.das@zsmeservices.com",
+    "recipient": "gourab.biit@gmail.com",
+    "status": "delivered",
+    "messageId": "<27b8faa5-71ee-dbb9-3658-a74b2dd8636c@zsmeservices.com>",
+    "timestamp": "2026-05-21T10:05:41.319Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "siddhartha.maity@zsmeservices.com",
+    "recipient": "sidhartyam@gmail.com",
+    "status": "delivered",
+    "messageId": "<a0d10cc9-ccf0-7381-043d-d14cf331b8d2@zsmeservices.com>",
+    "timestamp": "2026-05-21T10:17:29.400Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "pallabi.kundu@zsmeservices.com",
+    "recipient": "pallabikundu086@gmail.com",
+    "status": "delivered",
+    "messageId": "<1e376981-aed3-dea0-2482-f78a8cc37557@zsmeservices.com>",
+    "timestamp": "2026-05-21T10:52:57.864Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "priyanka.ghosh@zsmeservices.com",
+    "recipient": "priyankaghosh.designs@gmail.com",
+    "status": "delivered",
+    "messageId": "<8500ed36-3d18-fd63-7e4e-a8f85185887a@zsmeservices.com>",
+    "timestamp": "2026-05-21T11:03:11.918Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "moumita.acharya@zsmeservices.com",
+    "recipient": "webzy.hr@gmail.com",
+    "status": "delivered",
+    "messageId": "<2a8ca3fb-4349-e623-797c-47c4a17eaf32@zsmeservices.com>",
+    "timestamp": "2026-05-21T11:18:31.551Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "mdkhurram.khan@zsmeservices.com",
+    "recipient": "webzy.kevin@gmail.com",
+    "status": "delivered",
+    "messageId": "<8092b115-ef64-2d26-7601-44957acb65df@zsmeservices.com>",
+    "timestamp": "2026-05-21T11:42:16.467Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "shazia.parveen@zsmeservices.com",
+    "recipient": "shaziaparveen2011@gmail.com",
+    "status": "delivered",
+    "messageId": "<3b91229c-9d13-c116-8207-a36e6128a3ad@zsmeservices.com>",
+    "timestamp": "2026-05-21T13:01:25.834Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<d10669ab-db96-c7cb-2ad8-25218930fca2@zsmeservices.com>",
+    "timestamp": "2026-05-23T05:30:12.169Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<b2c89674-fa61-b1a9-ada7-c31231dac1db@zsmeservices.com>",
+    "attempt": 1,
+    "smtpSource": "postmark_outbound_stream",
+    "timestamp": "2026-05-23T05:31:19.885Z"
+  },
+  {
+    "type": "password_reset",
+    "email": "tanmoy.mondal@zsmeservices.com",
+    "status": "completed",
+    "timestamp": "2026-05-23T05:33:49.874Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<8073e812-a45e-c32e-1c9a-b43b9c3ade9d@zsmeservices.com>",
+    "attempt": 1,
+    "smtpSource": "postmark_outbound_stream",
+    "timestamp": "2026-05-23T05:34:30.125Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "ehtesham.nasim@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "ddc60d83-8e53-4a31-b4f4-ef5436efdf8f",
+    "attempt": 1,
+    "smtpSource": "postmark_outbound_stream",
+    "timestamp": "2026-05-23T09:33:39.070Z"
+  },
+  {
+    "type": "password_reset",
+    "email": "ehtesham.nasim@zsmeservices.com",
+    "status": "completed",
+    "timestamp": "2026-05-23T09:36:10.729Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "f3c2d96b-3c16-4396-b152-e571e6eac106",
+    "timestamp": "2026-05-23T09:59:32.032Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "0c4c4b7b-93ac-4e9e-bdd3-58ecfbb754b7",
+    "timestamp": "2026-05-23T10:15:56.229Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "0fd732c2-3c42-451d-be01-86782e413f7e",
+    "timestamp": "2026-05-23T10:19:47.374Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "radha.rani@zsmeservices.com",
+    "recipient": "radha1401rani@gmail.com",
+    "status": "delivered",
+    "messageId": "<622a770b-10d6-2186-ce8e-bfe980d711ab@zsmeservices.com>",
+    "timestamp": "2026-05-23T10:31:35.580Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "radha.rani@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<33e0bd4b-8d29-4e81-6e88-abb7290ba8ea@zsmeservices.com>",
+    "timestamp": "2026-05-23T10:35:55.955Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "mdrizwan.hussain@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<273c20b2-288d-9419-75dc-723f67482859@zsmeservices.com>",
+    "timestamp": "2026-05-23T10:40:31.837Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<1249cf33-0499-378d-5112-8500c6230164@zsmeservices.com>",
+    "timestamp": "2026-05-23T10:43:50.442Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "titli.sarkar@zsmeservices.com",
+    "recipient": "sarkar.titli2506@gmail.com",
+    "status": "delivered",
+    "messageId": "<96345fd1-70fb-e173-68bc-d07a3bc3a42e@zsmeservices.com>",
+    "timestamp": "2026-05-23T10:54:20.774Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "radha.rani@zsmeservices.com",
+    "recipient": "radha1401rani@gmail.com",
+    "status": "delivered",
+    "messageId": "<10bd40fa-960e-057f-b663-62873e632bdb@zsmeservices.com>",
+    "timestamp": "2026-05-23T10:58:06.382Z"
   }
 ]

@@ -119,7 +119,7 @@ const Dashboard = () => {
             <div className="stat-card" onClick={() => setActivePage('sales')}>
               <div className="stat-icon green">💰</div>
               <div className="stat-info">
-                <div className="stat-value">{formatCurrency(stats.totalRevenue)}</div>
+                <div className="stat-value">€{Number(stats.totalRevenue).toLocaleString('en-IN')}</div>
                 <div className="stat-label">Total Revenue</div>
                 <div className="stat-change up">↑ This Month</div>
               </div>

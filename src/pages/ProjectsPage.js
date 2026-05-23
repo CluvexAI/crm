@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { ROLES, DEPARTMENT_ROLES } from '../data/mockData';
+import { encrypt, decrypt } from '../services/cryptoService';
 
 const ProjectsPage = () => {
-  const { currentUser, allProjects, myProjects, allUsers, updateProject, addProjectReport } = useApp();
+  const { currentUser, allProjects, myProjects, allUsers, updateProject, deleteProject, addProjectReport } = useApp();
   const isAdmin = currentUser.role === ROLES.ADMIN;
   const projects = isAdmin ? allProjects : myProjects;
 
   const [viewProject, setViewProject] = useState(null);
   const [editProject, setEditProject] = useState(null);
+  const [deleteProjectId, setDeleteProjectId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [reportText, setReportText] = useState('');
   const [showCredentials, setShowCredentials] = useState({});
   const [search, setSearch] = useState('');
+
+  const isAuthorized = viewProject ? (currentUser.role === ROLES.ADMIN || currentUser.id === viewProject.assignedTo) : false;
 
   const filtered = projects.filter(p =>
     !search || p.projectName.toLowerCase().includes(search.toLowerCase()) || p.clientName.toLowerCase().includes(search.toLowerCase())
@@ -83,6 +88,11 @@ const ProjectsPage = () => {
                     ✏️
                   </button>
                 )}
+                {isAdmin && (
+                  <button className="btn btn-sm btn-ghost" style={{ color: 'var(--danger)', padding: '4px 8px', fontSize: 13 }} onClick={(e) => { e.stopPropagation(); setDeleteProjectId(proj); }} title="Delete Project">
+                    🗑
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -149,44 +159,80 @@ const ProjectsPage = () => {
                       <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', fontSize: 13 }}>
                         <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{label}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontWeight: 600 }}>{key ? (showCredentials[key] ? (val || '—') : maskCred(val)) : (val || '—')}</span>
-                          {key && val && <button className="btn btn-sm btn-ghost" style={{ padding: '2px 6px', fontSize: 11 }} onClick={() => toggleCred(key)}>{showCredentials[key] ? '🙈' : '👁'}</button>}
+                          <span style={{ fontWeight: 600 }}>
+                            {key ? (
+                              isAuthorized ? (
+                                showCredentials[key] ? (decrypt(val) || '—') : maskCred(decrypt(val))
+                              ) : (
+                                val ? '●●●●●●●●' : '—'
+                              )
+                            ) : (val || '—')}
+                          </span>
+                          {key && val && isAuthorized && (
+                            <button className="btn btn-sm btn-ghost" style={{ padding: '2px 6px', fontSize: 11 }} onClick={() => toggleCred(key)}>
+                              {showCredentials[key] ? '🙈' : '👁'}
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
                     
                     <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)', margin: '12px 0 8px', paddingBottom: 4, borderBottom: '1px solid var(--border-light)' }}>📡 Domain Details</div>
                     {[
-                      { label: 'Provider', val: viewProject.domainProvider },
+                      { label: 'Provider', val: viewProject.domainProvider || viewProject.domainRegistrar },
                       { label: 'Username', val: viewProject.domainUsername },
                       { label: 'Password', key: 'domain_pass', val: viewProject.domainPassword },
                     ].map(({ label, key, val }) => (
                       <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', fontSize: 13 }}>
                         <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{label}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontWeight: 600 }}>{key ? (showCredentials[key] ? (val || '—') : maskCred(val)) : (val || '—')}</span>
-                          {key && val && <button className="btn btn-sm btn-ghost" style={{ padding: '2px 6px', fontSize: 11 }} onClick={() => toggleCred(key)}>{showCredentials[key] ? '🙈' : '👁'}</button>}
+                          <span style={{ fontWeight: 600 }}>
+                            {key ? (
+                              isAuthorized ? (
+                                showCredentials[key] ? (decrypt(val) || '—') : maskCred(decrypt(val))
+                              ) : (
+                                val ? '●●●●●●●●' : '—'
+                              )
+                            ) : (val || '—')}
+                          </span>
+                          {key && val && isAuthorized && (
+                            <button className="btn btn-sm btn-ghost" style={{ padding: '2px 6px', fontSize: 11 }} onClick={() => toggleCred(key)}>
+                              {showCredentials[key] ? '🙈' : '👁'}
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
 
                     <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)', margin: '12px 0 8px', paddingBottom: 4, borderBottom: '1px solid var(--border-light)' }}>🖥️ Hosting (cPanel)</div>
                     {[
-                      { label: 'Username', val: viewProject.cpanelUsername },
-                      { label: 'Password', key: 'cpanel_pass', val: viewProject.cpanelPassword },
+                      { label: 'Username', val: viewProject.cpanelUsername || viewProject.cpanelUser },
+                      { label: 'Password', key: 'cpanel_pass', val: viewProject.cpanelPassword || viewProject.cpanelPass },
                     ].map(({ label, key, val }) => (
                       <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', fontSize: 13 }}>
                         <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{label}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontWeight: 600 }}>{key ? (showCredentials[key] ? (val || '—') : maskCred(val)) : (val || '—')}</span>
-                          {key && val && <button className="btn btn-sm btn-ghost" style={{ padding: '2px 6px', fontSize: 11 }} onClick={() => toggleCred(key)}>{showCredentials[key] ? '🙈' : '👁'}</button>}
+                          <span style={{ fontWeight: 600 }}>
+                            {key ? (
+                              isAuthorized ? (
+                                showCredentials[key] ? (decrypt(val) || '—') : maskCred(decrypt(val))
+                              ) : (
+                                val ? '●●●●●●●●' : '—'
+                              )
+                            ) : (val || '—')}
+                          </span>
+                          {key && val && isAuthorized && (
+                            <button className="btn btn-sm btn-ghost" style={{ padding: '2px 6px', fontSize: 11 }} onClick={() => toggleCred(key)}>
+                              {showCredentials[key] ? '🙈' : '👁'}
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
 
                     <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)', margin: '12px 0 8px', paddingBottom: 4, borderBottom: '1px solid var(--border-light)' }}>📱 Social Media</div>
                     {[
-                      { label: 'Facebook', val: viewProject.facebookUsername },
+                      { label: 'Facebook', val: viewProject.facebookUsername || viewProject.facebookPage },
                       { label: 'Instagram', val: viewProject.instagramUsername },
                       { label: 'YouTube', val: viewProject.youtubeUsername },
                     ].map(({ label, val }) => (
@@ -198,14 +244,26 @@ const ProjectsPage = () => {
 
                     <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)', margin: '12px 0 8px', paddingBottom: 4, borderBottom: '1px solid var(--border-light)' }}>📧 Google Access</div>
                     {[
-                      { label: 'Gmail ID', val: viewProject.gmailId },
+                      { label: 'Gmail ID', val: viewProject.gmailId || viewProject.gmailAcc },
                       { label: 'Password', key: 'gmail_pass', val: viewProject.gmailPassword },
                     ].map(({ label, key, val }) => (
                       <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', fontSize: 13 }}>
                         <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{label}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontWeight: 600 }}>{key ? (showCredentials[key] ? (val || '—') : maskCred(val)) : (val || '—')}</span>
-                          {key && val && <button className="btn btn-sm btn-ghost" style={{ padding: '2px 6px', fontSize: 11 }} onClick={() => toggleCred(key)}>{showCredentials[key] ? '🙈' : '👁'}</button>}
+                          <span style={{ fontWeight: 600 }}>
+                            {key ? (
+                              isAuthorized ? (
+                                showCredentials[key] ? (decrypt(val) || '—') : maskCred(decrypt(val))
+                              ) : (
+                                val ? '●●●●●●●●' : '—'
+                              )
+                            ) : (val || '—')}
+                          </span>
+                          {key && val && isAuthorized && (
+                            <button className="btn btn-sm btn-ghost" style={{ padding: '2px 6px', fontSize: 11 }} onClick={() => toggleCred(key)}>
+                              {showCredentials[key] ? '🙈' : '👁'}
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -252,6 +310,70 @@ const ProjectsPage = () => {
         </div>
       )}
 
+      {/* Delete Project Confirmation Modal */}
+      {deleteProjectId && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 420 }}>
+            <div className="modal-header">
+              <div className="modal-title">🗑 Delete Project</div>
+              <button className="btn btn-icon btn-ghost" onClick={() => { setDeleteProjectId(null); setDeleting(false); }}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>⚠️</div>
+                <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                  Are you sure you want to permanently delete this backend project?<br />
+                  <strong style={{ color: 'var(--text-primary)' }}>{deleteProjectId.projectName}</strong>
+                </p>
+                <p style={{ fontSize: 12, color: 'var(--danger)', marginTop: 8, fontWeight: 600 }}>⚠️ This action cannot be undone.</p>
+              </div>
+              <div style={{ background: 'var(--bg-secondary)', borderRadius: 8, padding: 12, fontSize: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Project</span>
+                  <span style={{ fontWeight: 600 }}>{deleteProjectId.projectName}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Client</span>
+                  <span style={{ fontWeight: 600 }}>{deleteProjectId.clientName}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Assigned To</span>
+                  <span style={{ fontWeight: 600 }}>{deleteProjectId.assignedToName || 'Unassigned'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Status</span>
+                  <span style={{ fontWeight: 600 }}>{deleteProjectId.status}</span>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer" style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button className="btn btn-ghost" onClick={() => { setDeleteProjectId(null); setDeleting(false); }}>
+                Cancel
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={async () => {
+                  setDeleting(true);
+                  try {
+                    deleteProject(deleteProjectId.id);
+                    window.showToast('Backend project deleted successfully.', 'success');
+                    setDeleteProjectId(null);
+                  } catch (err) {
+                    window.showToast('Project deletion failed. Please try again.', 'error');
+                  } finally {
+                    setDeleting(false);
+                  }
+                }}
+                disabled={deleting}
+                style={{ minWidth: 140 }}
+              >
+                {deleting ? '⏳ Deleting...' : '🗑 Delete Permanently'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Edit/Assign Project Modal (Admin) */}
       {editProject && isAdmin && (
         <div className="modal-overlay">
@@ -282,26 +404,46 @@ const ProjectEditForm = ({ project, backendUsers, onSave, onClose }) => {
     deadline: project.deadline || '',
     wpUrl: project.wpUrl || '',
     wpUsername: project.wpUsername || '',
-    wpPassword: project.wpPassword || '',
-    domainProvider: project.domainProvider || '',
+    wpPassword: project.wpPassword ? decrypt(project.wpPassword) : '',
+    domainProvider: project.domainProvider || project.domainRegistrar || '',
     domainUsername: project.domainUsername || '',
-    domainPassword: project.domainPassword || '',
-    cpanelUsername: project.cpanelUsername || '',
-    cpanelPassword: project.cpanelPassword || '',
-    facebookUsername: project.facebookUsername || '',
-    facebookPassword: project.facebookPassword || '',
+    domainPassword: project.domainPassword ? decrypt(project.domainPassword) : '',
+    cpanelUsername: project.cpanelUsername || project.cpanelUser || '',
+    cpanelPassword: (project.cpanelPassword || project.cpanelPass) ? decrypt(project.cpanelPassword || project.cpanelPass) : '',
+    facebookUsername: project.facebookUsername || project.facebookPage || '',
+    facebookPassword: project.facebookPassword ? decrypt(project.facebookPassword) : '',
     instagramUsername: project.instagramUsername || '',
-    instagramPassword: project.instagramPassword || '',
+    instagramPassword: project.instagramPassword ? decrypt(project.instagramPassword) : '',
     youtubeUsername: project.youtubeUsername || '',
-    youtubePassword: project.youtubePassword || '',
-    gmailId: project.gmailId || '',
-    gmailPassword: project.gmailPassword || '',
+    youtubePassword: project.youtubePassword ? decrypt(project.youtubePassword) : '',
+    gmailId: project.gmailId || project.gmailAcc || '',
+    gmailPassword: project.gmailPassword ? decrypt(project.gmailPassword) : '',
     notes: project.notes || '',
   });
 
   const handleAssignee = (userId) => {
     const user = backendUsers.find(u => u.id === parseInt(userId));
     setForm(p => ({ ...p, assignedTo: parseInt(userId), assignedToName: user?.name || 'Unassigned' }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const encryptedData = {
+      ...form,
+      wpPassword: form.wpPassword ? encrypt(form.wpPassword) : '',
+      domainPassword: form.domainPassword ? encrypt(form.domainPassword) : '',
+      cpanelPassword: form.cpanelPassword ? encrypt(form.cpanelPassword) : '',
+      cpanelPass: form.cpanelPassword ? encrypt(form.cpanelPassword) : '',
+      cpanelUser: form.cpanelUsername,
+      domainRegistrar: form.domainProvider,
+      facebookPage: form.facebookUsername,
+      facebookPassword: form.facebookPassword ? encrypt(form.facebookPassword) : '',
+      instagramPassword: form.instagramPassword ? encrypt(form.instagramPassword) : '',
+      youtubePassword: form.youtubePassword ? encrypt(form.youtubePassword) : '',
+      gmailAcc: form.gmailId,
+      gmailPassword: form.gmailPassword ? encrypt(form.gmailPassword) : '',
+    };
+    onSave(encryptedData);
   };
 
   const SectionHeader = ({ icon, title }) => (
@@ -322,7 +464,7 @@ const ProjectEditForm = ({ project, backendUsers, onSave, onClose }) => {
   const domainProviders = ['Lets Host', 'Blacknight', 'GoDaddy', 'Namecheap', 'Hostinger', 'Other'];
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSave(form); }}>
+    <form onSubmit={handleSubmit}>
       <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div className="form-group">

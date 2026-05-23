@@ -57,8 +57,17 @@ export const updateProjectRecord = (id, projectData) => {
   const index = projects.findIndex(p => p.id === id);
   
   if (index === -1) {
-    console.error('[ProjectsDB] Project not found:', id);
-    throw new Error('Project not found');
+    console.warn('[ProjectsDB] Project not found, creating dynamic fallback record for:', id);
+    const newProject = {
+      id,
+      ...projectData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: 1
+    };
+    projects.push(newProject);
+    setStorage(projects);
+    return newProject;
   }
   
   const currentProject = projects[index];
@@ -76,10 +85,43 @@ export const updateProjectRecord = (id, projectData) => {
   return updatedProject;
 };
 
-export const deleteProjectRecord = (id) => {
+export const deleteProjectRecord = (id, hardDelete = false) => {
   const projects = getStorage() || [];
-  const filtered = projects.filter(p => p.id !== id);
-  setStorage(filtered);
-  console.log('[ProjectsDB] Deleted project:', id);
+
+  if (hardDelete) {
+    const filtered = projects.filter(p => p.id !== id);
+    setStorage(filtered);
+    console.log('[ProjectsDB] Hard deleted project:', id);
+    return true;
+  }
+
+  const index = projects.findIndex(p => p.id === id);
+  if (index === -1) {
+    console.warn('[ProjectsDB] Project not found for soft delete:', id);
+    return false;
+  }
+
+  projects[index] = {
+    ...projects[index],
+    isDeleted: true,
+    deletedAt: new Date().toISOString(),
+    deletedBy: 'Admin',
+    updatedAt: new Date().toISOString(),
+  };
+  setStorage(projects);
+  console.log('[ProjectsDB] Soft deleted project:', id);
+  return true;
+};
+
+export const restoreProjectRecord = (id) => {
+  const projects = getStorage() || [];
+  const index = projects.findIndex(p => p.id === id);
+  if (index === -1) return false;
+  delete projects[index].isDeleted;
+  delete projects[index].deletedAt;
+  delete projects[index].deletedBy;
+  projects[index].updatedAt = new Date().toISOString();
+  setStorage(projects);
+  console.log('[ProjectsDB] Restored project:', id);
   return true;
 };

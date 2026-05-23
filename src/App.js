@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
+import { ToastProvider } from './components/Toast';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import LeadsPage from './pages/LeadsPage';
@@ -74,7 +75,9 @@ const AppInner = () => {
 function App() {
   return (
     <AppProvider>
-      <AppInner />
+      <ToastProvider>
+        <AppInner />
+      </ToastProvider>
     </AppProvider>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import {
   getOrCreateDirectChat,
@@ -15,6 +15,7 @@ import {
   getPresence,
   searchMessages,
   getAllChatUsers,
+  syncChatUsers,
 } from '../services/chatService';
 
 const EMOJIS = ['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','🥰','😘','😗','😙','😚','🙂','🤗','🤩','🤔','🤨','😐','😑','😶','🙄','😏','😣','😥','😮','🤐','😯','😪','😫','😴','😌','😛','😜','😝','🤤','😒','😓','😔','😕','🙃','🤑','😲','☹️','🙁','😖','😞','😟','😤','😢','😭','😦','😧','😨','😩','🤯','😬','😰','😱','🥵','🥶','😳','🤪','😵','😡','😠','🤬','👍','👎','👊','✊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✌️','🤟','🤘','👌','💪','❤️','🧡','💛','💚','💙','💜','🖤','💔','💕','💖','💗','💘','💝','🎉','🎊','🎈','🔥','⭐','✨','💡','📌','📍','✅','❌','❓','❗','💯','🔔'];
@@ -42,7 +43,6 @@ const ChatPage = () => {
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [selectedChat, setSelectedChat] = useState(null);
   const [text, setText] = useState('');
-  const [search, setSearch] = useState('');
   const [convSearch, setConvSearch] = useState('');
   const [tab, setTab] = useState('all');
   const [typingUsers, setTypingUsers] = useState([]);
@@ -56,13 +56,22 @@ const ChatPage = () => {
   const [showDeptPanel, setShowDeptPanel] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
+  const [selectedDirectUserId, setSelectedDirectUserId] = useState(null);
   const msgEndRef = useRef(null);
   const textRef = useRef(null);
   const fileRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const prevMsgCountRef = useRef(0);
+  const userListRef = useRef(null);
+  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 50 });
+  const userItemHeight = 68;
 
   const chatUsers = getAllChatUsers(allUsers);
+
+  useEffect(() => {
+    syncChatUsers(allUsers);
+  }, [allUsers]);
 
   useEffect(() => {
     const update = () => {
@@ -93,7 +102,6 @@ const ChatPage = () => {
               if (Notification.permission === 'granted') {
                 const lastMsg = newMsgs.filter(m => m.senderId !== currentUser.id).pop();
                 if (lastMsg) {
-                  const chat = getConversations()[selectedChatId];
                   new Notification(`New message from ${lastMsg.senderName}`, {
                     body: lastMsg.type === 'file' ? 'Sent a file' : lastMsg.text,
                     icon: '/logo192.png',
@@ -139,17 +147,17 @@ const ChatPage = () => {
 
   const getChatName = useCallback((chat) => {
     if (chat.type === 'department') return chat.name;
-    const otherId = chat.participants?.find(p => p !== currentUser.id);
-    const other = chatUsers.find(u => u.id === otherId);
+    const otherId = chat.participants?.find(p => String(p) !== String(currentUser?.id));
+    const other = chatUsers.find(u => String(u.id) === String(otherId));
     return other?.name || 'Unknown';
-  }, [chatUsers, currentUser.id]);
+  }, [chatUsers, currentUser?.id]);
 
   const getChatAvatar = useCallback((chat) => {
     if (chat.type === 'department') return chat.name?.charAt(0)?.toUpperCase() || 'D';
-    const otherId = chat.participants?.find(p => p !== currentUser.id);
-    const other = chatUsers.find(u => u.id === otherId);
+    const otherId = chat.participants?.find(p => String(p) !== String(currentUser?.id));
+    const other = chatUsers.find(u => String(u.id) === String(otherId));
     return other ? other.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';
-  }, [chatUsers, currentUser.id]);
+  }, [chatUsers, currentUser?.id]);
 
   const isUserOnline = useCallback((userId) => {
     const presence = getPresence();
@@ -338,8 +346,31 @@ const ChatPage = () => {
     return !convSearch || name.includes(convSearch.toLowerCase());
   });
 
-  const otherUsers = chatUsers.filter(u => u.id !== currentUser.id && u.status !== 'deactivated');
-  const departments = [...new Set(chatUsers.filter(u => u.id !== currentUser.id && u.department).map(u => u.department))];
+  const otherUsers = chatUsers.filter(u => String(u.id) !== String(currentUser?.id) && u.status !== 'deactivated');
+  const departments = [...new Set(chatUsers.filter(u => String(u.id) !== String(currentUser?.id) && u.department).map(u => u.department))];
+
+  const filteredOtherUsers = useMemo(() => {
+    const q = userSearch.toLowerCase().trim();
+    if (!q) return otherUsers;
+    return otherUsers.filter(u =>
+      (u.name || '').toLowerCase().includes(q) ||
+      (u.department || '').toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q) ||
+      (u.role || '').toLowerCase().includes(q)
+    );
+  }, [otherUsers, userSearch]);
+
+  const visibleUsers = filteredOtherUsers.slice(visibleRange.start, visibleRange.end);
+  const hasMoreUsers = visibleRange.end < filteredOtherUsers.length;
+
+  const handleUserScroll = (e) => {
+    const el = e.target;
+    const scrollTop = el.scrollTop;
+    const viewHeight = el.clientHeight;
+    const start = Math.max(0, Math.floor(scrollTop / userItemHeight) - 5);
+    const end = Math.min(filteredOtherUsers.length, Math.ceil((scrollTop + viewHeight) / userItemHeight) + 5);
+    setVisibleRange({ start, end });
+  };
 
   const renderMessage = (msg, idx) => {
     if (msg.deleted) {
@@ -357,7 +388,7 @@ const ChatPage = () => {
       );
     }
 
-    const isMe = msg.senderId === currentUser.id;
+    const isMe = String(msg.senderId) === String(currentUser?.id);
     const showDateSep = idx === 0 || new Date(msg.timestamp).toDateString() !== new Date(messages[idx - 1]?.timestamp).toDateString();
     const fileAttach = msg.attachments?.[0];
     const isReply = msg.replyTo;
@@ -436,9 +467,14 @@ const ChatPage = () => {
       <div className="chat-container">
         <div className={`chat-sidebar ${mobileChatOpen && selectedChat ? 'chat-sidebar-hidden' : ''}`}>
           <div className="chat-sidebar-header">
-            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>Chats</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {window.innerWidth <= 768 && (
+                <button className="chat-icon-btn" onClick={() => setMobileChatOpen(false)} style={{ fontSize: 16 }}>✕</button>
+              )}
+              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>Chats</div>
+            </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <button className="chat-icon-btn" onClick={() => setShowDeptPanel(!showDeptPanel)} title="Departments">🏢</button>
+              <button className={`chat-icon-btn ${showDeptPanel ? 'active' : ''}`} onClick={() => setShowDeptPanel(!showDeptPanel)} title="Direct Messages">👥</button>
             </div>
           </div>
           <div className="chat-tabs">
@@ -452,24 +488,61 @@ const ChatPage = () => {
           <div className="chat-sidebar-list">
             {showDeptPanel ? (
               <>
-                <div style={{ padding: '8px 16px', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                  Users
+                <div className="user-list-search-wrap">
+                  <div className="user-list-search-icon">🔍</div>
+                  <input
+                    className="user-list-search-input"
+                    value={userSearch}
+                    onChange={e => { setUserSearch(e.target.value); setVisibleRange({ start: 0, end: 50 }); }}
+                    placeholder="Search by name, department, email..."
+                  />
+                  {userSearch && (
+                    <button className="user-list-search-clear" onClick={() => { setUserSearch(''); setVisibleRange({ start: 0, end: 50 }); }}>✕</button>
+                  )}
                 </div>
-                {otherUsers.map(user => (
-                  <div key={user.id} className={`chat-conv-item ${selectedChat?.type === 'direct' && selectedChat?.participants?.includes(user.id) ? 'active' : ''}`} onClick={() => handleSelectUser(user)}>
-                    <div style={{ position: 'relative' }}>
-                      <div className="avatar" style={{ width: 36, height: 36, fontSize: 12 }}>{user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}</div>
-                      <div style={{
-                        position: 'absolute', bottom: 0, right: 0, width: 10, height: 10, borderRadius: '50%',
-                        border: '2px solid white', background: isUserOnline(user.id) ? 'var(--success)' : 'var(--border)',
-                      }} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 500, fontSize: 13 }}>{user.name}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{user.role} · {user.department}</div>
+                {filteredOtherUsers.length === 0 ? (
+                  <div className="chat-empty-state" style={{ padding: '32px 16px', margin: 0 }}>
+                    <div style={{ fontSize: 36, marginBottom: 8 }}>🔍</div>
+                    <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                      {userSearch ? `No users match "${userSearch}"` : 'No users available for internal chat.'}
                     </div>
                   </div>
-                ))}
+                ) : (
+                  <div className="user-list-container" ref={userListRef} onScroll={handleUserScroll}>
+                    <div style={{ height: visibleRange.start * userItemHeight }} />
+                    {visibleUsers.map(user => (
+                      <div
+                        key={user.id}
+                        className={`user-list-item ${selectedDirectUserId === user.id ? 'active' : ''} ${selectedChat?.participants?.includes(user.id) && selectedChat?.type === 'direct' ? 'has-conversation' : ''}`}
+                        onClick={() => { handleSelectUser(user); setSelectedDirectUserId(user.id); }}
+                      >
+                        <div style={{ position: 'relative', flexShrink: 0 }}>
+                          <div className="user-list-avatar">{user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}</div>
+                          <div className={`user-list-status ${isUserOnline(user.id) ? 'online' : 'offline'}`} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div className="user-list-name">{user.name}</div>
+                          <div className="user-list-meta">
+                            <span className="user-list-dept">{user.department || user.role}</span>
+                            <span className="user-list-sep">·</span>
+                            <span className={`user-list-online-badge ${isUserOnline(user.id) ? 'online' : 'offline'}`}>
+                              {isUserOnline(user.id) ? '🟢 Online' : '⚫ Offline'}
+                            </span>
+                          </div>
+                        </div>
+                        {selectedChat?.participants?.includes(user.id) && selectedChat?.type === 'direct' && (
+                          <div className="user-list-chat-dot" title="Active conversation">💬</div>
+                        )}
+                      </div>
+                    ))}
+                    <div style={{ height: Math.max(0, (filteredOtherUsers.length - visibleRange.end) * userItemHeight) }} />
+                    {hasMoreUsers && (
+                      <div style={{ textAlign: 'center', padding: '8px', fontSize: 11, color: 'var(--text-muted)' }}>
+                        Showing {visibleRange.end} of {filteredOtherUsers.length} users
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div style={{ padding: '8px 16px', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 8 }}>
                   Departments
                 </div>
@@ -494,7 +567,7 @@ const ChatPage = () => {
                         <div style={{
                           position: 'absolute', bottom: 0, right: 0, width: 10, height: 10, borderRadius: '50%',
                           border: '2px solid white',
-                          background: (() => { const oid = chat.participants?.find(p => p !== currentUser.id); return isUserOnline(oid) ? 'var(--success)' : 'var(--border)'; })(),
+                          background: (() => { const oid = chat.participants?.find(p => String(p) !== String(currentUser?.id)); return isUserOnline(oid) ? 'var(--success)' : 'var(--border)'; })(),
                         }} />
                       )}
                       {chat.type === 'department' && <div style={{ position: 'absolute', top: -4, right: -4, fontSize: 10 }}>🏢</div>}
@@ -532,7 +605,7 @@ const ChatPage = () => {
                     {selectedChat.type === 'department' ? (
                       <>{selectedChat.participants?.length || 0} members</>
                     ) : (
-                      <>{(() => { const oid = selectedChat.participants?.find(p => p !== currentUser.id); const user = chatUsers.find(u => u.id === oid); return user ? `${user.role} · ${isUserOnline(oid) ? 'Online' : 'Offline'}` : ''; })()}</>
+                      <>{(() => { const oid = selectedChat.participants?.find(p => String(p) !== String(currentUser?.id)); const user = chatUsers.find(u => String(u.id) === String(oid)); return user ? `${user.role} · ${isUserOnline(oid) ? 'Online' : 'Offline'}` : ''; })()}</>
                     )}
                   </div>
                 </div>

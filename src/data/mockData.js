@@ -68,7 +68,7 @@ export const users = [
     uuid: 'a1b2c3d4-0001-4e5f-8a9b-000000000001',
     // ── Business-facing identifier (editable by Admin) ──
     id: 1, employeeId: 'EMP-001',
-    name: 'Admin User', email: 'admin@zsm.com',
+    name: 'Admin User', email: 'admin@zsmeservices.com',
     phone: '9876543210', whatsapp: '9876543210', role: ROLES.ADMIN,
     department: 'Management', designation: 'CEO', dateOfJoining: '2022-01-01',
     salary: 150000, shift: '9:00 AM - 6:00 PM', bloodGroup: 'O+',
@@ -82,7 +82,7 @@ export const users = [
   {
     uuid: 'a1b2c3d4-0002-4e5f-8a9b-000000000002',
     id: 2, employeeId: 'EMP-002',
-    name: 'Rahul Sharma', email: 'rahul@zsm.com',
+    name: 'Rahul Sharma', email: 'rahul@zsmeservices.com',
     phone: '9123456789', whatsapp: '9123456789', role: ROLES.SALES,
     department: 'Sales', designation: 'Sales Executive', dateOfJoining: '2022-03-15',
     salary: 45000, shift: '9:00 AM - 6:00 PM', bloodGroup: 'A+',
@@ -95,7 +95,7 @@ export const users = [
   {
     uuid: 'a1b2c3d4-0003-4e5f-8a9b-000000000003',
     id: 3, employeeId: 'EMP-003',
-    name: 'Priya Patel', email: 'priya@zsm.com',
+    name: 'Priya Patel', email: 'priya@zsmeservices.com',
     phone: '9234567890', whatsapp: '9234567890', role: ROLES.HR,
     department: 'HR', designation: 'HR Manager', dateOfJoining: '2022-06-01',
     salary: 60000, shift: '9:00 AM - 6:00 PM', bloodGroup: 'B+',
@@ -108,7 +108,7 @@ export const users = [
   {
     uuid: 'a1b2c3d4-0004-4e5f-8a9b-000000000004',
     id: 4, employeeId: 'EMP-004',
-    name: 'Arjun Nair', email: 'arjun@zsm.com',
+    name: 'Arjun Nair', email: 'arjun@zsmeservices.com',
     phone: '9345678901', whatsapp: '9345678901', role: ROLES.BACKEND,
     department: 'Backend', designation: 'Web Developer', dateOfJoining: '2023-01-10',
     salary: 55000, shift: '9:00 AM - 6:00 PM', bloodGroup: 'AB+',
@@ -121,7 +121,7 @@ export const users = [
   {
     uuid: 'a1b2c3d4-0005-4e5f-8a9b-000000000005',
     id: 5, employeeId: 'EMP-005',
-    name: 'Sneha Gupta', email: 'sneha@zsm.com',
+    name: 'Sneha Gupta', email: 'sneha@zsmeservices.com',
     phone: '9456789012', whatsapp: '9456789012', role: ROLES.SALES,
     department: 'Sales', designation: 'Web Consultant', dateOfJoining: '2023-04-20',
     salary: 42000, shift: '9:00 AM - 6:00 PM', bloodGroup: 'O-',
@@ -134,7 +134,7 @@ export const users = [
   {
     uuid: 'a1b2c3d4-0006-4e5f-8a9b-000000000006',
     id: 6, employeeId: 'EMP-006',
-    name: 'Vikram Singh', email: 'vikram@zsm.com',
+    name: 'Vikram Singh', email: 'vikram@zsmeservices.com',
     phone: '9567890123', whatsapp: '9567890123', role: ROLES.ACCOUNTS,
     department: 'Accounts', designation: 'Accountant', dateOfJoining: '2022-09-01',
     salary: 50000, shift: '9:00 AM - 6:00 PM', bloodGroup: 'A-',
@@ -147,7 +147,7 @@ export const users = [
   {
     uuid: 'a1b2c3d4-0007-4e5f-8a9b-000000000007',
     id: 7, employeeId: 'EMP-007',
-    name: 'Neha Verma', email: 'neha@zsm.com',
+    name: 'Neha Verma', email: 'neha@zsmeservices.com',
     phone: '9678901234', whatsapp: '9678901234', role: ROLES.GRAPHICS_MANAGER,
     department: 'Graphics', designation: 'Graphics Manager', dateOfJoining: '2023-06-01',
     salary: 65000, shift: '9:00 AM - 6:00 PM', bloodGroup: 'B+',
@@ -160,7 +160,7 @@ export const users = [
   {
     uuid: 'a1b2c3d4-0008-4e5f-8a9b-000000000008',
     id: 8, employeeId: 'EMP-008',
-    name: 'Rohan Desai', email: 'rohan.d@zsm.com',
+    name: 'Rohan Desai', email: 'rohan.d@zsmeservices.com',
     phone: '9789012345', whatsapp: '9789012345', role: ROLES.GRAPHIC_DESIGNER,
     department: 'Graphics', designation: 'Graphic Designer', dateOfJoining: '2023-08-15',
     salary: 45000, shift: '9:00 AM - 6:00 PM', bloodGroup: 'A+',
@@ -173,7 +173,7 @@ export const users = [
   {
     uuid: 'a1b2c3d4-0009-4e5f-8a9b-000000000009',
     id: 9, employeeId: 'EMP-009',
-    name: 'Kavya Sharma', email: 'kavya@zsm.com',
+    name: 'Kavya Sharma', email: 'kavya@zsmeservices.com',
     phone: '9890123456', whatsapp: '9890123456', role: ROLES.JUNIOR_GRAPHIC_DESIGNER,
     department: 'Graphics', designation: 'Junior Graphic Designer', dateOfJoining: '2024-02-01',
     salary: 30000, shift: '9:00 AM - 6:00 PM', bloodGroup: 'O+',
@@ -186,7 +186,7 @@ export const users = [
   {
     uuid: 'a1b2c3d4-0010-4e5f-8a9b-000000000010',
     id: 10, employeeId: 'EMP-010',
-    name: 'Arun Mehta', email: 'arun.m@zsm.com',
+    name: 'Arun Mehta', email: 'arun.m@zsmeservices.com',
     phone: '9901234567', whatsapp: '9901234567', role: ROLES.VIDEO_EDITOR,
     department: 'Graphics', designation: 'Video Editor', dateOfJoining: '2023-11-20',
     salary: 40000, shift: '9:00 AM - 6:00 PM', bloodGroup: 'B-',
@@ -199,7 +199,7 @@ export const users = [
   {
     uuid: 'a1b2c3d4-0011-4e5f-8a9b-000000000011',
     id: 11, employeeId: 'EMP-011',
-    name: 'Pooja Iyer', email: 'pooja@zsm.com',
+    name: 'Pooja Iyer', email: 'pooja@zsmeservices.com',
     phone: '9012345678', whatsapp: '9012345678', role: ROLES.MOTION_GRAPHIC_DESIGNER,
     department: 'Graphics', designation: 'Motion Graphic Designer', dateOfJoining: '2024-04-10',
     salary: 55000, shift: '9:00 AM - 6:00 PM', bloodGroup: 'AB+',
@@ -326,17 +326,19 @@ export const projects = [
   {
     id: 1, saleId: 1, projectName: 'DK Healthcare - SEO',
     clientName: 'DK Healthcare', assignedTo: 4, assignedToName: 'Arjun Nair',
+    assignedSalesAgent: 5,
     status: 'In Progress', startDate: '2026-04-12',
     wpUrl: 'www.dkhealthcare.com/wp-admin',
     wpUsername: 'admin_dkh',
-    wpPassword: '****hidden****',
+    wpPassword: 'd-3-3d-4c-10-1-5c-1f-40',
     domainRegistrar: 'GoDaddy',
     domainUsername: 'dkh_domain',
-    domainPassword: '****hidden****',
+    domainPassword: '1e-1c-0-4c-a-1c-3d-4c-0-16-52-47-41',
     cpanelUser: 'dkh_cpanel',
-    cpanelPass: '****hidden****',
+    cpanelPass: '19-3-c-43-6-1e-3d-4c-0-16-52-47-41',
     facebookPage: 'fb.com/dkhealthcare',
     gmailAcc: 'dkh@gmail.com',
+    gmailPassword: '1d-1e-c-44-f-22-c-5e-0-54-51-46',
     reports: [
       { date: '2026-04-13', timestamp: '2026-04-13T10:30:00Z', summary: 'Completed keyword research and on-page optimization for 10 pages.', by: 'Arjun Nair', immutable: true },
       { date: '2026-04-15', timestamp: '2026-04-15T14:45:00Z', summary: 'Built 5 quality backlinks. Google Search Console connected.', by: 'Arjun Nair', immutable: true },
@@ -345,17 +347,19 @@ export const projects = [
   {
     id: 2, saleId: 2, projectName: 'Mehta Textiles - Web Design',
     clientName: 'Mehta Textiles', assignedTo: 4, assignedToName: 'Arjun Nair',
+    assignedSalesAgent: 2,
     status: 'Planning', startDate: '2026-04-20',
     wpUrl: '',
     wpUsername: '',
     wpPassword: '',
     domainRegistrar: 'Namecheap',
     domainUsername: 'mehta_nc',
-    domainPassword: '****hidden****',
+    domainPassword: '1e-1c-0-4c-a-1c-3d-4c-0-16-52-47-41',
     cpanelUser: '',
     cpanelPass: '',
     facebookPage: '',
     gmailAcc: 'mehtabiz@gmail.com',
+    gmailPassword: '',
     reports: [],
   },
 ];
