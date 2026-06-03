@@ -63,7 +63,7 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
   const agentEmail = currentUser?.email || 'info@zsmeservices.com';
   const companyName = 'ZSM Services';
 
-  const totals = calculateProposalTotal(items, discount);
+  const totals = calculateProposalTotal(items, taxPercent, discount);
 
   const getHtmlSignature = (sig) => {
     const baseSignature = `<br/><br/>---<br/><strong>Best regards,</strong><br/>${agentName}<br/>${companyName}<br/>Phone: ${agentPhone}<br/>Email: ${agentEmail}`;
@@ -202,7 +202,7 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
 
   const formatCurrency = (n) => formatCurrencyAmount(n || 0, BASE_CURRENCY);
 
-  const calculatedTotal = totals.afterDiscount + (totals.afterDiscount * taxPercent / 100);
+  const calculatedTotal = totals.grandTotal;
 
   const handleSaveDraft = async () => {
     const proposalData = {
@@ -221,6 +221,7 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
       phone,
       status: 'draft',
       createdAt: new Date().toISOString(),
+      ...totals
     };
     
     if (onSave) {
@@ -273,6 +274,10 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
         businessName,
         title: proposalTitle || `Proposal for ${businessName}`,
         validUntil: validUntilFormatted,
+        companyName: companyName || 'ZSM Services',
+        senderName: agentName || currentUser?.name || 'ZSM CRM User',
+        senderEmail: emailConfig?.email || currentUser?.email || 'info@zsmservices.com',
+        senderPhone: currentUser?.phone || '',
         currency: BASE_CURRENCY,
         acceptUrl: `${baseUrl}/proposal/accept/${token}`,
         rejectUrl: `${baseUrl}/proposal/reject/${token}`,
@@ -287,7 +292,13 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
 
       if (sendEmail) {
         const combinedHtml = `${emailBody}<br/><br/>${html}`;
-        await sendEmail(email, subject, combinedHtml);
+        const combinedText = `${emailBody}\n\n${text}`;
+        await sendEmail({
+          to: email,
+          subject,
+          html: combinedHtml,
+          text: combinedText
+        });
       }
 
       if (onSave) {
@@ -306,12 +317,12 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
           emailBody,
           email,
           phone,
-          total: calculatedTotal,
-          currency: BASE_CURRENCY,
           status: 'sent',
           token,
           sentAt: new Date().toISOString(),
           fromEmail: emailConfig?.email,
+          currency: BASE_CURRENCY,
+          ...totals
         });
       }
 
@@ -777,7 +788,7 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
                     <div>Discount ({discount}%): <strong>-{formatCurrency(totals.discountAmount)}</strong></div>
                   )}
                   <div>Net Amount: <strong>{formatCurrency(totals.afterDiscount)}</strong></div>
-                  <div>Tax ({taxPercent}%): <strong>{formatCurrency(totals.afterDiscount * taxPercent / 100)}</strong></div>
+                  <div>Tax ({taxPercent}%): <strong>{formatCurrency(totals.taxAmount)}</strong></div>
                 </div>
                 <div style={{ fontSize: 20, fontWeight: 700 }}>
                   Total: {formatCurrency(calculatedTotal)}
@@ -861,7 +872,7 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
                 <div style={{ fontSize: 13 }}>Subtotal: {formatCurrency(totals.subtotal)}</div>
                 {discount > 0 && <div style={{ fontSize: 13 }}>Discount ({discount}%): -{formatCurrency(totals.discountAmount)}</div>}
                 <div style={{ fontSize: 13 }}>Net Amount: {formatCurrency(totals.afterDiscount)}</div>
-                <div style={{ fontSize: 13 }}>Tax ({taxPercent}%): {formatCurrency(totals.afterDiscount * taxPercent / 100)}</div>
+                <div style={{ fontSize: 13 }}>Tax ({taxPercent}%): {formatCurrency(totals.taxAmount)}</div>
                 <div style={{ fontSize: 22, fontWeight: 700, marginTop: 10 }}>
                   Total: {formatCurrency(calculatedTotal)}
                 </div>

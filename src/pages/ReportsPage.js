@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { useToast } from '../components/Toast';
 
 const ReportsPage = () => {
   const { currentUser } = useApp();
+  const toast = useToast();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reportText, setReportText] = useState('');
@@ -12,7 +14,7 @@ const ReportsPage = () => {
   const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
   const alreadySubmitted = reports.find(r => r.reportDate === todayStr && r.userId === currentUser.id);
   
-  const allowedDepts = ['Backend', 'Support', 'Quality', 'Graphics', 'Account', 'Accounts'];
+  const allowedDepts = ['Backend', 'Support', 'Quality', 'Graphics', 'Account', 'Accounts', 'HR'];
   const isAdmin = currentUser.role === 'Admin';
   const isAllowed = allowedDepts.includes(currentUser.department) || isAdmin;
   const isTimeWindowOk = new Date().getHours() >= 9;
@@ -64,14 +66,14 @@ const ReportsPage = () => {
         console.log('[REPORT] Submission success');
         setReportText('');
         await fetchReports(); // Force re-fetch to lock the UI
-        alert('Report submitted and locked! ✅');
+        toast.success('Report submitted and locked! ✅');
       } else {
         console.error('[REPORT] Submission rejected:', json.message);
-        alert(json.message);
+        toast.error(json.message);
       }
     } catch (e) {
       console.error('[REPORT] Pipeline error:', e);
-      alert('Network error: Could not reach reporting server.');
+      toast.error('Network error: Could not reach reporting server.');
     } finally {
       setSubmitting(false);
     }

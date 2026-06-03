@@ -331,7 +331,7 @@ const ApplyLeaveTab = ({ applyLeave, addAuditLog, currentUser }) => {
 const HRPage = ({ defaultTab }) => {
   const {
     currentUser, allUsers, allAttendance, allLeaves,
-    updateLeave, applyLeave, markAttendance, updateUser, addAuditLog, deleteLeave
+    updateLeave, applyLeave, markAttendance, submitDailyReport, updateUser, addAuditLog, deleteLeave
   } = useApp();
 
   const isHR = currentUser?.role === ROLES.HR || currentUser?.role === ROLES.ADMIN;
@@ -348,7 +348,6 @@ const HRPage = ({ defaultTab }) => {
     { id: 'attendance', name: '⏱ Attendance', roles: ['all'] },
     { id: 'leaves', name: '📅 Leave Requests', roles: [ROLES.ADMIN, ROLES.HR] },
     { id: 'apply', name: '➕ Apply Leave', roles: ['all'] },
-    { id: 'activity', name: '📊 Activity Reports', roles: [ROLES.ADMIN, ROLES.HR] },
     { id: 'reports', name: '📈 Reports', roles: [ROLES.ADMIN, ROLES.HR] }
   ];
 
@@ -450,16 +449,6 @@ const HRPage = ({ defaultTab }) => {
 
       {tab === 'apply' && (
         <ApplyLeaveTab applyLeave={applyLeave} addAuditLog={addAuditLog} currentUser={currentUser} />
-      )}
-
-      {tab === 'activity' && (
-        <ActivityReports
-          allAttendance={allAttendance}
-          allUsers={allUsers}
-          allLeaves={allLeaves}
-          currentUser={currentUser}
-          isHR={isHR}
-        />
       )}
 
       {tab === 'reports' && isHR && (

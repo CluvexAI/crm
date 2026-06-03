@@ -450,7 +450,7 @@
     "email": "hr@zsmeservices.com",
     "phone": "+91",
     "whatsapp": "",
-    "password": "$2b$12$clYfUl4P7JxCLyNmjLCo.euqbsAJHqIh5CIU6BglPdFIqcLBVe0Wa",
+    "password": "$2b$12$LDDM.Z2n84f49s6Kjodro./BztyqBymsU1tGwC.X1VMMLxVSdF1Ku",
     "address": "",
     "fatherName": "",
     "motherName": "",
@@ -490,8 +490,11 @@
     "profileImageName": null,
     "profileImageUploadedAt": null,
     "createdAt": "2026-05-27T09:16:42.968Z",
-    "updatedAt": "2026-05-27T09:36:41.655Z",
-    "version": 3
+    "updatedAt": "2026-06-03T11:58:46.803Z",
+    "version": 4,
+    "passwordChangedAt": "2026-06-03T11:58:46.699Z",
+    "passwordChangedBy": "d356aa0d-90fd-4e83-ad5d-e5b29f7ce19c",
+    "must_change_password": false
   },
   {
     "name": "Achena Aich",
@@ -926,11 +929,11 @@
     "version": 3
   },
   {
-    "name": "Mdkhurram\\ Khan",
+    "name": "Md Khurram\\ Khan",
     "email": "mdkhurram.khan@zsmeservices.com",
     "phone": "+91",
     "whatsapp": "",
-    "password": "$2b$12$dixpG6JNPn0ITBKPNK0MbeLrCb9BhS.L7My8ziG9LOpWXqQVI89V2",
+    "password": "$2b$12$yVHt6YzKaX6VqfpaOZPvzOiy/EvpOKZ78BOcgFlr20U20cesrCTUa",
     "address": "",
     "fatherName": "",
     "motherName": "",
@@ -970,8 +973,11 @@
     "profileImageName": null,
     "profileImageUploadedAt": null,
     "createdAt": "2026-05-27T09:36:02.634Z",
-    "updatedAt": "2026-05-29T14:09:45.073Z",
-    "version": 4
+    "updatedAt": "2026-06-03T12:43:57.448Z",
+    "version": 5,
+    "passwordChangedAt": "2026-06-03T12:43:57.387Z",
+    "passwordChangedBy": "a1b2c3d4-0001-4e5f-8a9b-000000000001",
+    "must_change_password": false
   },
   {
     "uuid": "53984c72-7fc6-47a5-be0a-94bb7382c067",
@@ -982,8 +988,8 @@
     "department": "Operations",
     "status": "active",
     "employeeId": "EMP-OPS-001",
-    "createdAt": "2026-06-03T08:49:01.980Z",
-    "updatedAt": "2026-06-03T08:49:01.980Z"
+    "createdAt": "2026-06-03T12:38:49.196Z",
+    "updatedAt": "2026-06-03T12:38:49.196Z"
   },
   {
     "uuid": "3fc54ade-f756-46ee-a571-43191703de19",
@@ -994,7 +1000,55 @@
     "department": "Billing",
     "status": "active",
     "employeeId": "EMP-BIL-001",
-    "createdAt": "2026-06-03T08:49:01.997Z",
-    "updatedAt": "2026-06-03T08:49:01.997Z"
+    "createdAt": "2026-06-03T12:38:49.198Z",
+    "updatedAt": "2026-06-03T12:38:49.198Z"
+  },
+  {
+    "name": "Sumana Ghosh",
+    "email": "sumana.ghosh@zsmeservices.com",
+    "phone": "+91",
+    "whatsapp": "",
+    "password": "$2b$12$qcQssp2tEsKzkzM3JPeXmuCvzaUWvjlqIMgKE3jS3H4MUfAKTswEy",
+    "address": "",
+    "fatherName": "",
+    "motherName": "",
+    "bloodGroup": "",
+    "foodPref": "Veg",
+    "emergencyContact": "",
+    "hobbies": "",
+    "localStation": "",
+    "localPostOffice": "",
+    "referredBy": "",
+    "role": "Trainee",
+    "department": "Backend",
+    "designation": "",
+    "dateOfJoining": "2020-01-01",
+    "shift": "10:00 AM - 6:00 PM",
+    "salary": "",
+    "qualification": "",
+    "experience": "",
+    "pan": "",
+    "aadhaar": "",
+    "voterId": "",
+    "mailConfig": {
+      "useCustom": false,
+      "password": "",
+      "imapHost": "mail.zsmeservices.com",
+      "imapPort": 993,
+      "smtpHost": "mail.zsmeservices.com",
+      "smtpPort": 465
+    },
+    "uuid": "d90ad772-4952-4933-8f6a-1f030a54a363",
+    "id": 1780490794597,
+    "employeeId": "EMP-022",
+    "status": "Active",
+    "profileImageUrl": null,
+    "profileImageSize": null,
+    "profileImageType": null,
+    "profileImageName": null,
+    "profileImageUploadedAt": null,
+    "createdAt": "2026-06-03T12:46:34.642Z",
+    "updatedAt": "2026-06-03T12:46:34.642Z",
+    "version": 1
   }
 ]

@@ -948,3 +948,113 @@ export const fetchDashboardSummary = async () => {
     }, 50);
   });
 };
+
+export const buildInvoiceEmailHtml = (invoice) => {
+  const companySettings = invoice.from || {};
+  const clientName = invoice.client?.contactName || invoice.client?.businessName || 'Customer';
+  const companyName = companySettings.name || 'ZSM e-Services Pvt. Ltd.';
+  const companyEmail = companySettings.contactDetails?.email || 'info@zsmeservices.com';
+  
+  const subtotal = invoice.amountSummary?.subtotal || invoice.saleTotalAmount || invoice.lockedTotal || 0;
+  const discountAmount = invoice.amountSummary?.discountAmount || 0;
+  const discountPercent = (discountAmount > 0 && subtotal > 0) ? Math.round((discountAmount / subtotal) * 100) : 0;
+  const taxAmount = invoice.amountSummary?.taxAmount || 0;
+  const taxPercent = invoice.amountSummary?.taxPercent || 0;
+  const grandTotal = invoice.amountSummary?.grandTotal || invoice.lockedTotal || invoice.totalAmount || 0;
+
+  const lineItemsHtml = (invoice.services || []).map(item => `
+    <tr>
+      <td style="padding:10px 12px; border:1px solid #dce8f5;">${item.name}<br/><small style="color:#666;">${item.description || ''}</small></td>
+      <td style="padding:10px 12px; text-align:center; border:1px solid #dce8f5;">${item.quantity || 1}</td>
+      <td style="padding:10px 12px; text-align:right; border:1px solid #dce8f5;">₹${(item.unitPrice || 0).toLocaleString('en-IN')}</td>
+      <td style="padding:10px 12px; text-align:right; border:1px solid #dce8f5; font-weight:600;">₹${(item.total || 0).toLocaleString('en-IN')}</td>
+    </tr>
+  `).join('');
+
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"/></head>
+<body style="margin:0; padding:0; background:#f4f6f8; font-family:Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="620" cellpadding="0" cellspacing="0" style="background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+          <tr>
+            <td style="background:#1a73e8; padding:32px 40px; border-radius:8px 8px 0 0;">
+              <h1 style="margin:0; color:#fff; font-size:22px;">${companyName}</h1>
+              <p style="margin:6px 0 0; color:#d0e8ff; font-size:13px;">${companyEmail}</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#f0f7ff; padding:20px 40px; border-bottom:1px solid #dce8f5;">
+              <h2 style="margin:0; color:#1a73e8; font-size:18px;">Invoice #${invoice.invoiceNumber || invoice.id}</h2>
+              <p style="margin:6px 0 0; font-size:13px; color:#666;">
+                Billed To: <strong>${clientName}</strong> &nbsp;|&nbsp; Date: <strong>${invoice.invoiceInfo?.invoiceDate || invoice.createdAt.split('T')[0]}</strong>
+              </p>
+              <p style="margin:4px 0 0; font-size:13px; color:#e65c00;">
+                Due Date: <strong>${invoice.invoiceInfo?.dueDate || invoice.dueDate || invoice.invoiceInfo?.invoiceDate}</strong>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px 40px;">
+              <p style="margin:0 0 20px; font-size:14px; color:#555; line-height:1.6;">
+                Dear <strong>${clientName}</strong>,<br/>
+                Please find below your invoice from <strong>${companyName}</strong>.
+                Kindly make the payment before the due date.
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-size:14px; margin-bottom:20px;">
+                <thead>
+                  <tr style="background:#1a73e8; color:#fff;">
+                    <th style="padding:10px 12px; text-align:left; border:1px solid #1565c0;">Description</th>
+                    <th style="padding:10px 12px; text-align:center; border:1px solid #1565c0; width:60px;">Qty</th>
+                    <th style="padding:10px 12px; text-align:right; border:1px solid #1565c0; width:90px;">Rate</th>
+                    <th style="padding:10px 12px; text-align:right; border:1px solid #1565c0; width:90px;">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${lineItemsHtml}
+                </tbody>
+                <tfoot>
+                  <tr style="background:#f4f6f8;">
+                    <td colspan="3" style="padding:9px 12px; text-align:right; border:1px solid #dce8f5; font-weight:600;">Subtotal</td>
+                    <td style="padding:9px 12px; text-align:right; border:1px solid #dce8f5; font-weight:600;">₹${subtotal.toLocaleString('en-IN')}</td>
+                  </tr>
+                  <tr style="background:#fff8f0;">
+                    <td colspan="3" style="padding:9px 12px; text-align:right; border:1px solid #dce8f5; color:#e65c00;">Discount (${discountPercent}%)</td>
+                    <td style="padding:9px 12px; text-align:right; border:1px solid #dce8f5; color:#e65c00;">-₹${discountAmount.toLocaleString('en-IN')}</td>
+                  </tr>
+                  <tr style="background:#f4f6f8;">
+                    <td colspan="3" style="padding:9px 12px; text-align:right; border:1px solid #dce8f5; color:#555;">Tax (${taxPercent}%)</td>
+                    <td style="padding:9px 12px; text-align:right; border:1px solid #dce8f5; color:#555;">₹${taxAmount.toLocaleString('en-IN')}</td>
+                  </tr>
+                  <tr style="background:#1a73e8; color:#fff;">
+                    <td colspan="3" style="padding:12px; text-align:right; font-size:15px; font-weight:700; border:1px solid #1565c0;">Total Due</td>
+                    <td style="padding:12px; text-align:right; font-size:15px; font-weight:700; border:1px solid #1565c0;">₹${grandTotal.toLocaleString('en-IN')}</td>
+                  </tr>
+                </tfoot>
+              </table>
+              ${invoice.dueAmount > 0 && invoice.stripe_payment_link_url ? `
+                <div style="margin-top:20px; text-align:center;">
+                  <a href="${invoice.stripe_payment_link_url}" target="_blank" rel="noreferrer" style="display:inline-block; padding:12px 24px; color:#ffffff; background:linear-gradient(135deg, #0E5491 0%, #1a6fb5 100%); text-decoration:none; font-weight:bold; border-radius:6px; box-shadow:0 4px 12px rgba(14,84,145,0.2);">💳 Pay Outstanding Due Online</a>
+                </div>
+              ` : ''}
+              <p style="margin:0; padding:12px 16px; background:#f0f7ff; border-left:4px solid #1a73e8; font-size:13px; color:#555; border-radius:4px;">
+                Please make payment by <strong style="color:#e65c00;">${invoice.invoiceInfo?.dueDate || invoice.dueDate}</strong>. For queries contact us at <strong>${companyEmail}</strong>.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#f0f7ff; padding:20px 40px; text-align:center; border-top:1px solid #dce8f5; border-radius:0 0 8px 8px;">
+              <p style="margin:0; font-size:13px; color:#555;"><strong>${invoice.createdBy || companyName}</strong> &nbsp;|&nbsp; ${companyName}</p>
+              <p style="margin:4px 0 0; font-size:12px; color:#888;">Email: ${companyEmail}</p>
+              <p style="margin:8px 0 0; font-size:11px; color:#aaa;">© 2026 ${companyName}. All rights reserved.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+};

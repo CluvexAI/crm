@@ -1112,7 +1112,7 @@ app.get('/api/activity-reports/date/:date', (req, res) => {
 app.post('/api/reports/daily', (req, res) => {
   const { userId, userName, department, reportText, date } = req.body;
   console.log(`[REPORT] Submission attempt from ${userName} (${userId}) for date ${date}`);
-  const allowedDepts = ['Backend', 'Support', 'Quality', 'Graphics', 'Account', 'Accounts'];
+  const allowedDepts = ['Backend', 'Support', 'Quality', 'Graphics', 'Account', 'Accounts', 'HR'];
   
   // 1. Dept check
   if (!allowedDepts.includes(department)) {

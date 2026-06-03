@@ -515,6 +515,10 @@ export const sendEmailViaSMTP = async (config, toEmail, subject, body, attachmen
   const globalConfig = getMailConfig();
   const password = safeDecrypt(config.password);
 
+  const textContent = typeof body === 'object' && body !== null ? (body.text || '') : (body || '');
+  const htmlContent = typeof body === 'object' && body !== null ? (body.html || '') : 
+      (typeof body === 'string' && body.trim().startsWith('<') ? body : `<div style="font-family: sans-serif;">${(body || '').replace(/\n/g, '<br>')}</div>`);
+
   try {
     const response = await fetch('/api/mail/send', {
       method: 'POST',
@@ -530,8 +534,8 @@ export const sendEmailViaSMTP = async (config, toEmail, subject, body, attachmen
         mailOptions: {
           to: toEmail,
           subject: subject || '',
-          text: body || '',
-          html: `<div style="font-family: sans-serif;">${(body || '').replace(/\n/g, '<br>')}</div>`,
+          text: textContent,
+          html: htmlContent,
           attachments: attachments
         }
       })

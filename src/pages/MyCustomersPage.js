@@ -106,7 +106,11 @@ const MyCustomersPage = () => {
     
     try {
       if (sendEmail) {
-        await sendEmail(customer.email, `Quotation for ${customer.businessName}`, emailHtml);
+        await sendEmail({
+          to: customer.email,
+          subject: `Quotation for ${customer.businessName}`,
+          html: emailHtml
+        });
         setAlertModal({ title: '✅ Sent', message: `Proposal email sent successfully to ${customer.email}!` });
       } else {
         setAlertModal({ title: '⚠️ Email Service Error', message: 'sendEmail context is unavailable.' });

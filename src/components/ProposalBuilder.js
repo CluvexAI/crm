@@ -101,6 +101,10 @@ const ProposalBuilder = ({ lead, onClose, onSend }) => {
         businessName,
         title: `Proposal for ${businessName}`,
         validUntil: validUntilFormatted,
+        companyName: 'ZSM Services',
+        senderName: currentUser?.name || 'ZSM CRM User',
+        senderEmail: emailConfig?.email || currentUser?.email || 'info@zsmservices.com',
+        senderPhone: currentUser?.phone || '',
         currency: BASE_CURRENCY,
         acceptUrl: `${baseUrl}/proposal/accept/${token}`,
         rejectUrl: `${baseUrl}/proposal/reject/${token}`,
@@ -112,7 +116,12 @@ const ProposalBuilder = ({ lead, onClose, onSend }) => {
 
       const isUsingUserEmail = true;
       if (isUsingUserEmail && sendEmail) {
-        sendEmail(lead.email, subject, html, text);
+        sendEmail({
+          to: lead.email,
+          subject,
+          html,
+          text
+        });
       } else {
         await sendProposalEmail(lead.email, subject, html);
       }
@@ -379,12 +388,12 @@ const ProposalBuilder = ({ lead, onClose, onSend }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div>Subtotal: {formatCurrency(totals.subtotal)}</div>
-                {discount > 0 && <div>Discount ({discount}%): -{formatCurrency(totals.discountAmount)}</div>}
-                <div>Net Amount: {formatCurrency(totals.afterDiscount)}</div>
-                <div>GST (18%): {formatCurrency(totals.tax)}</div>
+                {discount > 0 && <div>Discount ({totals.discountPercent}%): -{formatCurrency(totals.discountAmount)}</div>}
+                <div>Net Amount: {formatCurrency(totals.taxableAmount)}</div>
+                <div>GST ({totals.taxPercent}%): {formatCurrency(totals.taxAmount)}</div>
               </div>
               <div style={{ fontSize: 24, fontWeight: 700 }}>
-                Total: {formatCurrency(totals.total)}
+                Total: {formatCurrency(totals.grandTotal)}
               </div>
             </div>
           </div>

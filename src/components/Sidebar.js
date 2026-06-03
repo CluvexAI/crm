@@ -17,7 +17,7 @@ const navItems = [
   { id: 'email', icon: '📧', label: 'Email', roles: ['all'] },
   { id: 'email_config', icon: '⚙️', label: 'Email Configuration', roles: [ROLES.ADMIN] },
   { id: 'audit', icon: '🔒', label: 'Audit Logs', roles: [ROLES.ADMIN] },
-  { id: 'reports', icon: '📊', label: 'Activity Reports', roles: ['all'], includeDepts: ['Backend', 'Support', 'Quality', 'Graphics', 'Account', 'Accounts'] },
+  { id: 'reports', icon: '📊', label: 'Activity Reports', roles: ['all'], includeDepts: ['Backend', 'Support', 'Quality', 'Graphics', 'Account', 'Accounts', 'HR'] },
   { id: 'activity_calendar', icon: '📅', label: 'Activity Calendar', roles: ['all'], excludeRoles: [ROLES.SALES] },
   { id: 'settings', icon: '⚙️', label: 'Settings', roles: [ROLES.ADMIN] },
   { id: 'profile', icon: '👤', label: 'My Profile', roles: ['all'] },

@@ -590,5 +590,93 @@
     "status": "delivered",
     "messageId": "<79461cd0-22a5-c1af-3708-41458002810c@zsmeservices.com>",
     "timestamp": "2026-06-03T08:49:31.440Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "mdrizwan.hussain@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<3fad0555-e221-327c-ed40-fe5e786d9770@zsmeservices.com>",
+    "timestamp": "2026-06-03T10:11:34.227Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "mdrizwan.hussain@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<3cec7677-18ea-618a-ce0f-c1304087977a@zsmeservices.com>",
+    "timestamp": "2026-06-03T10:13:15.110Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "mdrizwan.hussain@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<b0ad0680-13c5-3654-6c3b-67efa1215323@zsmeservices.com>",
+    "timestamp": "2026-06-03T10:14:26.317Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "mdrizwan.hussain@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<515dd100-6f78-0620-d961-570673f6cad3@zsmeservices.com>",
+    "timestamp": "2026-06-03T10:54:31.193Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "mdrizwan.hussain@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<c195672b-879f-e9a6-43e7-a9ed07014628@zsmeservices.com>",
+    "timestamp": "2026-06-03T10:55:23.898Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "2146c297-0b86-4e12-8994-b1ee5b90643d",
+    "timestamp": "2026-06-03T11:00:13.322Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "d6cb9afd-c611-4f88-a022-2817e5495a17",
+    "timestamp": "2026-06-03T11:03:17.310Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "aab9ac95-749f-44a8-9b3f-91bef9271834",
+    "timestamp": "2026-06-03T11:07:37.613Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "ehtesham.nasim@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "failed",
+    "error": "Invalid login: 535 Incorrect authentication data",
+    "timestamp": "2026-06-03T11:49:51.948Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "ehtesham.nasim@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<fde43427-0fae-7c43-0741-f1201c15c895@zsmeservices.com>",
+    "timestamp": "2026-06-03T11:54:50.109Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "sumana.ghosh@zsmeservices.com",
+    "recipient": "sumana2000jyangra@gmail.com",
+    "status": "delivered",
+    "messageId": "<91d5edaa-b2a6-670f-dd9c-b7a4d94de980@zsmeservices.com>",
+    "timestamp": "2026-06-03T12:48:28.656Z"
   }
 ]

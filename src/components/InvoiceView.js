@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { formatInvoiceAmount, PAYMENT_METHODS, COMPANY_INFO, getInvoice, updateInvoice, addServiceItem, updateServiceItem, removeServiceItem, addPayment, addInstallment, markInstallmentPaid, getInvoiceAuditLog, cancelInvoice, getCustomerInvoice, DEFAULT_CONTACT_DETAILS } from '../services/invoiceService';
+import { formatInvoiceAmount, PAYMENT_METHODS, COMPANY_INFO, getInvoice, updateInvoice, addServiceItem, updateServiceItem, removeServiceItem, addPayment, addInstallment, markInstallmentPaid, getInvoiceAuditLog, cancelInvoice, getCustomerInvoice, DEFAULT_CONTACT_DETAILS, buildInvoiceEmailHtml } from '../services/invoiceService';
 import { CURRENCIES } from '../services/currencyService';
 import { ROLES } from '../data/mockData';
 import html2pdf from 'html2pdf.js';
@@ -1542,24 +1542,42 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
               currentUser={currentUser}
               onClose={() => setShowEmailComposer(false)}
               onSend={async (emailData) => {
+                if (!emailData.to || !emailData.to.includes('@')) {
+                  alert('Customer email not found or invalid. Please update the customer record.');
+                  return;
+                }
                 try {
+                  const { getEmailByUserId, getMailConfig } = await import('../services/emailService');
+                  const accounts = getEmailByUserId(currentUser?.id, currentUser?.email);
+                  const emailConfig = accounts && accounts.length > 0 ? accounts[0] : null;
+
+                  if (!emailConfig || !emailConfig.email) {
+                    alert('Email not configured. Please configure your email in Profile → Email Settings.');
+                    return;
+                  }
+
+                  const systemConfig = getMailConfig();
+
                   const response = await fetch('/api/mail/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                       config: {
-                        user: currentUser?.email || 'noreply@zsmeservices.com',
-                        pass: 'Admin#2026@zsm',
-                        name: currentUser?.name || 'ZSM Team'
+                        user: emailConfig.email,
+                        pass: decrypt(emailConfig.password),
+                        name: currentUser?.name || 'ZSM Team',
+                        host: emailConfig.smtpHost || systemConfig.smtpHost || systemConfig.host,
+                        port: emailConfig.smtpPort || systemConfig.smtpPort || 465
                       },
                       mailOptions: {
+                        from: emailConfig.email,
                         to: emailData.to,
                         subject: emailData.subject,
                         html: emailData.body,
                         text: emailData.body.replace(/<[^>]*>/g, ''),
                         attachments: (emailData.attachments || []).map(att => ({
                           filename: att.name,
-                          content: att.content || att.file || 'Mock Invoice PDF Content',
+                          content: att.content || att.file,
                         }))
                       },
                       userId: currentUser?.id
@@ -1567,54 +1585,23 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
                   });
                   const resData = await response.json();
                   if (resData.success) {
-                    alert('✅ Email sent successfully!');
+                    // Update status to 'Sent' and record it in log
+                    const updatedInv = updateInvoice(invoice.id, { status: 'Sent', sentAt: new Date().toISOString() });
+                    if (updatedInv) setInvoice(updatedInv);
+                    if (refreshInvoices) refreshInvoices();
+                    alert('✅ Invoice email sent successfully!');
                     setShowEmailComposer(false);
                   } else {
-                    alert('Failed to send email: ' + resData.message);
+                    alert('Failed to send invoice email: ' + resData.message);
                   }
                 } catch (error) {
-                  alert('Failed to send email: ' + error.message);
+                  alert('Failed to send invoice email: ' + error.message);
                 }
               }}
               initialData={{
-                to: invoice.client?.email || '',
+                to: invoice.client?.email || invoice.customerEmail || invoice.leadEmail || '',
                 subject: `Invoice #${invoice.invoiceNumber || invoice.id} from ${invoice.from?.name || 'ZSM e-Services'}`,
-                body: `
-                  <p>Dear ${invoice.client?.contactName || invoice.client?.businessName || 'Customer'},</p>
-                  <p>We hope this email finds you well.</p>
-                  <p>Please find attached your invoice <strong>#${invoice.invoiceNumber || invoice.id}</strong> for services detailed below.</p>
-                  <div style="padding:16px; border:1px solid #e2e8f0; background:#f8fafc; border-radius:8px; margin:20px 0; max-width: 500px; font-family: sans-serif;">
-                    <h3 style="margin-top:0; color:#0E5491; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">Invoice Summary</h3>
-                    <table style="width:100%; font-size:14px; border-collapse:collapse;">
-                      <tr>
-                        <td style="padding:6px 0; color:#64748b;">Invoice Number:</td>
-                        <td style="padding:6px 0; font-weight:bold; text-align:right;">${invoice.invoiceNumber || invoice.id}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding:6px 0; color:#64748b;">Due Date:</td>
-                        <td style="padding:6px 0; font-weight:bold; text-align:right;">${invoice.invoiceInfo?.dueDate || invoice.dueDate}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding:6px 0; color:#64748b;">Total Amount:</td>
-                        <td style="padding:6px 0; font-weight:bold; text-align:right;">${formatInvoiceAmount(invoice.totalAmount, invoice.invoiceInfo?.currency)}</td>
-                      </tr>
-                      <tr style="border-top:1px dashed #cbd5e1;">
-                        <td style="padding:10px 0; font-weight:bold; color:#0e5491; font-size:15px;">Outstanding Balance:</td>
-                        <td style="padding:10px 0; font-weight:bold; text-align:right; color:#ef4444; font-size:15px;">${formatInvoiceAmount(invoice.dueAmount, invoice.invoiceInfo?.currency)}</td>
-                      </tr>
-                    </table>
-                    ${invoice.dueAmount > 0 && invoice.stripe_payment_link_url ? `
-                      <div style="margin-top:20px; text-align:center;">
-                        <a href="${invoice.stripe_payment_link_url}" target="_blank" rel="noreferrer" style="display:inline-block; padding:12px 24px; color:#ffffff; background:linear-gradient(135deg, #0E5491 0%, #1a6fb5 100%); text-decoration:none; font-weight:bold; border-radius:6px; box-shadow:0 4px 12px rgba(14,84,145,0.2);">
-                          💳 Pay Outstanding Due Online
-                        </a>
-                      </div>
-                    ` : ''}
-                  </div>
-                  <p>Thank you for your business!</p>
-                  <p>Regards,</p>
-                  <p><strong>${invoice.from?.name || 'ZSM e-Services Pvt. Ltd.'}</strong></p>
-                `.trim(),
+                body: buildInvoiceEmailHtml(invoice),
                 attachments: [
                   {
                     name: `Invoice_${invoice.invoiceNumber || invoice.id}.pdf`,

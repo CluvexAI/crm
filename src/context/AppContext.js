@@ -1309,6 +1309,39 @@ export const AppProvider = ({ children }) => {
     }, 100);
   };
 
+  const submitDailyReport = (userId, userName, date, workSummary) => {
+    setAllAttendance((prev) => {
+      const existing = prev.find((a) => a.userId === userId && a.date === date);
+      if (existing) {
+        return prev.map((a) => (a.userId === userId && a.date === date ? { ...a, workSummary } : a));
+      }
+      return [
+        ...prev,
+        {
+          id: Date.now(),
+          userId,
+          userName,
+          date,
+          loginTime: null,
+          logoutTime: null,
+          breaks: [],
+          meetings: [],
+          status: 'Present',
+          workSummary
+        },
+      ];
+    });
+
+    setTimeout(() => {
+      setAllAttendance(current => {
+        setAllAttendanceLogs(current);
+        return current;
+      });
+    }, 100);
+    
+    addAuditLog('Daily Report Submitted', userName, `Work summary submitted for ${date}`);
+  };
+
   const manuallyUpsertAttendanceLog = (logData) => {
     const updatedLog = upsertAttendanceLogDB(logData);
     setAllAttendance((prev) => {
@@ -1390,8 +1423,20 @@ export const AppProvider = ({ children }) => {
     window.dispatchEvent(new Event('storage'));
   };
 
-  const sendEmail = async (toEmail, subject, body, attachments = []) => {
+  const sendEmail = async (paramsOrToEmail, subject, body, attachments = []) => {
     try {
+      let toEmail, finalSubject, finalBody, finalAttachments;
+      if (typeof paramsOrToEmail === 'object' && paramsOrToEmail !== null && paramsOrToEmail.to) {
+        toEmail = paramsOrToEmail.to;
+        finalSubject = paramsOrToEmail.subject || '';
+        finalBody = { html: paramsOrToEmail.html || '', text: paramsOrToEmail.text || '' };
+        finalAttachments = paramsOrToEmail.attachments || [];
+      } else {
+        toEmail = paramsOrToEmail;
+        finalSubject = subject;
+        finalBody = body;
+        finalAttachments = attachments;
+      }
       const emailServiceModule = await import('../services/emailService');
       const { getEmailByUserId, sendEmailViaSMTP } = emailServiceModule;
       const uid = currentUser?.uuid || currentUser?.id;
@@ -1402,7 +1447,7 @@ export const AppProvider = ({ children }) => {
         throw new Error('Email not configured. Please set up your email in Profile → Email Settings.');
       }
       
-      await sendEmailViaSMTP(emailConfig, toEmail, subject, body);
+      await sendEmailViaSMTP(emailConfig, toEmail, finalSubject, finalBody, finalAttachments);
       
       const newEmail = {
         id: `email_${Date.now()}`,
@@ -1637,7 +1682,7 @@ export const AppProvider = ({ children }) => {
           // Projects
           allProjects, myProjects, createProject, updateProject, deleteProject, addProjectReport,
           // HR
-          allAttendance, markAttendance, manuallyUpsertAttendanceLog,
+          allAttendance, markAttendance, submitDailyReport, manuallyUpsertAttendanceLog,
           allLeaves, applyLeave, updateLeave, deleteLeave,
           // Chat
           allMessages, sendMessage, unreadMessages,

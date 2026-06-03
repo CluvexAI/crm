@@ -103,28 +103,66 @@ Email: ${email}
 `;
 };
 
-export const calculateProposalTotal = (items, discount = 0) => {
-  const subtotal = items.reduce((sum, item) => sum + (item.total || 0), 0);
-  const discountAmount = (subtotal * discount) / 100;
-  const afterDiscount = subtotal - discountAmount;
-  const tax = (afterDiscount * 18) / 100;
-  const total = afterDiscount + tax;
+export const calculateProposalTotal = (items = [], taxRate = 18, discountRate = 0) => {
+  // Step 1: Line item totals (assuming items already have basePrice and quantity or total)
+  const lineItems = items.map(item => {
+    const qty = parseFloat(item.quantity) || 1;
+    const price = parseFloat(item.basePrice || item.price || item.total) || 0;
+    return {
+      ...item,
+      lineTotal: Math.round(qty * price * 100) / 100
+    };
+  });
+
+  // Step 2: Subtotal
+  const subtotal = Math.round(
+    lineItems.reduce((sum, item) => sum + item.lineTotal, 0) * 100
+  ) / 100;
+
+  // Step 3: Discount
+  const discountPercent = parseFloat(discountRate) || 0;
+  const discountAmount  = Math.round(subtotal * (discountPercent / 100) * 100) / 100;
+
+  // Step 4: Taxable amount (after discount)
+  const taxableAmount   = Math.round((subtotal - discountAmount) * 100) / 100;
+
+  // Step 5: Tax on taxable amount
+  const taxPercent      = parseFloat(taxRate) || 0;
+  const taxAmount       = Math.round(taxableAmount * (taxPercent / 100) * 100) / 100;
+
+  // Step 6: Grand Total
+  const grandTotal      = Math.round((taxableAmount + taxAmount) * 100) / 100;
+
   return {
+    lineItems,
     subtotal,
+    discountPercent,
     discountAmount,
-    afterDiscount,
-    tax,
-    total
+    taxableAmount, // equivalent to old 'afterDiscount'
+    afterDiscount: taxableAmount, // backward compatibility
+    taxPercent,
+    taxAmount,     // equivalent to old 'tax'
+    tax: taxAmount,           // backward compatibility
+    grandTotal,    // equivalent to old 'total'
+    total: grandTotal // backward compatibility
   };
 };
 
 export const generateProposalHTML = (proposal, items, totals) => {
-  const itemsHTML = items.map(item => `
-    <tr>
-      <td style="padding: 12px; border: 1px solid #ddd;">${item.name}</td>
-      <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">${item.quantity}</td>
-      <td style="padding: 12px; border: 1px solid #ddd; text-align: right;">₹${item.basePrice.toLocaleString()}</td>
-      <td style="padding: 12px; border: 1px solid #ddd; text-align: right;">₹${item.total.toLocaleString()}</td>
+  const itemsHTML = items.map((item, index) => `
+    <tr style="background-color:${index % 2 === 0 ? '#f9fbff' : '#ffffff'};">
+      <td style="padding:10px 12px; border:1px solid #dce8f5;">
+        ${item.name}
+      </td>
+      <td style="padding:10px 12px; text-align:center; border:1px solid #dce8f5;">
+        ${item.quantity}
+      </td>
+      <td style="padding:10px 12px; text-align:right; border:1px solid #dce8f5;">
+        ₹${item.basePrice.toLocaleString('en-IN')}
+      </td>
+      <td style="padding:10px 12px; text-align:right; border:1px solid #dce8f5;">
+        ₹${item.total.toLocaleString('en-IN')}
+      </td>
     </tr>
   `).join('');
 
@@ -132,60 +170,111 @@ export const generateProposalHTML = (proposal, items, totals) => {
 <!DOCTYPE html>
 <html>
 <head>
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-    .header { background: #2c3e50; color: white; padding: 20px; text-align: center; }
-    .content { padding: 20px; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    .total-row { font-weight: bold; background: #f8f9fa; }
-    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Proposal</title>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>${proposal.title}</h1>
-      <p>Valid Until: ${proposal.validUntil}</p>
-    </div>
-    <div class="content">
-      <h3>Service Details</h3>
-      <table>
-        <thead>
-          <tr style="background: #34495e; color: white;">
-            <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">Service</th>
-            <th style="padding: 12px; border: 1px solid #ddd;">Qty</th>
-            <th style="padding: 12px; border: 1px solid #ddd; text-align: right;">Price</th>
-            <th style="padding: 12px; border: 1px solid #ddd; text-align: right;">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${itemsHTML}
-          <tr class="total-row">
-            <td colspan="3" style="padding: 12px; border: 1px solid #ddd; text-align: right;">Subtotal</td>
-            <td style="padding: 12px; border: 1px solid #ddd; text-align: right;">₹${totals.subtotal.toLocaleString()}</td>
-          </tr>
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, sans-serif; color:#333333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8; padding: 40px 0;">
+    <tr>
+      <td align="center">
+        <!-- Email Card -->
+        <table width="620" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:8px; overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+          <!-- ── HEADER ── -->
           <tr>
-            <td colspan="3" style="padding: 12px; border: 1px solid #ddd; text-align: right;">Discount (${proposal.discount || 0}%)</td>
-            <td style="padding: 12px; border: 1px solid #ddd; text-align: right;">-₹${totals.discountAmount.toLocaleString()}</td>
+            <td style="background-color:#1a73e8; padding:32px 40px; text-align:center;">
+              <h1 style="margin:0; color:#ffffff; font-size:22px; font-weight:700; letter-spacing:0.5px;">
+                ${proposal.companyName || 'ZSM Services'}
+              </h1>
+              <p style="margin:6px 0 0; color:#d0e8ff; font-size:13px;">
+                ${proposal.senderEmail || 'info@zsmservices.com'}
+              </p>
+            </td>
           </tr>
+          <!-- ── PROPOSAL TITLE BANNER ── -->
           <tr>
-            <td colspan="3" style="padding: 12px; border: 1px solid #ddd; text-align: right;">Tax (18%)</td>
-            <td style="padding: 12px; border: 1px solid #ddd; text-align: right;">₹${totals.tax.toLocaleString()}</td>
+            <td style="background-color:#f0f7ff; padding:20px 40px; border-bottom:1px solid #dce8f5;">
+              <h2 style="margin:0; font-size:18px; color:#1a73e8;">
+                ${proposal.title}
+              </h2>
+              <p style="margin:6px 0 0; font-size:13px; color:#666;">
+                Prepared for: <strong style="color:#333;">${proposal.clientName || 'Valued Customer'}</strong> &nbsp;|&nbsp; Company: <strong style="color:#333;">${proposal.businessName || 'N/A'}</strong>
+              </p>
+              <p style="margin:4px 0 0; font-size:13px; color:#e65c00;">
+                Valid Until: <strong>${proposal.validUntil}</strong>
+              </p>
+            </td>
           </tr>
-          <tr class="total-row">
-            <td colspan="3" style="padding: 12px; border: 1px solid #ddd; text-align: right;">Total</td>
-            <td style="padding: 12px; border: 1px solid #ddd; text-align: right;">₹${totals.total.toLocaleString()}</td>
+          <!-- ── BODY ── -->
+          <tr>
+            <td style="padding:32px 40px;">
+              <p style="margin:0 0 8px; font-size:15px; color:#333;">
+                Dear <strong>${proposal.clientName || 'Valued Customer'}</strong>,
+              </p>
+              <p style="margin:0 0 24px; font-size:14px; color:#555; line-height:1.6;">
+                Thank you for considering <strong>${proposal.companyName || 'ZSM Services'}</strong> for your business needs. Please find below our proposal for <strong>${proposal.title}</strong>.
+              </p>
+              <!-- ── SERVICE DETAILS TABLE ── -->
+              <p style="margin:0 0 10px; font-size:15px; font-weight:700; color:#1a73e8; border-bottom:2px solid #1a73e8; padding-bottom:6px;">
+                Service Details
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-size:14px; margin-bottom:20px;">
+                <thead>
+                  <tr style="background-color:#1a73e8; color:#ffffff;">
+                    <th style="padding:10px 12px; text-align:left; border:1px solid #1565c0;">Service</th>
+                    <th style="padding:10px 12px; text-align:center; border:1px solid #1565c0; width:60px;">Qty</th>
+                    <th style="padding:10px 12px; text-align:right; border:1px solid #1565c0; width:90px;">Price</th>
+                    <th style="padding:10px 12px; text-align:right; border:1px solid #1565c0; width:90px;">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsHTML}
+                </tbody>
+                <tfoot>
+                  <tr style="background-color:#f4f6f8;">
+                    <td colspan="3" style="padding:9px 12px; text-align:right; border:1px solid #dce8f5; font-weight:600; color:#555;">Subtotal</td>
+                    <td style="padding:9px 12px; text-align:right; border:1px solid #dce8f5; font-weight:600;">₹${totals.subtotal.toLocaleString('en-IN')}</td>
+                  </tr>
+                  <tr style="background-color:#fff8f0;">
+                    <td colspan="3" style="padding:9px 12px; text-align:right; border:1px solid #dce8f5; color:#e65c00;">Discount (${totals.discountPercent}%)</td>
+                    <td style="padding:9px 12px; text-align:right; border:1px solid #dce8f5; color:#e65c00;">-₹${totals.discountAmount.toLocaleString('en-IN')}</td>
+                  </tr>
+                  <tr style="background-color:#f4f6f8;">
+                    <td colspan="3" style="padding:9px 12px; text-align:right; border:1px solid #dce8f5; color:#555;">Tax (${totals.taxPercent}%)</td>
+                    <td style="padding:9px 12px; text-align:right; border:1px solid #dce8f5; color:#555;">₹${totals.taxAmount.toLocaleString('en-IN')}</td>
+                  </tr>
+                  <tr style="background-color:#1a73e8; color:#ffffff;">
+                    <td colspan="3" style="padding:12px; text-align:right; font-size:15px; font-weight:700; border:1px solid #1565c0;">Total</td>
+                    <td style="padding:12px; text-align:right; font-size:15px; font-weight:700; border:1px solid #1565c0;">₹${totals.grandTotal.toLocaleString('en-IN')}</td>
+                  </tr>
+                </tfoot>
+              </table>
+              <!-- END TABLE -->
+              <p style="margin:0; font-size:13px; color:#888; font-style:italic;">
+                This proposal is valid until <strong style="color:#e65c00;">${proposal.validUntil}</strong>. Please reach out for any questions.
+              </p>
+              ${proposal.notes ? `<p style="margin:10px 0 0; font-size:14px; color:#333;"><strong>Notes:</strong><br/>${proposal.notes}</p>` : ''}
+            </td>
           </tr>
-        </tbody>
-      </table>
-      ${proposal.notes ? `<h4>Notes:</h4><p>${proposal.notes}</p>` : ''}
-    </div>
-    <div class="footer">
-      <p>This proposal is valid until ${proposal.validUntil}</p>
-      <p>ZSM Services | info@zsmservices.com</p>
-    </div>
-  </div>
+          <!-- ── FOOTER ── -->
+          <tr>
+            <td style="background-color:#f0f7ff; padding:20px 40px; text-align:center; border-top:1px solid #dce8f5;">
+              <p style="margin:0; font-size:13px; color:#555;">
+                <strong>${proposal.senderName || 'Sales Agent'}</strong> &nbsp;|&nbsp; ${proposal.companyName || 'ZSM Services'}
+              </p>
+              <p style="margin:4px 0 0; font-size:12px; color:#888;">
+                Phone: ${proposal.senderPhone || 'N/A'} &nbsp;|&nbsp; Email: ${proposal.senderEmail || 'info@zsmservices.com'}
+              </p>
+              <p style="margin:8px 0 0; font-size:11px; color:#aaa;">
+                © 2026 ${proposal.companyName || 'ZSM Services'}. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+        <!-- END CARD -->
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `.trim();
@@ -204,9 +293,9 @@ SERVICES:
 ${itemsText}
 
 Subtotal: ₹${totals.subtotal.toLocaleString()}
-Discount (${proposal.discount || 0}%): -₹${totals.discountAmount.toLocaleString()}
-Tax (18%): ₹${totals.tax.toLocaleString()}
-TOTAL: ₹${totals.total.toLocaleString()}
+Discount (${totals.discountPercent}%): -₹${totals.discountAmount.toLocaleString()}
+Tax (${totals.taxPercent}%): ₹${totals.taxAmount.toLocaleString()}
+TOTAL: ₹${totals.grandTotal.toLocaleString()}
 
 ${proposal.notes ? `Notes: ${proposal.notes}` : ''}
 

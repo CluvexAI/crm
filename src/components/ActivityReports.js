@@ -1,9 +1,21 @@
 import React, { useState, useMemo } from 'react';
+import { ROLES } from '../data/mockData';
 
-const ActivityReports = ({ allAttendance, allUsers, allLeaves, currentUser, isHR }) => {
+const ActivityReports = ({ allAttendance, allUsers, allLeaves, currentUser, isHR, submitDailyReport }) => {
   const [view, setView] = useState('daily'); // 'daily', 'weekly', 'monthly'
   const [selectedUser, setSelectedUser] = useState(isHR ? 'all' : currentUser.id);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [newWorkSummary, setNewWorkSummary] = useState('');
+
+  const handleSubmitReport = () => {
+    if (!newWorkSummary.trim()) {
+      alert('Please enter a work summary before submitting.');
+      return;
+    }
+    submitDailyReport(currentUser.id, currentUser.name, selectedDate, newWorkSummary);
+    setNewWorkSummary('');
+    alert('Daily report submitted successfully!');
+  };
 
   // Get date range helpers
   const getWeekStart = (date) => {
@@ -32,11 +44,18 @@ const ActivityReports = ({ allAttendance, allUsers, allLeaves, currentUser, isHR
 
   // Filter records based on selected user
   const userRecords = useMemo(() => {
-    if (!isHR || selectedUser === 'all') {
-      return allAttendance;
+    let filteredAttendance = allAttendance;
+    
+    if (currentUser.role === ROLES.ADMIN) {
+      const salesUserIds = new Set(allUsers.filter(u => u.role === ROLES.SALES).map(u => parseInt(u.id)));
+      filteredAttendance = filteredAttendance.filter(a => !salesUserIds.has(parseInt(a.userId)));
     }
-    return allAttendance.filter(a => a.userId === parseInt(selectedUser));
-  }, [allAttendance, selectedUser, isHR]);
+
+    if (!isHR || selectedUser === 'all') {
+      return filteredAttendance;
+    }
+    return filteredAttendance.filter(a => parseInt(a.userId) === parseInt(selectedUser));
+  }, [allAttendance, selectedUser, isHR, currentUser.role, allUsers]);
 
   // Daily Report Data
   const dailyData = useMemo(() => {
@@ -138,6 +157,30 @@ const ActivityReports = ({ allAttendance, allUsers, allLeaves, currentUser, isHR
           </div>
         </div>
 
+        {currentUser.role === ROLES.HR && selectedDate === new Date().toISOString().split('T')[0] && (
+          <div className="card" style={{ marginBottom: 20, borderLeft: '4px solid var(--primary)' }}>
+            <div className="card-header">
+              <div className="card-title">📝 Submit Today's Report</div>
+            </div>
+            <div className="card-body">
+              <textarea
+                className="form-control"
+                rows="3"
+                placeholder="Write your work summary for today..."
+                value={newWorkSummary}
+                onChange={e => setNewWorkSummary(e.target.value)}
+              />
+              <button 
+                className="btn btn-primary" 
+                style={{ marginTop: 10 }}
+                onClick={handleSubmitReport}
+              >
+                Submit Report
+              </button>
+            </div>
+          </div>
+        )}
+
         {dailyData.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">📭</div>
@@ -224,6 +267,14 @@ const ActivityReports = ({ allAttendance, allUsers, allLeaves, currentUser, isHR
                       </div>
                     </div>
                   </div>
+
+                  {/* Work Summary Display */}
+                  {record.workSummary && (
+                    <div style={{ marginTop: 16, padding: 12, background: 'var(--bg-secondary)', borderRadius: 8, border: '1px solid var(--border-light)' }}>
+                      <h4 style={{ marginBottom: 8, fontSize: 13, fontWeight: 600, color: 'var(--primary)' }}>📝 Work Summary</h4>
+                      <div style={{ fontSize: 13, whiteSpace: 'pre-wrap' }}>{record.workSummary}</div>
+                    </div>
+                  )}
 
                   {/* Breaks Table */}
                   {record.breaks.length > 0 && (
@@ -371,6 +422,7 @@ const ActivityReports = ({ allAttendance, allUsers, allLeaves, currentUser, isHR
                       <th>Total Hours</th>
                       <th>Breaks</th>
                       <th>Meetings</th>
+                      <th>Work Summary</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -387,6 +439,9 @@ const ActivityReports = ({ allAttendance, allUsers, allLeaves, currentUser, isHR
                           </td>
                           <td>{record.breaks.length}</td>
                           <td>{record.meetings.length}</td>
+                          <td style={{ maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={record.workSummary || ''}>
+                            {record.workSummary || <span style={{ color: 'var(--text-muted)' }}>No summary</span>}
+                          </td>
                         </tr>
                       );
                     })}
