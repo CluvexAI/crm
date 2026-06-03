@@ -414,15 +414,34 @@ export const recalculateAmountSummary = (invoice) => {
     .filter(p => p.status !== 'failed' && p.status !== 'refunded')
     .reduce((sum, p) => sum + (p.amount || 0), 0);
 
-  invoice.amountSummary = {
-    ...invoice.amountSummary,
-    subtotal: lockedTotal,
-    discountAmount: 0,
-    afterDiscount: lockedTotal,
-    taxAmount: 0,
-    additionalChargesTotal: 0,
-    grandTotal: lockedTotal,
-  };
+  if (invoice.services && invoice.services.length > 0) {
+    const subtotal = Number(invoice.services.reduce((sum, s) => sum + ((parseFloat(s.quantity) || 0) * (parseFloat(s.unitPrice) || 0)), 0).toFixed(2));
+    const taxAmount = Number(invoice.services.reduce((sum, s) => sum + (((parseFloat(s.quantity) || 0) * (parseFloat(s.unitPrice) || 0) * (parseFloat(s.taxRate) || 0)) / 100), 0).toFixed(2));
+    const discountAmount = Number((parseFloat(invoice.amountSummary?.discountAmount) || 0).toFixed(2));
+    const additionalChargesTotal = Number((invoice.amountSummary?.additionalCharges || []).reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0).toFixed(2));
+    
+    const calculatedGrandTotal = Number(Math.max(0, subtotal + taxAmount + additionalChargesTotal - discountAmount).toFixed(2));
+    
+    invoice.amountSummary = {
+      ...invoice.amountSummary,
+      subtotal,
+      discountAmount,
+      afterDiscount: Number(Math.max(0, subtotal - discountAmount).toFixed(2)),
+      taxAmount,
+      additionalChargesTotal,
+      grandTotal: invoice.lockedTotal !== undefined ? invoice.lockedTotal : calculatedGrandTotal,
+    };
+  } else {
+    invoice.amountSummary = {
+      ...invoice.amountSummary,
+      subtotal: lockedTotal,
+      discountAmount: 0,
+      afterDiscount: lockedTotal,
+      taxAmount: 0,
+      additionalChargesTotal: 0,
+      grandTotal: lockedTotal,
+    };
+  }
 
   invoice.totalAmount = lockedTotal;
   invoice.paidAmount = totalPaid;

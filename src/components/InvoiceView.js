@@ -150,12 +150,12 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
   }
 
   const recalculateLocalTotals = (invoiceCopy) => {
-    const subtotal = invoiceCopy.services.reduce((sum, s) => sum + ((parseFloat(s.quantity) || 0) * (parseFloat(s.unitPrice) || 0)), 0);
-    const taxAmount = invoiceCopy.services.reduce((sum, s) => sum + (((parseFloat(s.quantity) || 0) * (parseFloat(s.unitPrice) || 0) * (parseFloat(s.taxRate) || 0)) / 100), 0);
-    const discountAmount = parseFloat(invoiceCopy.amountSummary?.discountAmount) || 0;
-    const additionalChargesTotal = (invoiceCopy.amountSummary?.additionalCharges || []).reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0);
+    const subtotal = Number(invoiceCopy.services.reduce((sum, s) => sum + ((parseFloat(s.quantity) || 0) * (parseFloat(s.unitPrice) || 0)), 0).toFixed(2));
+    const taxAmount = Number(invoiceCopy.services.reduce((sum, s) => sum + (((parseFloat(s.quantity) || 0) * (parseFloat(s.unitPrice) || 0) * (parseFloat(s.taxRate) || 0)) / 100), 0).toFixed(2));
+    const discountAmount = Number((parseFloat(invoiceCopy.amountSummary?.discountAmount) || 0).toFixed(2));
+    const additionalChargesTotal = Number((invoiceCopy.amountSummary?.additionalCharges || []).reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0).toFixed(2));
     
-    const grandTotal = Math.max(0, subtotal + taxAmount + additionalChargesTotal - discountAmount);
+    const grandTotal = Number(Math.max(0, subtotal + taxAmount + additionalChargesTotal - discountAmount).toFixed(2));
 
     invoiceCopy.amountSummary = {
       ...invoiceCopy.amountSummary,
@@ -1543,7 +1543,7 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
               onClose={() => setShowEmailComposer(false)}
               onSend={async (emailData) => {
                 if (!emailData.to || !emailData.to.includes('@')) {
-                  alert('Customer email not found or invalid. Please update the customer record.');
+                  setAlertModal({ title: '⚠️ Invalid Email', message: 'Customer email not found or invalid. Please update the customer record.' });
                   return;
                 }
                 try {
@@ -1552,7 +1552,7 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
                   const emailConfig = accounts && accounts.length > 0 ? accounts[0] : null;
 
                   if (!emailConfig || !emailConfig.email) {
-                    alert('Email not configured. Please configure your email in Profile → Email Settings.');
+                    setAlertModal({ title: '⚠️ Email Not Configured', message: 'Email not configured. Please configure your email in Profile → Email Settings.' });
                     return;
                   }
 
@@ -1589,13 +1589,13 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
                     const updatedInv = updateInvoice(invoice.id, { status: 'Sent', sentAt: new Date().toISOString() });
                     if (updatedInv) setInvoice(updatedInv);
                     if (refreshInvoices) refreshInvoices();
-                    alert('✅ Invoice email sent successfully!');
                     setShowEmailComposer(false);
+                    setAlertModal({ title: '✅ Sent', message: 'Invoice email sent successfully!' });
                   } else {
-                    alert('Failed to send invoice email: ' + resData.message);
+                    setAlertModal({ title: '❌ Send Failed', message: 'Failed to send invoice email: ' + resData.message });
                   }
                 } catch (error) {
-                  alert('Failed to send invoice email: ' + error.message);
+                  setAlertModal({ title: '❌ Error', message: 'Failed to send invoice email: ' + error.message });
                 }
               }}
               initialData={{

@@ -168,9 +168,9 @@ const CreateInvoiceModal = ({ onClose, refreshInvoices }) => {
   };
 
   // Calculations
-  const subtotal = services.reduce((sum, s) => sum + (s.quantity * s.unitPrice), 0);
-  const taxAmount = services.reduce((sum, s) => sum + ((s.quantity * s.unitPrice * s.taxRate) / 100), 0);
-  const grandTotal = Math.max(0, subtotal + taxAmount - discountAmount);
+  const subtotal = Number(services.reduce((sum, s) => sum + (s.quantity * s.unitPrice), 0).toFixed(2));
+  const taxAmount = Number(services.reduce((sum, s) => sum + ((s.quantity * s.unitPrice * s.taxRate) / 100), 0).toFixed(2));
+  const grandTotal = Number(Math.max(0, subtotal + taxAmount - discountAmount).toFixed(2));
 
   // Installments list generation & validation
   useEffect(() => {
@@ -315,7 +315,7 @@ const CreateInvoiceModal = ({ onClose, refreshInvoices }) => {
         invoiceNumber,
         saleId: saleId || null,
         leadId: leadId || null,
-        createdBy: currentUser?.name || 'Accounts User',
+        createdBy: currentUser?.id || null,
         status: 'PENDING',
         lockedTotal: enableInstallments && installments.length > 0 ? installments[0].amount : grandTotal,
         saleTotalAmount: grandTotal,
