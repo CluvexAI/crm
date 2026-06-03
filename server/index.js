@@ -42,11 +42,44 @@ const RATE_FILE = path.join(DATA_DIR, 'rate_limits.json');
 const CUSTOM_DNS_FILE = path.join(DATA_DIR, 'custom_dns.json');
 const DAILY_REPORTS_FILE = path.join(DATA_DIR, 'daily_reports.json');
 const STRIPE_CONFIG_FILE = path.join(DATA_DIR, 'stripe_config.json');
+const USERS_STORE_FILE = path.join(DATA_DIR, 'users.json');
+const DELETED_UUIDS_FILE = path.join(DATA_DIR, 'deleted_uuids.json');
+const MIGRATION_LOGS_FILE = path.join(DATA_DIR, 'migration_logs.json');
+const MIGRATION_ERRORS_FILE = path.join(DATA_DIR, 'migration_error_logs.json');
+const PASSWORD_AUDIT_FILE = path.join(DATA_DIR, 'password_audit.json');
+if (!fs.existsSync(PASSWORD_AUDIT_FILE)) writeJSON(PASSWORD_AUDIT_FILE, []);
+
+// ─── Tombstone Helpers (Issue #1–5 fix) ──────────────────────────────────────
+// Reads the persisted set of permanently-deleted UUIDs.
+const readTombstones = () => readJSON(DELETED_UUIDS_FILE, []);
+
+// Writes a new UUID into the tombstone set (idempotent).
+const addTombstone = (uuid) => {
+  const set = new Set(readTombstones());
+  set.add(String(uuid));
+  writeJSON(DELETED_UUIDS_FILE, [...set]);
+  console.log(`[Tombstone] UUID permanently tombstoned: ${uuid}`);
+};
+
+// Returns true when a UUID has been tombstoned (permanently deleted).
+const isTombstoned = (uuid) => readTombstones().includes(String(uuid));
+
+// Removes tombstoned entries from a user array.
+const filterTombstoned = (users) => {
+  const tombstones = new Set(readTombstones());
+  return (users || []).filter(u => !tombstones.has(String(u.uuid)));
+};
+
+// Ensure tombstone file exists on startup (placed here, after writeJSON is defined)
 
 const readJSON = (file, def) => {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return def; }
 };
 const writeJSON = (file, data) => fs.writeFileSync(file, JSON.stringify(data, null, 2));
+
+// Tombstone file init (runs after readJSON/writeJSON are defined)
+if (!fs.existsSync(DELETED_UUIDS_FILE)) writeJSON(DELETED_UUIDS_FILE, []);
+console.log(`[Tombstone] Loaded ${readTombstones().length} deleted UUID(s) from tombstone store`);
 
 const emailStore = readJSON(EMAIL_STORE_FILE, {}); // { userId: { inbox: [], sent: [], drafts: [], trash: [] } }
 const deliveryLogs = readJSON(DELIVERY_LOGS_FILE, []);
@@ -469,6 +502,36 @@ app.post('/api/auth/reset-password-otp', async (req, res) => {
     // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
+    // Update users.json directly!
+    const users = readUsers() || [];
+    const uIndex = users.findIndex(u => u.email && u.email.toLowerCase() === record.email.toLowerCase());
+    if (uIndex !== -1) {
+      users[uIndex] = {
+        ...users[uIndex],
+        password: hashedPassword,
+        passwordChangedAt: new Date().toISOString(),
+        must_change_password: false, // OTP reset removes must_change flag
+        updatedAt: new Date().toISOString()
+      };
+      writeUsers(users);
+      
+      const auditEntry = {
+        id: `pwd_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        userId: users[uIndex].uuid,
+        userEmail: users[uIndex].email,
+        changedBy: users[uIndex].uuid,
+        changedByEmail: users[uIndex].email,
+        changeType: 'otp_reset',
+        ipAddress: req.ip || '127.0.0.1',
+        timestamp: new Date().toISOString(),
+        must_change_password: false
+      };
+      const auditStore = readJSON(PASSWORD_AUDIT_FILE, []);
+      auditStore.unshift(auditEntry);
+      if (auditStore.length > 1000) auditStore.length = 1000;
+      writeJSON(PASSWORD_AUDIT_FILE, auditStore);
+    }
+
     // Mark OTP as used (invalidate)
     record.used = true;
     writeJSON(OTP_FILE, otpStore);
@@ -627,8 +690,7 @@ app.post('/api/mail/send', async (req, res) => {
     } catch (err) {
       console.error(`[Mail Send] Postmark delivery failed: ${err.message}`);
       addDeliveryLog({ type: 'user_mail', sender: 'postmark', recipient: mailOptions.to, status: 'failed', error: err.message });
-      // Still return success to the UI so that the demo flow continues smoothly in the dashboard
-      return res.json({ success: true, messageId: 'demo_' + Date.now(), warning: err.message });
+      return res.status(500).json({ success: false, message: `Delivery Failed: ${err.message}` });
     }
   }
 
@@ -1135,6 +1197,355 @@ const startImapListener = async (userId, config) => {
   }
 };
 
+// ─── User Management API ──────────────────────────────────────────────────────
+// Helpers
+const readUsers = () => readJSON(USERS_STORE_FILE, null);
+const writeUsers = (users) => writeJSON(USERS_STORE_FILE, users);
+
+// GET /api/users — fetch all non-tombstoned users from backend DB
+app.get('/api/users', (req, res) => {
+  const users = readUsers();
+  if (users === null) {
+    // No backend DB yet — signal the frontend to seed it
+    return res.json({ success: true, data: null, seeded: false });
+  }
+  // FIX #1: Never return tombstoned (permanently deleted) users
+  const safe = filterTombstoned(users);
+  res.json({ success: true, data: safe });
+});
+
+// POST /api/users/seed — frontend sends all users to seed the backend DB (first-time only)
+app.post('/api/users/seed', (req, res) => {
+  const existing = readUsers();
+  if (existing !== null && existing.length > 0) {
+    return res.json({ success: false, message: 'Already seeded', data: filterTombstoned(existing) });
+  }
+  const { users } = req.body;
+  if (!Array.isArray(users)) return res.status(400).json({ success: false, message: 'Invalid payload' });
+  // FIX #5: Strip tombstoned UUIDs from seed payload — prevents resurrection via fresh seed
+  const safe = filterTombstoned(users);
+  const stripped = users.length - safe.length;
+  if (stripped > 0) console.log(`[UserDB] Seed: stripped ${stripped} tombstoned UUID(s) from payload`);
+  writeUsers(safe);
+  console.log(`[UserDB] Seeded backend DB with ${safe.length} users`);
+  res.json({ success: true, data: safe });
+});
+
+// POST /api/users — create a new user
+app.post('/api/users', async (req, res) => {
+  try {
+    const { uuid } = req.body;
+    // FIX #4 (backend guard): Refuse to create a user whose UUID has been tombstoned
+    if (uuid && isTombstoned(uuid)) {
+      console.warn(`[UserDB] Blocked creation of tombstoned UUID: ${uuid}`);
+      return res.status(409).json({ success: false, message: 'Cannot recreate a permanently deleted user.', tombstoned: true });
+    }
+    const users = readUsers() || [];
+    
+    // Hash password if provided and not already hashed
+    let userData = { ...req.body };
+    if (userData.password && !userData.password.startsWith('$2b$')) {
+      userData.password = await bcrypt.hash(userData.password, 12);
+      console.log(`[UserDB] Hashed password for new user: ${userData.uuid}`);
+    }
+    
+    const newUser = { ...userData, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    users.push(newUser);
+    writeUsers(users);
+    console.log(`[UserDB] Created user: ${newUser.uuid}`);
+    res.json({ success: true, data: newUser });
+  } catch (e) {
+    console.error('[UserDB] Create user error:', e.message);
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// PUT /api/users/:uuid — update an existing user
+app.put('/api/users/:uuid', async (req, res) => {
+  try {
+    const { uuid } = req.params;
+    // FIX #5: Block upsert (create-if-not-found) for tombstoned UUIDs — the primary ghost-create vector
+    if (isTombstoned(uuid)) {
+      console.warn(`[UserDB] Blocked PUT upsert for tombstoned UUID: ${uuid}`);
+      return res.status(410).json({ success: false, message: 'User has been permanently deleted and cannot be modified.', tombstoned: true });
+    }
+    const users = readUsers() || [];
+    const idx = users.findIndex(u => u.uuid === uuid);
+    
+    let updateData = { ...req.body };
+    
+    // Remove must_change_password from generic PUT — only dedicated password
+    // endpoints (PUT /api/users/:uuid/password, OTP reset) should control this flag.
+    // This prevents stale form data (merged via updateUserRecord → syncToBackend)
+    // from accidentally re-setting it to true.
+    delete updateData.must_change_password;
+    
+    // Hash password if provided and not already hashed
+    if (updateData.password && !updateData.password.startsWith('$2b$')) {
+      updateData.password = await bcrypt.hash(updateData.password, 12);
+      console.log(`[UserDB] Hashed password in PUT update for: ${uuid}`);
+    }
+    
+    if (idx === -1) {
+      // Not found and not tombstoned — safe to upsert (new user from another session)
+      const newUser = { uuid, ...updateData, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+      users.push(newUser);
+      writeUsers(users);
+      return res.json({ success: true, data: newUser, created: true });
+    }
+    users[idx] = { ...users[idx], ...updateData, updatedAt: new Date().toISOString() };
+    writeUsers(users);
+    console.log(`[UserDB] Updated user: ${uuid}`);
+    res.json({ success: true, data: users[idx] });
+  } catch (e) {
+    console.error('[UserDB] Update user error:', e.message);
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// DELETE /api/users/:uuid — permanently delete a user (tombstoned)
+app.delete('/api/users/:uuid', (req, res) => {
+  const { uuid } = req.params;
+  const users = readUsers() || [];
+  const target = users.find(u => u.uuid === uuid);
+  if (!target) {
+    // Already deleted — still write tombstone to prevent resurrection via other paths
+    addTombstone(uuid);
+    return res.json({ success: true, alreadyDeleted: true });
+  }
+  // FIX #2: Write tombstone FIRST, THEN delete from array
+  // This ensures no window where user is gone from array but tombstone not yet set
+  addTombstone(uuid);
+  const filtered = users.filter(u => u.uuid !== uuid);
+  writeUsers(filtered);
+  console.log(`[UserDB] Permanently deleted user: ${uuid} — tombstoned`);
+  res.json({ success: true });
+});
+
+
+// ─── Deletion Audit Log (userDeletionService.js support) ──────────────────
+const DELETION_AUDIT_FILE = path.join(DATA_DIR, 'deletion_audit_log.json');
+if (!fs.existsSync(DELETION_AUDIT_FILE)) writeJSON(DELETION_AUDIT_FILE, []);
+
+app.post('/api/users/deletion-log', (req, res) => {
+  try {
+    const raw = req.body;
+    
+    // Normalize properties to perfectly match the SQL deletion_audit_log table schema:
+    const entry = {
+      id: raw.id || `del_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      deleted_user_id: raw.deletedUserUuid || raw.deleted_user_id || raw.deletedUserUuid || '',
+      deleted_user_email: raw.deletedUserEmail || raw.deleted_user_email || '',
+      deleted_user_name: raw.deletedUserName || raw.deleted_user_name || '',
+      deleted_user_role: raw.deletedUserRole || raw.deleted_user_role || '',
+      deleted_by_user_id: raw.deletedByUuid || raw.deleted_by_user_id || '',
+      deleted_by_email: raw.deletedByEmail || raw.deleted_by_email || '',
+      deletion_type: raw.deletionType || raw.deletion_type || 'hard_delete',
+      deletion_source: raw.deletionSource || raw.deletion_source || 'manual_admin',
+      deletion_reason: raw.deletionReason || raw.deletion_reason || '',
+      insforge_directory_cleaned: !!(raw.insforgeDirectoryCleaned || raw.insforge_directory_cleaned || raw.tombstoneCreated || raw.tombstone_created),
+      tables_cleaned: raw.tablesClean || raw.tables_cleaned || [],
+      tombstone_created: !!(raw.tombstoneCreated || raw.tombstone_created),
+      ghost_auto_removed: !!(raw.ghostAutoRemoved || raw.ghost_auto_removed),
+      backup_restore_blocked: !!(raw.backupRestoreBlocked || raw.backup_restore_blocked),
+      sync_blocked: !!(raw.syncBlocked || raw.sync_blocked),
+      deleted_at: raw.deleted_at || raw.completedAt || new Date().toISOString(),
+      ip_address: req.ip || raw.ip_address || '127.0.0.1',
+      session_id: raw.sessionId || raw.session_id || 'N/A',
+      metadata: raw.metadata || raw.deletedUserSnapshot || {},
+      receivedAt: new Date().toISOString()
+    };
+
+    const log = readJSON(DELETION_AUDIT_FILE, []);
+    log.unshift(entry);
+    if (log.length > 1000) log.length = 1000;
+    writeJSON(DELETION_AUDIT_FILE, log);
+    console.log('[DeletionAudit] SQL-Mapped Logged: ' + entry.deleted_user_email + ' by ' + (raw.deletedByName || entry.deleted_by_email || 'SYSTEM'));
+    res.json({ success: true, auditId: entry.id });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+
+// ─── Sync Blocked Log (syncService.js support) ───────────────────
+const SYNC_BLOCKED_FILE = path.join(DATA_DIR, 'sync_blocked_log.json');
+if (!fs.existsSync(SYNC_BLOCKED_FILE)) writeJSON(SYNC_BLOCKED_FILE, []);
+
+app.post('/api/users/sync-blocked-log', (req, res) => {
+  try {
+    const entry = { ...req.body, receivedAt: new Date().toISOString() };
+    const log = readJSON(SYNC_BLOCKED_FILE, []);
+    log.unshift(entry);
+    if (log.length > 1000) log.length = 1000;
+    writeJSON(SYNC_BLOCKED_FILE, log);
+    console.log('[SyncBlockedLog] Blocked resurrect sync of: ' + entry.email + ' due to tombstone match');
+    res.json({ success: true, logId: entry.id });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+app.get('/api/users/sync-blocked-log', (req, res) => {
+  res.json({ success: true, data: readJSON(SYNC_BLOCKED_FILE, []) });
+});
+
+app.get('/api/users/deletion-log', (req, res) => {
+  res.json({ success: true, data: readJSON(DELETION_AUDIT_FILE, []) });
+});
+
+app.post('/api/auth/revoke-tokens', (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: 'email required' });
+    const norm = email.toLowerCase().trim();
+    const store = readJSON(OTP_FILE, []);
+    const filtered = store.filter(function(o) { return o.email !== norm; });
+    writeJSON(OTP_FILE, filtered);
+    console.log('[TokenRevoke] Purged ' + (store.length - filtered.length) + ' token(s) for: ' + norm);
+    res.json({ success: true, revoked: store.length - filtered.length });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// ─── Password Management API ──────────────────────────────────────────────────
+// Password strength validation helper
+const validatePasswordPolicy = (password) => {
+  const errors = [];
+  if (!password || password.length < 8) errors.push('At least 8 characters required');
+  if (!/[A-Z]/.test(password)) errors.push('Must contain uppercase letter');
+  if (!/[a-z]/.test(password)) errors.push('Must contain lowercase letter');
+  if (!/\d/.test(password)) errors.push('Must contain number');
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) errors.push('Must contain special character');
+  return errors;
+};
+
+// PUT /api/users/:uuid/password — Dedicated password change endpoint
+app.put('/api/users/:uuid/password', async (req, res) => {
+  try {
+    const { uuid } = req.params;
+    const { newPassword, currentPassword, changedBy, changedByEmail, isAdminReset } = req.body;
+
+    if (!newPassword) {
+      return res.status(400).json({ success: false, message: 'New password is required' });
+    }
+
+    // Validate password policy
+    const policyErrors = validatePasswordPolicy(newPassword);
+    if (policyErrors.length > 0) {
+      return res.status(400).json({ success: false, message: 'Password policy violation', errors: policyErrors });
+    }
+
+    const users = readUsers() || [];
+    const user = users.find(u => u.uuid === uuid);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // If NOT admin reset, verify current password
+    if (!isAdminReset && currentPassword) {
+      const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!passwordMatch) {
+        console.warn(`[PasswordAPI] Failed password verification for user: ${uuid}`);
+        return res.status(401).json({ success: false, message: 'Current password is incorrect' });
+      }
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    // Update user in users.json
+    const userIndex = users.findIndex(u => u.uuid === uuid);
+    users[userIndex] = {
+      ...users[userIndex],
+      password: hashedPassword,
+      passwordChangedAt: new Date().toISOString(),
+      passwordChangedBy: changedBy,
+      must_change_password: false,
+      updatedAt: new Date().toISOString()
+    };
+    writeUsers(users);
+
+    // Write audit entry
+    const auditEntry = {
+      id: `pwd_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      userId: uuid,
+      userEmail: user.email,
+      changedBy: changedBy || uuid,
+      changedByEmail: changedByEmail || user.email,
+      changeType: isAdminReset ? 'admin_reset' : 'self_change',
+      ipAddress: req.ip || '127.0.0.1',
+      timestamp: new Date().toISOString(),
+      must_change_password: false
+    };
+    const auditStore = readJSON(PASSWORD_AUDIT_FILE, []);
+    auditStore.unshift(auditEntry);
+    if (auditStore.length > 1000) auditStore.length = 1000;
+    writeJSON(PASSWORD_AUDIT_FILE, auditStore);
+
+    console.log(`[PasswordAPI] Password changed for ${user.email} by ${changedByEmail || 'self'} (type: ${isAdminReset ? 'admin' : 'self'})`);
+
+    res.json({
+      success: true,
+      hashedPassword,
+      must_change_password: false,
+      message: 'Password changed successfully'
+    });
+  } catch (e) {
+    console.error('[PasswordAPI] Password change error:', e.message);
+    res.status(500).json({ success: false, message: 'Server error during password change' });
+  }
+});
+
+// POST /api/users/:uuid/password/verify — Server-side password verification
+app.post('/api/users/:uuid/password/verify', async (req, res) => {
+  try {
+    const { uuid } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ success: false, message: 'Password is required' });
+    }
+
+    const users = readUsers() || [];
+    const user = users.find(u => u.uuid === uuid);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Compare password with bcrypt hash
+    const isValid = await bcrypt.compare(password, user.password);
+
+    res.json({
+      success: true,
+      valid: isValid,
+      must_change_password: user.must_change_password || false,
+      message: isValid ? 'Password verified' : 'Invalid password'
+    });
+  } catch (e) {
+    console.error('[PasswordVerify] Error:', e.message);
+    res.status(500).json({ success: false, message: 'Server error during verification' });
+  }
+});
+
+// GET /api/auth/password-audit — Admin: view password change audit log
+app.get('/api/auth/password-audit', (req, res) => {
+  try {
+    const auditLog = readJSON(PASSWORD_AUDIT_FILE, []);
+    res.json({ success: true, data: auditLog, total: auditLog.length });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+
+
+app.delete('/api/mail/user/:uuid', (req, res) => {
+  try {
+    const { uuid } = req.params;
+    if (emailStore[uuid]) { delete emailStore[uuid]; saveEmails(); }
+    console.log('[MailCleanup] Removed email store for deleted user: ' + uuid);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
 // ─── Project Management API ───────────────────────────────────────────────────
 const PROJECT_STORAGE_KEY = path.join(DATA_DIR, 'projects.json');
 const PROJECT_DELETE_LOG_KEY = path.join(DATA_DIR, 'project_delete_logs.json');
@@ -1224,7 +1635,108 @@ app.get('/api/projects', (req, res) => {
   }
 });
 
+// ─── Lead Migration Audit (Step 3 — file-store adapted for InsForge arch) ─────
+// POST /api/migration/log
+// Receives migration summary from each Sales Agent browser.
+// Stores to migration_logs.json for admin audit trail.
+app.post('/api/migration/log', (req, res) => {
+  try {
+    const {
+      agent_id,
+      total_local,
+      total_migrated,
+      total_skipped,
+      total_failed,
+      status,
+      migration_source,
+      migration_key,
+      device_info,
+      browser_info,
+      migrated_at,
+    } = req.body;
+
+    const entry = {
+      id: `mig_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      agent_id:        agent_id        || 'unknown',
+      total_local:     total_local     || 0,
+      total_migrated:  total_migrated  || 0,
+      total_skipped:   total_skipped   || 0,
+      total_failed:    total_failed    || 0,
+      status:          status          || 'unknown',
+      migration_source: migration_source || 'localStorage',
+      migration_key:   migration_key   || 'zsm_crm_leads',
+      device_info:     device_info     || '',
+      browser_info:    browser_info    || '',
+      migrated_at:     migrated_at     || new Date().toISOString(),
+      logged_at:       new Date().toISOString(),
+    };
+
+    const logs = readJSON(MIGRATION_LOGS_FILE, []);
+    logs.unshift(entry);
+    if (logs.length > 1000) logs.length = 1000;
+    writeJSON(MIGRATION_LOGS_FILE, logs);
+
+    console.log(
+      `[MIGRATION LOG] Agent: ${entry.agent_id} | ` +
+      `Migrated: ${entry.total_migrated} | Skipped: ${entry.total_skipped} | ` +
+      `Failed: ${entry.total_failed} | Status: ${entry.status}`
+    );
+
+    return res.json({ success: true, id: entry.id });
+  } catch (e) {
+    console.error('[MIGRATION LOG] Error:', e.message);
+    return res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// GET /api/migration/logs — Admin: view all migration events
+app.get('/api/migration/logs', (req, res) => {
+  try {
+    const logs = readJSON(MIGRATION_LOGS_FILE, []);
+    return res.json({ success: true, logs, total: logs.length });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// POST /api/migration/log-error — log migration error
+app.post('/api/migration/log-error', (req, res) => {
+  try {
+    const entry = {
+      id: `err_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      agent_id: req.body.agent_id || req.body.user_id || 'unknown',
+      lead_name: req.body.lead_name || '',
+      lead_local_id: req.body.lead_local_id || null,
+      http_status: req.body.http_status || 500,
+      error_response: req.body.error_response || req.body.error || 'Unknown error',
+      lead_data: req.body.lead_data || {},
+      logged_at: new Date().toISOString(),
+    };
+
+    const errors = readJSON(MIGRATION_ERRORS_FILE, []);
+    errors.unshift(entry);
+    if (errors.length > 1000) errors.length = 1000;
+    writeJSON(MIGRATION_ERRORS_FILE, errors);
+
+    console.log(`[MIGRATION ERROR] Logged error for lead ${entry.lead_name}: ${entry.error_response}`);
+    return res.json({ success: true, id: entry.id });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// GET /api/admin/migration-errors — view all migration errors
+app.get('/api/admin/migration-errors', (req, res) => {
+  try {
+    const errors = readJSON(MIGRATION_ERRORS_FILE, []);
+    return res.json({ success: true, errors, total: errors.length });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 // ─── Socket.io (Real-time) ────────────────────────────────────────────────────
+
 io.on('connection', (socket) => {
   socket.on('subscribe', ({ userId, config }) => {
     socket.join(`user_${userId}`);
@@ -1234,6 +1746,11 @@ io.on('connection', (socket) => {
     }
   });
 });
+
+
+// Start integrity checks on startup
+const { runGhostUserIntegrityCheck } = require('./services/integrityService');
+runGhostUserIntegrityCheck().catch(err => console.error('[IntegrityStartup] Failed:', err.message));
 
 server.listen(PORT, () => {
   console.log(`Mail Proxy REPAIRED on port ${PORT}`);

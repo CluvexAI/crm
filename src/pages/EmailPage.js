@@ -610,7 +610,12 @@ const EmailPage = () => {
     loadAll();
 
     // IMAP sync (only if user has email configured)
-    const emailConfig = currentUser?.emailConfig;
+    let emailConfig = null;
+    try {
+      const { getEmailByUserId } = require('../services/emailService');
+      const accounts = getEmailByUserId(uid, currentUser?.email);
+      emailConfig = accounts && accounts.length > 0 ? accounts[0] : null;
+    } catch (e) { console.error(e); }
     if (emailConfig?.email && emailConfig?.password && !syncRef.current) {
       syncRef.current = true;
       setSyncing(true);
@@ -670,7 +675,13 @@ const EmailPage = () => {
 
   const handleSendEmail = async (emailData) => {
     if (!currentUser) return;
-    const emailConfig = currentUser?.emailConfig;
+    let emailConfig = null;
+    try {
+      const { getEmailByUserId } = await import('../services/emailService');
+      const uid = currentUser?.uuid || currentUser?.id;
+      const accounts = getEmailByUserId(uid, currentUser?.email);
+      emailConfig = accounts && accounts.length > 0 ? accounts[0] : null;
+    } catch (e) { console.error(e); }
     if (!emailConfig?.email || !emailConfig?.password) {
       alert('Please configure your email account first in Profile → Email Settings.');
       return;

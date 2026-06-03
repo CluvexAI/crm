@@ -3,6 +3,7 @@ import {
   users as initialUsers,
   leads as initialLeads,
   sales as initialSales,
+  invoices as initialInvoices,
   projects as initialProjects,
   attendance as initialAttendance,
   leaveRequests as initialLeaves,
@@ -38,8 +39,10 @@ import {
   getAllUsers,
   createUserRecord,
   updateUserRecord,
-  deleteUserRecord
+  fetchAndSyncUsers,
 } from '../services/userDatabase';
+import { cleanInsforgeBeforeCRMDelete } from '../services/insforgeDirectoryService';
+import api from '../services/apiService';
 import {
   initializeChatDatabase,
   registerUser as registerChatUser,
@@ -73,10 +76,14 @@ import {
 import {
   initializeAttendanceDatabase,
   getAllAttendanceLogs,
-  upsertAttendanceLog as upsertAttendanceLogDB
+  upsertAttendanceLog as upsertAttendanceLogDB,
+  setAllAttendanceLogs
 } from '../services/attendanceDatabase';
+import { runOneTimeMigration } from '../services/localStorageMigration';
 
-const AppContext = createContext();
+const AppContext = createContext(null);
+
+// Migration banner helpers are now in localStorageMigration.js
 
 /** Deterministic UUID v4 generator (crypto-based when available) */
 const generateUUID = () => {
@@ -101,43 +108,49 @@ export const AppProvider = ({ children }) => {
   const [allNotifications, setAllNotifications] = useState([]);
   const [allAuditLogs, setAllAuditLogs] = useState(initialAudit);
   const [allEmails, setAllEmails] = useState([]);
+  const [forcePasswordChange, setForcePasswordChange] = useState(false);
   const [sessionStart, setSessionStart] = useState(null);
   const [activePage, setActivePage] = useState('dashboard');
+  const [alertModal, setAlertModal] = useState(null);
+
+  const showAlertModal = useCallback((title, message) => {
+    setAlertModal({ title, message: message || title });
+  }, []);
+
+  const hideAlertModal = useCallback(() => {
+    setAlertModal(null);
+  }, []);
 
   useEffect(() => {
     const initUsers = async () => {
-      // Load users from persistent database first
-      let dbUsers = getAllUsers();
-      
-      // If no users in database, initialize with default users
+      // Step 1: Sync users from backend (overwrites localStorage if backend has data)
+      let dbUsers = await fetchAndSyncUsers();
+
+      // Step 2: If sync returned nothing, fall back to localStorage
       if (!dbUsers || dbUsers.length === 0) {
+        dbUsers = getAllUsers();
+      }
+
+      const rawUserStorage = localStorage.getItem('zsm_crm_users');
+      if (!rawUserStorage || dbUsers.length === 0) {
         console.log('[AppContext] No users found, initializing database...');
         const hashedUsers = await Promise.all(
           initialUsers.map(async (user) => {
-            // Hash all passwords on first initialization
             const hashed = await hashPassword(user.password);
             return { ...user, password: hashed };
           })
         );
-        initializeDatabase(hashedUsers);
-        dbUsers = hashedUsers;
-        setAllUsers(dbUsers);
+        // FIX #6: Apply tombstone filter before seeding — prevents deleted mock users
+        // from reappearing when localStorage is cleared or on a new device/browser.
+        initializeDatabase(hashedUsers); // initializeDatabase itself also applies tombstones
+        dbUsers = getAllUsers(); // re-read to get the tombstone-filtered result
+        setAllUsers(dbUsers.map(u => ({ ...u, employeeId: u.employeeId || '', status: u.status || 'Active' })));
+
         console.log('[AppContext] All users initialized with hashed passwords');
       } else {
         console.log('[AppContext] Loaded', dbUsers.length, 'users from database');
         
-        // Self-healing: Ensure all default users are present in the database
-        for (const defaultUser of initialUsers) {
-          const exists = dbUsers.find(u => u.email?.toLowerCase() === defaultUser.email?.toLowerCase());
-          if (!exists) {
-            console.log('[AppContext] Self-healing: restoring missing user:', defaultUser.email);
-            const hashedPassword = await hashPassword(defaultUser.password);
-            const newUser = { ...defaultUser, password: hashedPassword };
-            createUserRecord(newUser);
-            dbUsers.push(newUser);
-          }
-        }
-        
+        // Self-healing of users removed: deleted users should stay deleted.        
         // Check and fix any users with unhashed passwords
         let needsUpdate = false;
         const updatedUsers = await Promise.all(
@@ -158,25 +171,15 @@ export const AppProvider = ({ children }) => {
           dbUsers = updatedUsers;
         }
         
-        // 🛠️ Login Repair: Force-reset admin passwords to 'admin123' if needed for all admins
-        const admins = dbUsers.filter(u => u.role === ROLES.ADMIN || u.email?.toLowerCase().startsWith('admin'));
-        if (admins.length > 0) {
-          for (const adminUser of admins) {
-            console.log('[AppContext] Checking admin user:', adminUser.email);
-            const isValid = await verifyPassword('admin123', adminUser.password).catch(() => false);
-            if (!isValid) {
-              console.log('[AppContext] Admin password invalid for', adminUser.email, ', resetting to admin123...');
-              const freshHash = await hashPassword('admin123');
-              const updatedAdmin = updateUserRecord(adminUser.uuid, { password: freshHash });
-              dbUsers = dbUsers.map(u => u.uuid === updatedAdmin.uuid ? updatedAdmin : u);
-            }
-          }
-          console.log('[AppContext] Admin password checks complete');
-        } else {
-          console.log('[AppContext] WARNING: No admin users found!');
-        }
+        // Admin password repair removed — admin passwords now persist correctly.
+        // Password changes go through PUT /api/users/:uuid/password (backend source of truth).
         
-        setAllUsers(dbUsers);
+        setAllUsers(dbUsers.filter(u => u.status !== 'Deleted').map(u => ({
+          ...u,
+          employeeId: u.employeeId || '',
+          status: u.status || 'Active',
+        })));
+
       }
 
       // Initialize chat system and auto-register all users
@@ -187,29 +190,190 @@ export const AppProvider = ({ children }) => {
       const depts = [...new Set(dbUsers.map(u => u.department).filter(Boolean))];
       depts.forEach(dept => ensureDeptChat(dept, dbUsers));
 
-      // Load leads from persistent database
-      let dbLeads = getAllLeads();
-      if (!dbLeads || dbLeads.length === 0) {
+      // ── ONE-TIME MIGRATION: localStorage → InsForge central DB ────────────
+      // Runs once per browser (guarded by MIGRATION_FLAG in localStorage).
+      // Handles leads, converted sales, and the offline queue.
+      // User ID is passed so migrated records are attributed to the correct agent.
+      const currentUserId = dbUsers.find(
+        u => u.email?.toLowerCase() === localStorage.getItem('zsm_crm_current_user_email')
+      )?.id || null;
+
+      try {
+        await runOneTimeMigration(currentUserId);
+      } catch (migrationErr) {
+        console.warn('[AppContext] One-time migration encountered an error:', migrationErr.message);
+      }
+
+      // ── Load leads from central InsForge DB ──────────────────────────────
+      let dbLeads = [];
+      try {
+        console.log('[AppContext] Loading leads from central database...');
+        dbLeads = await api.leads.getAll();
+        console.log('[AppContext] Central database returned', dbLeads?.length || 0, 'leads');
+      } catch (e) {
+        console.error('[AppContext] Central leads load failed, falling back to local storage:', e);
+        dbLeads = getAllLeads();
+      }
+
+      // Merge unmigrated local leads so they are never lost from the UI
+      let localLeads = getAllLeads();
+      
+      // Cleanup: Remove local leads that are known duplicates of DB leads to fix stuck UI entries
+      if (dbLeads.length > 0 && localLeads.length > 0) {
+        const cleanedLocal = localLeads.filter(local => {
+          // If it matches a DB lead by ID, it's migrated
+          if (dbLeads.some(db => String(db.id) === String(local.id))) return false;
+          
+          // Check if it's a duplicate of a DB lead (phone match)
+          if (local.ownerPhone) {
+            const p1 = String(local.ownerPhone).replace(/\D/g, '');
+            if (p1.length >= 7) {
+              const isDup = dbLeads.some(db => {
+                if (!db.ownerPhone) return false;
+                const p2 = String(db.ownerPhone).replace(/\D/g, '');
+                if (p1 === p2) return true;
+                if (p2.length >= 7) {
+                  const p1Trim = p1.replace(/^0+/, '');
+                  const p2Trim = p2.replace(/^0+/, '');
+                  return p1.includes(p2Trim) || p2.includes(p1Trim);
+                }
+                return false;
+              });
+              if (isDup) {
+                console.log(`[AppContext] Scrubbing stuck local duplicate: ${local.ownerPhone}`);
+                return false; // Remove from local storage
+              }
+            }
+          }
+          return true;
+        });
+        
+        // Next, clean up local-to-local duplicates
+        const uniqueLocal = [];
+        for (const local of cleanedLocal) {
+          let isDup = false;
+          if (local.ownerPhone) {
+            const p1 = String(local.ownerPhone).replace(/\D/g, '');
+            if (p1.length >= 7) {
+              isDup = uniqueLocal.some(u => {
+                if (!u.ownerPhone) return false;
+                const p2 = String(u.ownerPhone).replace(/\D/g, '');
+                if (p1 === p2) return true;
+                if (p2.length >= 7) {
+                  const p1Trim = p1.replace(/^0+/, '');
+                  const p2Trim = p2.replace(/^0+/, '');
+                  return p1.includes(p2Trim) || p2.includes(p1Trim);
+                }
+                return false;
+              });
+            }
+          }
+          if (!isDup) uniqueLocal.push(local);
+          else console.log(`[AppContext] Scrubbing local-to-local duplicate: ${local.ownerPhone}`);
+        }
+
+        if (uniqueLocal.length !== localLeads.length) {
+          console.log(`[AppContext] Cleaned up ${localLeads.length - uniqueLocal.length} stuck local duplicates.`);
+          localStorage.setItem('zsm_crm_leads', JSON.stringify(uniqueLocal));
+          localLeads = uniqueLocal;
+        }
+      }
+
+      const unmigratedLeads = localLeads.filter(
+        local => !dbLeads.some(db => String(db.id) === String(local.id))
+      );
+      if (unmigratedLeads.length > 0) {
+        console.log('[AppContext] Merging', unmigratedLeads.length, 'unmigrated leads from local cache to state');
+        dbLeads = [...dbLeads, ...unmigratedLeads];
+      }
+
+      // Seed with mock data only if central DB returned nothing and no local data exists
+      if (dbLeads.length === 0 && !localStorage.getItem('zsm_crm_leads')) {
         initializeLeadsDatabase(initialLeads);
         dbLeads = initialLeads;
-      } else {
-        console.log('[AppContext] Loaded', dbLeads.length, 'leads from database');
+        try {
+          for (const l of initialLeads) {
+            await api.leads.create(l).catch(() => null);
+          }
+        } catch (err) {
+          console.warn('[AppContext] Failed to seed central leads:', err);
+        }
       }
       setAllLeads(dbLeads);
 
-      // Load sales from persistent database
-      let dbSales = getAllSalesFromDB();
-      if (!dbSales || dbSales.length === 0) {
+      // ── Load sales from central InsForge DB ──────────────────────────────
+      let dbSales = [];
+      try {
+        console.log('[AppContext] Loading sales from central database...');
+        dbSales = await api.sales.getAll();
+        console.log('[AppContext] Central database returned', dbSales?.length || 0, 'sales');
+      } catch (e) {
+        console.error('[AppContext] Central sales load failed, falling back to local storage:', e);
+        dbSales = getAllSalesFromDB();
+      }
+
+      // Merge unmigrated local sales so they are never lost from the UI
+      const localSales = getAllSalesFromDB();
+      const unmigratedSales = localSales.filter(
+        local => !dbSales.some(db => String(db.id) === String(local.id))
+      );
+      if (unmigratedSales.length > 0) {
+        console.log('[AppContext] Merging', unmigratedSales.length, 'unmigrated sales from local cache to state');
+        dbSales = [...dbSales, ...unmigratedSales];
+      }
+
+      // Seed with mock data only if central DB returned nothing and no local data exists
+      if (dbSales.length === 0 && !localStorage.getItem('zsm_crm_sales')) {
         initializeSalesDatabase(initialSales);
         dbSales = initialSales;
-      } else {
-        console.log('[AppContext] Loaded', dbSales.length, 'sales from database');
+        try {
+          for (const s of initialSales) {
+            await api.sales.create(s).catch(() => null);
+          }
+        } catch (err) {
+          console.warn('[AppContext] Failed to seed central sales:', err);
+        }
       }
       setAllSales(dbSales);
+ 
+      // ── Load invoices from central InsForge DB ───────────────────────────
+      let dbInvoices = [];
+      try {
+        console.log('[AppContext] Loading invoices from central database...');
+        dbInvoices = await api.invoices.getAll();
+        console.log('[AppContext] Central database returned', dbInvoices?.length || 0, 'invoices');
+      } catch (e) {
+        console.error('[AppContext] Central invoices load failed, falling back to local storage:', e);
+        dbInvoices = getAllInvoices();
+      }
+
+      // Merge unmigrated local invoices so they are never lost from the UI
+      const localInvoices = getAllInvoices();
+      const unmigratedInvoices = localInvoices.filter(
+        local => !dbInvoices.some(db => String(db.id) === String(local.id))
+      );
+      if (unmigratedInvoices.length > 0) {
+        console.log('[AppContext] Merging', unmigratedInvoices.length, 'unmigrated invoices from local cache to state');
+        dbInvoices = [...dbInvoices, ...unmigratedInvoices];
+      }
+
+      // Seed with mock data only if central DB returned nothing and no local data exists
+      if (dbInvoices.length === 0 && !localStorage.getItem('zsm_invoices')) {
+        dbInvoices = initialInvoices;
+        try {
+          for (const inv of initialInvoices) {
+            await api.invoices.create(inv).catch(() => null);
+          }
+        } catch (err) {
+          console.warn('[AppContext] Failed to seed central invoices:', err);
+        }
+      }
+      setAllInvoices(dbInvoices);
 
       // Initialize projects from database
       let dbProjects = getAllProjectsFromDB();
-      if (!dbProjects || dbProjects.length === 0) {
+      const rawProjectsStorage = localStorage.getItem('zsm_crm_projects');
+      if (!rawProjectsStorage) {
         initializeProjectsDatabase(initialProjects);
         dbProjects = initialProjects;
       } else {
@@ -333,68 +497,28 @@ export const AppProvider = ({ children }) => {
     let user = users.find((u) => u.email?.toLowerCase() === trimmedEmail);
     
     if (!user) {
-      console.log('[LOGIN] User not found! Checking auto-provisioning for:', trimmedEmail);
-      if (trimmedEmail.endsWith('@zsmeservices.com') || trimmedEmail.includes('admin')) {
-        console.log('[LOGIN] Auto-provisioning corporate admin user:', trimmedEmail);
-        const nameParts = trimmedEmail.split('@')[0].split('.');
-        const firstName = nameParts[0]?.charAt(0).toUpperCase() + nameParts[0]?.slice(1) || 'Admin';
-        const lastName = nameParts[1]?.charAt(0).toUpperCase() + nameParts[1]?.slice(1) || 'User';
-        const fullName = `${firstName} ${lastName}`.trim();
-        
-        const freshHash = await hashPassword(trimmedPassword);
-        const newUser = {
-          uuid: generateUUID(),
-          id: Date.now(),
-          employeeId: `EMP-${String(users.length + 1).padStart(3, '0')}`,
-          name: fullName,
-          email: trimmedEmail,
-          phone: '9876543210',
-          whatsapp: '9876543210',
-          role: ROLES.ADMIN,
-          department: 'Management',
-          designation: 'Administrator',
-          dateOfJoining: new Date().toISOString().split('T')[0],
-          salary: 120000,
-          shift: '9:00 AM - 6:00 PM',
-          status: 'Active',
-          password: freshHash
-        };
-        
-        createUserRecord(newUser);
-        setAllUsers((prev) => [...prev, newUser]);
-        user = newUser;
-        console.log('[LOGIN] Auto-provisioned user successfully:', user.email);
-      } else {
-        console.log('[LOGIN] User not found! Available:', users.map(u => u.email));
-        return { success: false, error: 'Invalid credentials' };
-      }
+      console.log('[LOGIN] User not found:', trimmedEmail);
+      return { success: false, error: 'Invalid credentials' };
     }
 
     console.log('[LOGIN] ✓ User found:', user.name, user.role);
 
-    // ─── Admin special bypass ─────────────────────────────────────────
-    if ((user.role === ROLES.ADMIN || trimmedEmail.startsWith('admin')) && trimmedPassword === 'admin123') {
-      console.log('[LOGIN] ✓ ADMIN BYPASS - logging in!');
-      
-      // Update password to hashed in background
-      hashPassword('admin123').then(hash => {
-        updateUserRecord(user.uuid, { password: hash });
-        setAllUsers(prev => prev.map(u => u.uuid === user.uuid ? { ...u, password: hash } : u));
-      }).catch(() => {});
-      
-      const sessionUser = { ...user, password: '********' };
-      setCurrentUser(sessionUser);
-      setSessionStart(new Date());
-      registerChatUser(user);
-      return { success: true, user: sessionUser };
-    }
-
-    // ─── Normal password verification for other users ──────────────────
+    // ─── Password verification ─────────────────────────────────────
     let isValidPassword = false;
+    let mustChangePassword = false;
 
     try {
       if (isPasswordHashed(user.password)) {
-        isValidPassword = await verifyPassword(trimmedPassword, user.password);
+        const { verifyPasswordOnServer } = await import('../services/passwordSyncService');
+        try {
+          const res = await verifyPasswordOnServer(user.uuid, trimmedPassword);
+          isValidPassword = res.valid;
+          mustChangePassword = res.must_change_password;
+        } catch (serverErr) {
+          console.warn('[LOGIN] Server verification failed, falling back to local', serverErr);
+          isValidPassword = await verifyPassword(trimmedPassword, user.password);
+          mustChangePassword = user.must_change_password;
+        }
       } else if (user.password === trimmedPassword) {
         isValidPassword = true;
         // Migrate to bcrypt
@@ -409,9 +533,15 @@ export const AppProvider = ({ children }) => {
     if (isValidPassword) {
       const sessionUser = { ...user, password: '********' };
       setCurrentUser(sessionUser);
+      if (mustChangePassword) {
+        setForcePasswordChange(true);
+      }
       setSessionStart(new Date());
+      localStorage.setItem('zsm_crm_current_user_email', user.email?.toLowerCase() || '');
       registerChatUser(user);
       addAuditLog('User Login', user.name, `Login successful`);
+      // Run migration with correct authenticated user ID
+      runOneTimeMigration(user.id).catch(() => {});
       return { success: true, user: sessionUser };
     }
 
@@ -421,8 +551,10 @@ export const AppProvider = ({ children }) => {
 
   const logout = () => {
     if (currentUser) addAuditLog('User Logout', currentUser.name, 'User logged out');
+    localStorage.removeItem('zsm_crm_current_user_email');
     setCurrentUser(null);
     setSessionStart(null);
+    setForcePasswordChange(false);
     setActivePage('dashboard');
   };
 
@@ -433,7 +565,7 @@ export const AppProvider = ({ children }) => {
    * UUID is generated here and is NEVER exposed as editable afterwards.
    * employeeId is auto-assigned but Admin can change it later.
    */
-  const createUser = (userData) => {
+  const createUser = async (userData) => {
     requirePermission(currentUser, 'EDIT_EMPLOYEE_PROFILE');
 
     // 🔐 RBAC: HR CANNOT create Admin users
@@ -445,8 +577,15 @@ export const AppProvider = ({ children }) => {
     );
     if (existingEmpId) throw new Error(`Employee ID "${userData.employeeId}" already exists.`);
 
+    // Hash password before storing
+    let userDataWithHashedPassword = { ...userData };
+    if (userDataWithHashedPassword.password && !isPasswordHashed(userDataWithHashedPassword.password)) {
+      userDataWithHashedPassword.password = await hashPassword(userDataWithHashedPassword.password);
+      console.log('[CreateUser] Hashed password for new user');
+    }
+
     const newUser = {
-      ...userData,
+      ...userDataWithHashedPassword,
       uuid: generateUUID(),
       id: Date.now(),
       employeeId: userData.employeeId || `EMP-${String(allUsers.length + 1).padStart(3, '0')}`,
@@ -495,9 +634,9 @@ export const AppProvider = ({ children }) => {
    * Update general employee profile fields.
    * uuid and id fields are stripped so they can never be overwritten.
    */
-  const updateUser = async (uuid, userData) => {
-    const targetUser = allUsers.find(u => u.uuid === uuid);
-    if (!targetUser) throw new Error("User not found");
+   const updateUser = async (uuid, userData) => {
+     const targetUser = allUsers.find(u => u.uuid === uuid);
+     if (!targetUser) throw new Error("User not found");
 
     // 🔐 RBAC: HR CANNOT modify Admin users
     if (currentUser.role === ROLES.HR && targetUser.role === ROLES.ADMIN) {
@@ -521,13 +660,13 @@ export const AppProvider = ({ children }) => {
         }, {});
     }
 
-    // 🔐 Hash password if being updated
-    let processedData = { ...dataToApply };
-    if (processedData.password) {
-      if (!isPasswordHashed(processedData.password)) {
-        processedData.password = await hashPassword(processedData.password);
-      }
-    }
+     // 🔐 Hash password if being updated
+     let processedData = { ...dataToApply };
+     if (processedData.password) {
+       if (!isPasswordHashed(processedData.password)) {
+         processedData.password = await hashPassword(processedData.password);
+       }
+     }
 
     // Normalize email to lowercase
     if (processedData.email) {
@@ -692,76 +831,186 @@ export const AppProvider = ({ children }) => {
     addAuditLog('Profile Image Deleted', currentUser.name, `Image removed for ${target?.name} (${target?.employeeId})`);
   };
 
-  const deleteUser = (uuid) => {
+  const deleteUser = async (uuid) => {
     requirePermission(currentUser, 'DELETE_EMPLOYEE');
-    const target = allUsers.find((u) => u.uuid === uuid);
-    
-    // Persist to database
-    deleteUserRecord(uuid);
-    
-    // Update React state
-    setAllUsers((prev) => prev.filter((u) => u.uuid !== uuid));
-    
-    // Remove from chat presence
-    if (target) {
-      updateChatPresence(target.id, 'deactivated');
+    const target = allUsers.find((u) => String(u.uuid) === String(uuid));
+
+    if (target?.email === 'admin@zsmeservices.com') {
+      throw new Error('The primary admin user cannot be deleted.');
     }
-    
-    addAuditLog('User Deleted', currentUser.name, `Deleted: ${target?.name} (${target?.employeeId}) [UUID: ${uuid}]`);
+    if (!target) {
+      throw new Error(`User not found: ${uuid}`);
+    }
+
+    // Always clean Insforge Directory BEFORE CRM Deletion (FIX #3)
+    // cleanInsforgeBeforeCRMDelete cleans directory settings and then calls hardDeleteUser.
+    const result = await cleanInsforgeBeforeCRMDelete(uuid, currentUser);
+
+    if (result.success) {
+      // Update React state — tombstone already committed before this point
+      setAllUsers((prev) => prev.filter((u) => String(u.uuid) !== String(uuid)));
+
+      // Remove from chat presence
+      updateChatPresence(target.id, 'deactivated');
+
+      // hardDeleteUser() writes its own detailed audit entry;
+      // also add a brief CRM-level audit log entry for the admin log UI
+      addAuditLog(
+        'User Hard Deleted',
+        currentUser.name,
+        `Permanently deleted: ${target.name} (${target.employeeId}) [UUID: ${uuid}] | Audit: ${result.auditId}`
+      );
+    }
+
+    return result;
   };
 
   // ─── Lead Management ──────────────────────────────────────────────────────
 
-  const createLead = (leadData) => {
+  const createLead = async (leadData) => {
     const newLead = {
       ...leadData,
-      id: Date.now(),
+      id: generateUUID(),
       createdBy: currentUser.id,
+      createdByName: currentUser.name,
       createdAt: new Date().toISOString(),
       lastFollowUp: new Date().toISOString(),
       remarks: [],
     };
-    // Persist to database first
-    const savedLead = createLeadRecord(newLead);
+    let savedLead = newLead;
+    try {
+      // api.leads.create ALWAYS runs the duplicate check before inserting
+      savedLead = await api.leads.create(newLead);
+      createLeadRecord(savedLead);
+    } catch (err) {
+      // CASE 1: Duplicate Lead — ALWAYS re-throw, never save locally
+      if (err.message && err.message.includes('DUPLICATE_LEAD')) {
+        let dupData = {};
+        try { dupData = JSON.parse(err.message.replace('DUPLICATE_LEAD:', '')); } catch (_) {}
+        const msg = dupData.message ||
+          `Lead already exists and is under active follow-up by another Sales Agent User within the last 30 days.`;
+        showAlertModal('⚠️ Duplicate Lead Blocked', msg);
+        throw err; // propagate so the form stays open
+      }
+      // CASE 2: Duplicate check itself failed (network/error) — also block
+      if (err.message && err.message.includes('Duplicate check could not be completed')) {
+        showAlertModal('⚠️ Error', 'Cannot verify duplicate status. Lead not saved. Please retry.');
+        throw err;
+      }
+      // CASE 3: Other cloud error (e.g. network down) — run local duplicate check before saving locally
+      console.error('[AppContext] Cloud save failed, checking local before fallback:', err);
+      const allLocal = getAllLeads();
+      const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const normPhone = (p) => {
+        if (!p) return null;
+        let d = String(p).replace(/\D/g, '');
+        if (d.startsWith('3530')) d = '353' + d.substring(4);
+        else if (d.startsWith('440')) d = '44' + d.substring(3);
+        else if (d.startsWith('610')) d = '61' + d.substring(3);
+        d = d.replace(/^0+/, '');
+        return d.length >= 7 ? d : null;
+      };
+      const pNorm = normPhone(newLead.ownerPhone);
+      const eNorm = newLead.email ? String(newLead.email).trim().toLowerCase() : null;
+
+      const localDup = allLocal.find(l => {
+        if (l.deletedAt || l.deleted_at) return false;
+        if (l.status === 'Closed (Lost)') return false;
+        const lastActivity = new Date(l.lastFollowUp || l.createdAt);
+        if (lastActivity < cutoff) return false;
+        if (pNorm) {
+          const lNorm = normPhone(l.ownerPhone);
+          if (lNorm && (lNorm === pNorm || lNorm.includes(pNorm) || pNorm.includes(lNorm))) return true;
+        }
+        if (eNorm && l.email && String(l.email).trim().toLowerCase() === eNorm) return true;
+        return false;
+      });
+
+      if (localDup) {
+        const daysSince = Math.floor((Date.now() - new Date(localDup.lastFollowUp || localDup.createdAt).getTime()) / 86400000);
+        showAlertModal('⚠️ Duplicate Lead Blocked',
+          `Lead already exists and is under active follow-up by another Sales Agent User within the last 30 days.\nLast activity: ${daysSince} day(s) ago.`
+        );
+        throw new Error('DUPLICATE_LEAD_LOCAL');
+      }
+
+      // Safe to save locally — no duplicate found anywhere
+      savedLead = createLeadRecord(newLead);
+    }
     // Update React state
     setAllLeads((prev) => [...prev, savedLead]);
     addAuditLog('Lead Created', currentUser.name, `${leadData.contactName} (${leadData.businessName})`);
     return savedLead;
   };
 
-  const updateLead = (id, leadData) => {
-    const lead = allLeads.find(l => l.id === id);
-    if (!isAdmin && lead?.createdBy !== currentUser?.id) {
-      throw new Error('You can only update your own leads');
+  const updateLead = async (id, leadData) => {
+    const lead = allLeads.find(l => String(l.id) === String(id));
+    if (!isAdmin && String(lead?.createdBy) !== String(currentUser?.id) && String(lead?.assignedTo) !== String(currentUser?.id)) {
+      throw new Error('You can only update your own or assigned leads');
     }
-    // Persist to database
-    const updatedLead = updateLeadRecord(id, { ...leadData, lastFollowUp: new Date().toISOString() });
+    const dataToSave = { ...leadData, lastFollowUp: new Date().toISOString() };
+    let updatedLead = { ...lead, ...dataToSave };
+    try {
+      updatedLead = await api.leads.update(id, dataToSave);
+      updateLeadRecord(id, updatedLead);
+    } catch (err) {
+      console.error('[AppContext] Failed to update lead centrally, updating locally:', err);
+      updatedLead = updateLeadRecord(id, dataToSave);
+    }
     // Update React state
     setAllLeads((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, ...updatedLead } : l))
+      prev.map((l) => (String(l.id) === String(id) ? { ...l, ...updatedLead } : l))
     );
     addAuditLog('Lead Updated', currentUser.name, `Lead ID: ${id}`);
     return updatedLead;
   };
 
-  const bulkDeleteLeads = (ids) => {
+  const bulkDeleteLeads = async (ids) => {
+    const strIds = ids.map(id => String(id));
+
+    // RBAC: non-admins can only delete their own or assigned leads
     if (!isAdmin) {
-      ids.forEach(id => {
-        const lead = allLeads.find(l => l.id === id);
-        if (lead?.createdBy !== currentUser?.id) {
-          throw new Error('You can only delete your own leads');
+      strIds.forEach(id => {
+        const lead = allLeads.find(l => String(l.id) === id);
+        if (lead && String(lead.createdBy) !== String(currentUser?.id) && String(lead.assignedTo) !== String(currentUser?.id)) {
+          throw new Error('You can only delete your own or assigned leads');
         }
       });
     }
-    // Persist to database
+
+    // Delete from InsForge DB (per-lead, errors isolated)
+    let dbDeleteFailed = 0;
+    for (const id of ids) {
+      try {
+        await api.leads.delete(id);
+      } catch (err) {
+        dbDeleteFailed++;
+        console.error('[AppContext] Central lead delete failed for:', id, err?.message || err);
+      }
+    }
+
+    if (dbDeleteFailed > 0) {
+      console.warn(`[AppContext] ${dbDeleteFailed}/${ids.length} lead(s) failed to delete from central DB. Removed from local view.`);
+    }
+
+    // Also remove from local fallback store (no-op if not present)
     bulkDeleteLeadRecords(ids);
-    // Update React state
-    setAllLeads(prev => prev.filter(l => !ids.includes(l.id)));
+
+    // Always update React state (optimistic — remove from UI regardless)
+    setAllLeads(prev => prev.filter(l => !strIds.includes(String(l.id))));
+
+    addAuditLog('Leads Deleted', currentUser.name, `Deleted ${ids.length} lead(s)`);
   };
 
-  const addRemark = (leadId, text) => {
-    // Persist to database
+  const addRemark = async (leadId, text) => {
+    // Persist to local database
     const updatedLead = addLeadRemark(leadId, text, currentUser.name);
+    try {
+      await api.leads.addFollowupLog(leadId, currentUser.id, text);
+      await api.leads.update(leadId, { remarks: updatedLead.remarks, lastFollowUp: updatedLead.lastFollowUp });
+    } catch (err) {
+      console.error('[AppContext] Central lead remark update failed:', err);
+    }
     // Update React state
     setAllLeads((prev) =>
       prev.map((l) =>
@@ -802,16 +1051,22 @@ export const AppProvider = ({ children }) => {
 
   // ─── Sales ────────────────────────────────────────────────────────────────
 
-  const createSale = (saleData) => {
+  const createSale = async (saleData) => {
     const newSale = { 
       ...saleData, 
-      id: Date.now(), 
+      id: generateUUID(), 
       createdAt: new Date().toISOString(),
       createdBy: currentUser.id,
       installmentPlan: saleData.installmentPlan || [],
     };
-    // Persist to database first
-    const savedSale = createSaleRecord(newSale);
+    let savedSale = newSale;
+    try {
+      savedSale = await api.sales.create(newSale);
+      createSaleRecord(savedSale);
+    } catch (err) {
+      console.error('[AppContext] Central sale creation failed, saving locally:', err);
+      savedSale = createSaleRecord(newSale);
+    }
     // Update React state
     setAllSales((prev) => [...prev, savedSale]);
 
@@ -841,23 +1096,43 @@ export const AppProvider = ({ children }) => {
     return savedSale;
   };
 
-  /**
-   * Update a sale record - syncs with database and UI
-   */
-  const updateSale = (id, saleData) => {
+  const updateSale = async (id, saleData) => {
     try {
-      const updatedSale = updateSaleRecord(id, saleData);
+      const oldSale = allSales.find(s => String(s.id) === String(id)) || {};
+      let updatedSale = { ...oldSale, ...saleData };
+      try {
+        updatedSale = await api.sales.update(id, saleData);
+        updateSaleRecord(id, updatedSale);
+      } catch (err) {
+        console.error('[AppContext] Central sale update failed, saving locally:', err);
+        updatedSale = updateSaleRecord(id, saleData);
+      }
+      
+      // Compute diff for detailed audit log
+      let changes = [];
+      Object.keys(saleData).forEach(key => {
+        if (key !== 'version' && key !== 'updatedAt' && oldSale[key] !== updatedSale[key]) {
+          let oldVal = typeof oldSale[key] === 'object' ? JSON.stringify(oldSale[key]) : oldSale[key];
+          let newVal = typeof updatedSale[key] === 'object' ? JSON.stringify(updatedSale[key]) : updatedSale[key];
+          changes.push(`${key}: '${oldVal}' -> '${newVal}'`);
+        }
+      });
+      const diffString = changes.length > 0 ? ` Changes: ${changes.join(' | ')}` : '';
+
       setAllSales(prev => {
-        const exists = prev.some(s => s.id === id);
+        const exists = prev.some(s => String(s.id) === String(id));
         if (!exists) {
           return [...prev, updatedSale];
         }
-        return prev.map(s => s.id === id ? { ...s, ...updatedSale } : s);
+        return prev.map(s => String(s.id) === String(id) ? { ...s, ...updatedSale } : s);
       });
-      addAuditLog('Sale Updated', currentUser?.name || 'System', `Sale ID: ${id}`);
+      addAuditLog('Customer Updated', currentUser?.name || 'System', `Customer ID: ${id}.${diffString}`);
       return updatedSale;
     } catch (error) {
-      console.error('Failed to update sale record:', error);
+      if (error.message && error.message.includes('CONFLICT')) {
+         showAlertModal('Conflict', error.message);
+      }
+      console.error('Failed to update sale/customer record:', error);
       return null;
     }
   };
@@ -871,13 +1146,13 @@ export const AppProvider = ({ children }) => {
       throw new Error('Only admins can delete customers');
     }
     
-    const sale = allSales.find(s => s.id === saleId);
+    const sale = allSales.find(s => String(s.id) === String(saleId));
     if (!sale) {
       throw new Error('Customer not found');
     }
 
     // Get related invoices
-    const relatedInvoices = allInvoices.filter(inv => inv.saleId === saleId);
+    const relatedInvoices = allInvoices.filter(inv => String(inv.saleId) === String(saleId));
     const invoiceIds = relatedInvoices.map(inv => inv.id);
 
     // Delete from database - cascade to invoices handled in invoiceService
@@ -893,7 +1168,7 @@ export const AppProvider = ({ children }) => {
     });
 
     // Update React state - remove sale and related invoices
-    setAllSales(prev => prev.filter(s => s.id !== saleId));
+    setAllSales(prev => prev.filter(s => String(s.id) !== String(saleId)));
     setAllInvoices(getAllInvoices());
 
     addAuditLog(
@@ -909,7 +1184,7 @@ export const AppProvider = ({ children }) => {
     if (currentUser?.role !== ROLES.ADMIN) {
       throw new Error('Only admins can delete projects');
     }
-    const project = allProjects.find(p => p.id === id);
+    const project = allProjects.find(p => String(p.id) === String(id));
 
     // Persist to frontend database
     deleteProjectRecord(id, true);
@@ -922,7 +1197,7 @@ export const AppProvider = ({ children }) => {
     }).catch(err => console.warn('[deleteProject] Backend sync failed:', err.message));
 
     // Update React state instantly
-    setAllProjects((prev) => prev.filter((p) => p.id !== id));
+    setAllProjects((prev) => prev.filter((p) => String(p.id) !== String(id)));
     addAuditLog('Project Deleted', currentUser.name, `Project: ${project?.projectName || 'Unknown'} [ID: ${id}]`);
     return { success: true };
   };
@@ -1028,7 +1303,7 @@ export const AppProvider = ({ children }) => {
     // Quick timeout to sync to DB after state updates
     setTimeout(() => {
       setAllAttendance(current => {
-        initializeAttendanceDatabase(current);
+        setAllAttendanceLogs(current);
         return current;
       });
     }, 100);
@@ -1064,6 +1339,11 @@ export const AppProvider = ({ children }) => {
   const updateLeave = (id, status) => {
     setAllLeaves((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)));
     addAuditLog('Leave Updated', currentUser.name, `Leave ID ${id} → ${status}`);
+  };
+
+  const deleteLeave = (id) => {
+    setAllLeaves((prev) => prev.filter((l) => l.id !== id));
+    addAuditLog('Leave Deleted', currentUser.name, `Leave ID ${id}`);
   };
 
   // ─── Messages ─────────────────────────────────────────────────────────────
@@ -1111,13 +1391,16 @@ export const AppProvider = ({ children }) => {
   };
 
   const sendEmail = async (toEmail, subject, body, attachments = []) => {
-    const emailConfig = currentUser?.emailConfig;
-    if (!emailConfig?.email || !emailConfig?.password) {
-      throw new Error('Email not configured. Please set up your email in Profile → Email Settings.');
-    }
-    
     try {
-      const { sendEmailViaSMTP } = await import('../services/emailService');
+      const emailServiceModule = await import('../services/emailService');
+      const { getEmailByUserId, sendEmailViaSMTP } = emailServiceModule;
+      const uid = currentUser?.uuid || currentUser?.id;
+      const accounts = getEmailByUserId(uid, currentUser?.email);
+      const emailConfig = accounts && accounts.length > 0 ? accounts[0] : null;
+
+      if (!emailConfig?.email || !emailConfig?.password) {
+        throw new Error('Email not configured. Please set up your email in Profile → Email Settings.');
+      }
       
       await sendEmailViaSMTP(emailConfig, toEmail, subject, body);
       
@@ -1155,7 +1438,8 @@ export const AppProvider = ({ children }) => {
     }
     
     try {
-      const { syncEmails: doSync } = await import('../services/emailService');
+      const emailServiceModule = await import('../services/emailService');
+      const { syncEmails: doSync } = emailServiceModule;
       const result = await doSync({ ...emailConfig, userId: currentUser.id });
       
       if (result?.inbox?.length > 0 || result?.sent?.length > 0) {
@@ -1290,32 +1574,37 @@ export const AppProvider = ({ children }) => {
   const myLeads = currentUser
     ? isAdmin
       ? allLeads
-      : allLeads.filter((l) => l.createdBy === currentUser.id)
+      : allLeads.filter((l) => String(l.createdBy) === String(currentUser.id) || String(l.assignedTo) === String(currentUser.id))
     : [];
 
   const myAssignedLeads = currentUser
-    ? allLeads.filter((l) => l.assignedTo === currentUser.id)
+    ? allLeads.filter((l) => String(l.assignedTo) === String(currentUser.id))
     : [];
 
   const myCustomers = currentUser
     ? isAdmin
       ? allSales
-      : allSales.filter((s) => (s.createdBy || s.closedBy) === currentUser.id)
+      : allSales.filter((s) => String(s.createdBy) === String(currentUser.id) || String(s.closedBy) === String(currentUser.id))
     : [];
 
   const myProjects = currentUser
     ? isAdmin
       ? allProjects
-      : allProjects.filter((p) => p.assignedTo === currentUser.id)
+      : allProjects.filter((p) => {
+          if (p.assignedMembers && Array.isArray(p.assignedMembers)) {
+            return p.assignedMembers.map(String).includes(String(currentUser.id));
+          }
+          return String(p.assignedTo) === String(currentUser.id);
+        })
     : [];
 
   const myInvoices = currentUser
     ? isAdmin
       ? allInvoices
       : allInvoices.filter((i) => {
-          if (i.createdBy === currentUser.id) return true;
-          const sale = allSales.find(s => s.id === i.saleId);
-          return sale && (sale.createdBy || sale.closedBy) === currentUser.id;
+          if (String(i.createdBy) === String(currentUser.id)) return true;
+          const sale = allSales.find(s => String(s.id) === String(i.saleId));
+          return sale && (String(sale.createdBy) === String(currentUser.id) || String(sale.closedBy) === String(currentUser.id));
         })
     : [];
 
@@ -1330,47 +1619,68 @@ export const AppProvider = ({ children }) => {
   };
 
   return (
-    <AppContext.Provider
-      value={{
-        // Auth
-        currentUser, login, logout, sessionStart,
-        // Users
-        allUsers, createUser, updateUser, deleteUser,
-        updateEmployeeId,
-        uploadEmployeeProfileImage, deleteEmployeeProfileImage,
-        // Leads
-        allLeads, myLeads, myAssignedLeads, createLead, updateLead, addRemark, checkPhoneDuplicate, bulkDeleteLeads,
-        // Sales
-        allSales, myCustomers, createSale, updateSale, deleteCustomer,
-        // Invoices
-        allInvoices, myInvoices, updateInvoice, refreshInvoices, deleteInvoice,
-        // Projects
-        allProjects, myProjects, createProject, updateProject, deleteProject, addProjectReport,
-        // HR
-        allAttendance, markAttendance, manuallyUpsertAttendanceLog,
-        allLeaves, applyLeave, updateLeave,
-        // Chat
-        allMessages, sendMessage, unreadMessages,
-        // Enhanced chat system
-        getOrCreateDirectChat: (user2Id) => getOrCreateChat(currentUser.id, user2Id, allUsers),
-        ensureDepartmentChat: (dept) => ensureDeptChat(dept, allUsers),
-        getTotalChatUnread: () => getTotalChatUnread(currentUser.id),
-        // Email
-        allEmails, updateEmailConfig, sendEmail, getEmailsByUser, syncEmails,
-        // Audit
-        allAuditLogs, addAuditLog,
-        // Notifications
-        allNotifications, addNotification, markNotificationRead, getNotificationsByUser, getUnreadNotificationsCount,
-        // Meeting Timer
-        startMeeting, endMeeting, getActiveMeeting, getMyMeetingStats,
-        // Navigation
-        activePage, setActivePage,
-        // RBAC helpers
-        rbac,
-      }}
-    >
-      {children}
-    </AppContext.Provider>
+    <>
+      <AppContext.Provider
+        value={{
+          // Auth
+          currentUser, login, logout, sessionStart,
+          // Users
+          allUsers, createUser, updateUser, deleteUser,
+          updateEmployeeId,
+          uploadEmployeeProfileImage, deleteEmployeeProfileImage,
+          // Leads
+          allLeads, myLeads, myAssignedLeads, createLead, updateLead, addRemark, checkPhoneDuplicate, bulkDeleteLeads,
+          // Sales
+          allSales, myCustomers, createSale, updateSale, deleteCustomer,
+          // Invoices
+          allInvoices, myInvoices, updateInvoice, refreshInvoices, deleteInvoice,
+          // Projects
+          allProjects, myProjects, createProject, updateProject, deleteProject, addProjectReport,
+          // HR
+          allAttendance, markAttendance, manuallyUpsertAttendanceLog,
+          allLeaves, applyLeave, updateLeave, deleteLeave,
+          // Chat
+          allMessages, sendMessage, unreadMessages,
+          // Enhanced chat system
+          getOrCreateDirectChat: (user2Id) => getOrCreateChat(currentUser.id, user2Id, allUsers),
+          ensureDepartmentChat: (dept) => ensureDeptChat(dept, allUsers),
+          getTotalChatUnread: () => getTotalChatUnread(currentUser.id),
+          // Email
+          allEmails, updateEmailConfig, sendEmail, getEmailsByUser, syncEmails,
+          // Audit
+          allAuditLogs, addAuditLog,
+          // Notifications
+          allNotifications, addNotification, markNotificationRead, getNotificationsByUser, getUnreadNotificationsCount,
+          // Meeting Timer
+          startMeeting, endMeeting, getActiveMeeting, getMyMeetingStats,
+          // Navigation
+          activePage, setActivePage,
+          // RBAC helpers
+          rbac,
+          forcePasswordChange,
+          setForcePasswordChange,
+        }}
+      >
+        {children}
+      </AppContext.Provider>
+
+      {alertModal && (
+        <div className="modal-overlay" onClick={hideAlertModal}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">{alertModal.title}</div>
+              <button className="btn btn-ghost" onClick={hideAlertModal}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ whiteSpace: 'pre-line', margin: 0, lineHeight: 1.6 }}>{alertModal.message}</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" onClick={hideAlertModal}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

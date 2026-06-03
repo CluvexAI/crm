@@ -35,6 +35,10 @@ export const getAllAttendanceLogs = () => {
   return data || [];
 };
 
+export const setAllAttendanceLogs = (data) => {
+  setStorage(data);
+};
+
 export const upsertAttendanceLog = (logData) => {
   const logs = getStorage() || [];
   

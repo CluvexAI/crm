@@ -4,7 +4,8 @@ import { BASE_CURRENCY, formatCurrencyAmount } from '../services/currencyService
 import CreateProposal from '../components/CreateProposal';
 
 const MyCustomersPage = () => {
-  const { myCustomers, currentUser, myInvoices, myAssignedLeads, updateLead, deleteCustomer } = useApp();
+  const { myCustomers, currentUser, myInvoices, myLeads, updateLead, deleteCustomer, sendEmail } = useApp();
+  const [alertModal, setAlertModal] = useState(null);
   const [search, setSearch] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [activeTab, setActiveTab] = useState('customers');
@@ -13,7 +14,7 @@ const MyCustomersPage = () => {
   const isAdmin = currentUser.role === 'Admin';
   
   const convertedCustomers = myCustomers;
-  const assignedLeads = myAssignedLeads.filter(l => l.status !== 'Closed (Won)' && l.status !== 'Closed (Lost)');
+  const assignedLeads = myLeads.filter(l => l.status !== 'Closed (Won)' && l.status !== 'Closed (Lost)');
   
   const customers = convertedCustomers;
   const leads = assignedLeads;
@@ -61,9 +62,9 @@ const MyCustomersPage = () => {
 
   const formatCurrency = (n) => formatCurrencyAmount(n || 0, BASE_CURRENCY);
 
-  const handleSendProposalEmail = (customer, fmt) => {
+  const handleSendProposalEmail = async (customer, fmt) => {
     if (!customer.email) {
-      window.alert('Customer has no email address.');
+      setAlertModal({ title: '⚠️ No Email', message: 'Customer has no email address.' });
       return;
     }
     const proposals = customer.proposals || [{ type: customer.proposalType, amount: customer.amount }];
@@ -103,8 +104,16 @@ const MyCustomersPage = () => {
 </html>
     `.trim();
     
-    window.alert(`Proposal Email Ready!\n\nTo: ${customer.email}\nSubject: Quotation for ${customer.businessName}`);
-    console.log('Proposal Email HTML:', emailHtml);
+    try {
+      if (sendEmail) {
+        await sendEmail(customer.email, `Quotation for ${customer.businessName}`, emailHtml);
+        setAlertModal({ title: '✅ Sent', message: `Proposal email sent successfully to ${customer.email}!` });
+      } else {
+        setAlertModal({ title: '⚠️ Email Service Error', message: 'sendEmail context is unavailable.' });
+      }
+    } catch (e) {
+      setAlertModal({ title: '❌ Send Failed', message: 'Failed to send email: ' + e.message });
+    }
   };
 
   const statusColor = (s) => {
@@ -376,6 +385,23 @@ const MyCustomersPage = () => {
             setBuildingProposal(null);
           }}
         />
+      )}
+
+      {alertModal && (
+        <div className="modal-overlay" onClick={() => setAlertModal(null)}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">{alertModal.title}</div>
+              <button className="btn btn-ghost" onClick={() => setAlertModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ whiteSpace: 'pre-line', margin: 0, lineHeight: 1.6 }}>{alertModal.message}</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" onClick={() => setAlertModal(null)}>OK</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

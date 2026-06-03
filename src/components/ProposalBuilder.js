@@ -5,11 +5,18 @@ import { useApp } from '../context/AppContext';
 
 const ProposalBuilder = ({ lead, onClose, onSend }) => {
   const { currentUser, sendEmail } = useApp();
+  const [alertModal, setAlertModal] = useState(null);
   const [clientName, setClientName] = useState(lead?.contactName || '');
   const [businessName, setBusinessName] = useState(lead?.businessName || '');
   const [items, setItems] = useState(() => {
     if (lead?.proposalType) {
-      const service = SERVICES.find(s => s.id === lead.proposalType?.toLowerCase().replace(' ', '')) || SERVICES[0];
+      const type = lead.proposalType.toLowerCase();
+      const service = SERVICES.find(s => 
+        s.id === type || 
+        s.name.toLowerCase() === type || 
+        s.id === type.replace(/\s+/g, '') ||
+        type.includes(s.id)
+      ) || SERVICES[0];
       return [{ ...service, quantity: 1, total: service.basePrice }];
     }
     return [{ ...SERVICES[0], quantity: 1, total: SERVICES[0].basePrice }];
@@ -24,9 +31,16 @@ const ProposalBuilder = ({ lead, onClose, onSend }) => {
 
   const updateItem = (index, field, value) => {
     const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
-    if (field === 'quantity' || field === 'basePrice') {
-      newItems[index].total = (newItems[index].quantity || 1) * (newItems[index].basePrice || 0);
+    if (typeof field === 'object' && field !== null) {
+      newItems[index] = { ...newItems[index], ...field };
+      if ('quantity' in field || 'basePrice' in field) {
+        newItems[index].total = (newItems[index].quantity || 1) * (newItems[index].basePrice || 0);
+      }
+    } else {
+      newItems[index] = { ...newItems[index], [field]: value };
+      if (field === 'quantity' || field === 'basePrice') {
+        newItems[index].total = (newItems[index].quantity || 1) * (newItems[index].basePrice || 0);
+      }
     }
     setItems(newItems);
   };
@@ -43,13 +57,28 @@ const ProposalBuilder = ({ lead, onClose, onSend }) => {
 
   const handleSend = async () => {
     if (!lead?.email) {
-      window.alert('No email address for this lead.');
+      setAlertModal({ title: '⚠️ Missing Email', message: 'No email address for this lead.' });
+      return;
+    }
+
+    const safeItems = Array.isArray(items) ? items : Object.values(items || {});
+    if (safeItems.length === 0) {
+      setAlertModal({ title: '⚠️ No Items', message: 'Please add at least one item to the proposal before sending.' });
       return;
     }
     
-    const emailConfig = currentUser?.emailConfig;
+    let emailConfig = null;
+    try {
+      const { getEmailByUserId } = await import('../services/emailService');
+      const uid = currentUser?.uuid || currentUser?.id;
+      const accounts = getEmailByUserId(uid, currentUser?.email);
+      emailConfig = accounts && accounts.length > 0 ? accounts[0] : null;
+    } catch (e) {
+      console.error('Failed to get email config:', e);
+    }
+    
     if (!emailConfig?.email) {
-      window.alert('Please configure your email in Profile → Email Settings first.');
+      setAlertModal({ title: '⚠️ Email Not Configured', message: 'Please configure your email in Profile → Email Settings first.' });
       return;
     }
     
@@ -59,20 +88,26 @@ const ProposalBuilder = ({ lead, onClose, onSend }) => {
       const token = generateToken();
       const baseUrl = window.location.origin;
       
+      const validUntilDate = new Date();
+      validUntilDate.setDate(validUntilDate.getDate() + 30);
+      const validUntilFormatted = validUntilDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
       const proposal = {
         id: proposalId,
-        items,
+        items: safeItems,
         notes,
         discount,
         clientName,
         businessName,
+        title: `Proposal for ${businessName}`,
+        validUntil: validUntilFormatted,
         currency: BASE_CURRENCY,
         acceptUrl: `${baseUrl}/proposal/accept/${token}`,
         rejectUrl: `${baseUrl}/proposal/reject/${token}`,
       };
 
-      const html = generateProposalHTML(proposal, businessName, clientName);
-      const text = generateProposalText(proposal, businessName, clientName);
+      const html = generateProposalHTML(proposal, safeItems, totals);
+      const text = generateProposalText(proposal, safeItems, totals);
       const subject = `Proposal for ${businessName}`;
 
       const isUsingUserEmail = true;
@@ -86,7 +121,7 @@ const ProposalBuilder = ({ lead, onClose, onSend }) => {
         onSend({
           id: proposalId,
           leadId: lead.id,
-          items,
+          items: safeItems,
           notes,
           discount,
           clientName,
@@ -100,10 +135,10 @@ const ProposalBuilder = ({ lead, onClose, onSend }) => {
         });
       }
 
-      window.alert('Proposal sent successfully!');
+      setAlertModal({ title: '✅ Sent', message: 'Proposal sent successfully!' });
       onClose();
     } catch (error) {
-      window.alert('Failed to send proposal: ' + error.message);
+      setAlertModal({ title: '❌ Send Failed', message: 'Failed to send proposal: ' + error.message });
     } finally {
       setIsSending(false);
     }
@@ -125,7 +160,7 @@ const ProposalBuilder = ({ lead, onClose, onSend }) => {
         updatedAt: new Date().toISOString(),
       });
     }
-    window.alert('Proposal saved!');
+    setAlertModal({ title: '📄 Saved', message: 'Proposal saved!' });
   };
 
   const validateAmount = (value) => {
@@ -206,22 +241,66 @@ const ProposalBuilder = ({ lead, onClose, onSend }) => {
               {items.map((item, index) => (
                 <tr key={index}>
                   <td>
-                    <select
-                      className="form-control"
-                      value={item.id}
-                      onChange={(e) => {
-                        const service = SERVICES.find(s => s.id === e.target.value);
-                        updateItem(index, 'id', service.id);
-                        updateItem(index, 'name', service.name);
-                        updateItem(index, 'basePrice', service.basePrice);
-                        updateItem(index, 'total', service.basePrice * item.quantity);
-                      }}
-                      disabled={!isEditing}
-                    >
-                      {SERVICES.map(s => (
-                        <option key={s.id} value={s.id}>{s.name} - €{s.basePrice}</option>
-                      ))}
-                    </select>
+                    {item.id === 'custom' ? (
+                      <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          className="form-control"
+                          style={{ fontSize: 12 }}
+                          placeholder="Enter custom service name..."
+                          value={item.name === 'Custom Service' ? '' : item.name}
+                          onChange={(e) => updateItem(index, 'name', e.target.value)}
+                          disabled={!isEditing}
+                        />
+                        {isEditing && (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-ghost"
+                            onClick={() => {
+                              updateItem(index, {
+                                id: SERVICES[0].id,
+                                name: SERVICES[0].name,
+                                basePrice: SERVICES[0].basePrice,
+                                total: SERVICES[0].basePrice * item.quantity
+                              });
+                            }}
+                            style={{ padding: '4px 8px', fontSize: 12 }}
+                            title="Switch back to listed services"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <select
+                        className="form-control"
+                        value={item.id}
+                        onChange={(e) => {
+                          if (e.target.value === 'custom') {
+                            updateItem(index, {
+                              id: 'custom',
+                              name: 'Custom Service',
+                              basePrice: 0,
+                              total: 0
+                            });
+                          } else {
+                            const service = SERVICES.find(s => s.id === e.target.value);
+                            updateItem(index, {
+                              id: service.id,
+                              name: service.name,
+                              basePrice: service.basePrice,
+                              total: service.basePrice * item.quantity
+                            });
+                          }
+                        }}
+                        disabled={!isEditing}
+                      >
+                        {SERVICES.map(s => (
+                          <option key={s.id} value={s.id}>{s.name} - €{s.basePrice}</option>
+                        ))}
+                        <option value="custom">✨ Custom Service...</option>
+                      </select>
+                    )}
                   </td>
                   <td>
                     <input
@@ -300,7 +379,8 @@ const ProposalBuilder = ({ lead, onClose, onSend }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div>Subtotal: {formatCurrency(totals.subtotal)}</div>
-                {discount > 0 && <div>Discount ({discount}%): -{formatCurrency(totals.discount)}</div>}
+                {discount > 0 && <div>Discount ({discount}%): -{formatCurrency(totals.discountAmount)}</div>}
+                <div>Net Amount: {formatCurrency(totals.afterDiscount)}</div>
                 <div>GST (18%): {formatCurrency(totals.tax)}</div>
               </div>
               <div style={{ fontSize: 24, fontWeight: 700 }}>
@@ -364,6 +444,23 @@ const ProposalBuilder = ({ lead, onClose, onSend }) => {
                 <p style={{ marginTop: 10, fontWeight: 600 }}>Total: {formatCurrency(totals.total)}</p>
                 {notes && <div className="remark-item" style={{ marginTop: 10 }}><strong>Note:</strong> <span className="remark-text">{notes}</span></div>}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {alertModal && (
+        <div className="modal-overlay" onClick={() => setAlertModal(null)}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">{alertModal.title}</div>
+              <button className="btn btn-ghost" onClick={() => setAlertModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ whiteSpace: 'pre-line', margin: 0, lineHeight: 1.6 }}>{alertModal.message}</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" onClick={() => setAlertModal(null)}>OK</button>
             </div>
           </div>
         </div>

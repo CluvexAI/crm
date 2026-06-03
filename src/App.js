@@ -19,6 +19,7 @@ import ActivityReportsCalendar from './components/ActivityReportsCalendar';
 import SettingsPage from './pages/SettingsPage';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import ChangePassword from './components/ChangePassword';
 import './index.css';
 
 const pageConfig = {
@@ -42,7 +43,7 @@ const pageConfig = {
 };
 
 const AppInner = () => {
-  const { currentUser, logout, activePage } = useApp();
+  const { currentUser, logout, activePage, forcePasswordChange, setForcePasswordChange } = useApp();
 
   useEffect(() => {
     const handleLogout = () => logout();
@@ -61,6 +62,12 @@ const AppInner = () => {
 
   return (
     <div className="app-layout">
+      {forcePasswordChange && (
+        <ChangePassword 
+          onSuccess={() => setForcePasswordChange(false)} 
+          onCancel={() => logout()} 
+        />
+      )}
       <Sidebar />
       <div className="main-content">
         <Header title={config.title} subtitle={config.subtitle} />

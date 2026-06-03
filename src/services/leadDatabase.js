@@ -86,7 +86,7 @@ export const updateLeadRecord = (id, leadData) => {
 
 export const deleteLeadRecord = (id) => {
   const leads = getStorage() || [];
-  const filtered = leads.filter(l => l.id !== id);
+  const filtered = leads.filter(l => String(l.id) !== String(id));
   setStorage(filtered);
   console.log('[LeadDB] Deleted lead:', id);
   return true;
@@ -94,7 +94,8 @@ export const deleteLeadRecord = (id) => {
 
 export const bulkDeleteLeadRecords = (ids) => {
   const leads = getStorage() || [];
-  const filtered = leads.filter(l => !ids.includes(l.id));
+  const strIds = ids.map(id => String(id));
+  const filtered = leads.filter(l => !strIds.includes(String(l.id)));
   setStorage(filtered);
   console.log('[LeadDB] Bulk deleted leads:', ids.length);
   return filtered;

@@ -14,10 +14,11 @@ const SalesPage = () => {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [companySettings, setCompanySettings] = useState(() => getCompanySettings());
+  const [alertModal, setAlertModal] = useState(null);
 
   const handleSaveCompanySettings = () => {
     saveCompanySettings(companySettings);
-    window.alert('Company settings saved successfully! They will apply to all new invoices.');
+    setAlertModal({ title: '✅ Settings Saved', message: 'Company settings saved successfully! They will apply to all new invoices.' });
   };
 
   const formatCurrency = (n) => formatCurrencyAmount(n || 0, 'EUR');
@@ -513,6 +514,7 @@ const InvoicesTab = ({ allInvoices, updateInvoice, deleteInvoice, formatCurrency
   const [invoiceShowAssign, setInvoiceShowAssign] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [alertModal, setAlertModal] = useState(null);
 
   const canCreateInvoice = ['Accounts', 'Admin'].includes(currentUser?.role);
 
@@ -672,7 +674,7 @@ const InvoicesTab = ({ allInvoices, updateInvoice, deleteInvoice, formatCurrency
                         )}
                         {(() => {
                           const project = allProjects?.find(p => p.saleId === inv.saleId);
-                          const isAssigned = project?.assignedTo && project.assignedTo !== null && project.assignedToName !== 'Unassigned';
+                          const isAssigned = (project?.assignedTo && project.assignedTo !== null && project.assignedToName !== 'Unassigned') || (project?.assignedMembers && project.assignedMembers.length > 0);
                           const isPaid = ['Paid', 'FULL'].includes(inv.status);
                           return isPaid && !isAssigned ? (
                             <button className="btn btn-sm btn-primary" onClick={() => { setViewInvoice(inv); setInvoiceShowAssign(true); }}>
@@ -705,6 +707,23 @@ const InvoicesTab = ({ allInvoices, updateInvoice, deleteInvoice, formatCurrency
           onClose={() => setShowCreateModal(false)}
           refreshInvoices={refreshInvoices}
         />
+      )}
+
+      {alertModal && (
+        <div className="modal-overlay" onClick={() => setAlertModal(null)}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">{alertModal.title}</div>
+              <button className="btn btn-ghost" onClick={() => setAlertModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ whiteSpace: 'pre-line', margin: 0, lineHeight: 1.6 }}>{alertModal.message}</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" onClick={() => setAlertModal(null)}>OK</button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

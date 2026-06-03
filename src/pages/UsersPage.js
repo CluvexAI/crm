@@ -3,6 +3,8 @@ import { useApp } from '../context/AppContext';
 import { ROLES, DEPARTMENTS, DEPARTMENT_ROLES } from '../data/mockData';
 import ProfileImageUpload from '../components/ProfileImageUpload';
 import { can } from '../services/rbacService';
+import { getRoleConfig, getVisibleUsers } from '../config/rolePermissions';
+import { changePasswordOnServer } from '../services/passwordSyncService';
 
 // Quick alert for user feedback
 const showFeedback = (message, type = 'success') => {
@@ -150,14 +152,18 @@ export const UserDetailModal = ({ user, onClose }) => {
 };
 
 // ── Form Input Helper (Defined outside to prevent re-mounting) ──────────────────
-const FormInput = ({ label, value, onChange, type = 'text', required, hint, error }) => (
+const FormInput = ({ label, value, onChange, type = 'text', required, hint, error, disabled, readOnly }) => (
   <div className="form-group">
     <label className="form-label">{label}{required && <span className="required"> *</span>}</label>
     <input
-      className="form-control"
       type={type}
+      className={`form-control ${error ? 'input-error' : ''}`}
       value={value || ''}
       onChange={e => onChange(e.target.value)}
+      required={required}
+      disabled={disabled}
+      readOnly={readOnly}
+      style={readOnly || disabled ? { background: 'var(--bg-tertiary)', cursor: 'not-allowed' } : {}}
     />
     {hint && <div className="form-hint">{hint}</div>}
     {error && <div className="form-error">{error}</div>}
@@ -321,7 +327,7 @@ export const UserFormModal = ({ user, onClose, onSave, isHR = false }) => {
                   {errors.name && <div className="form-error">{errors.name}</div>}
                   {isHR && <div className="form-hint">🔒 Name can only be modified by an Admin</div>}
                 </div>
-                <FormInput label="Email (Login)" value={form.basic.email} onChange={v => updateField('basic', 'email', v)} type="email" required error={errors.email} />
+                <FormInput label="Email (Login)" value={form.basic.email} onChange={v => updateField('basic', 'email', v)} type="email" required error={errors.email} readOnly={user?.email === 'admin@zsmeservices.com'} />
                 <div className="form-group">
                   <label className="form-label">Password{!user && <span className="required"> *</span>}</label>
                   <input className="form-control" type="password" value={form.basic.password || ''}
@@ -394,6 +400,7 @@ export const UserFormModal = ({ user, onClose, onSave, isHR = false }) => {
                       }
                       updateField('professional', 'department', dept);
                     }}
+                    disabled={user?.email === 'admin@zsmeservices.com'}
                     required>
                     <option value="">-- Select Department --</option>
                     {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
@@ -403,7 +410,7 @@ export const UserFormModal = ({ user, onClose, onSave, isHR = false }) => {
                   <label className="form-label">Role <span className="required">*</span></label>
                   <select className="form-control" value={form.professional.role}
                     onChange={e => updateField('professional', 'role', e.target.value)}
-                    disabled={isHR}
+                    disabled={isHR || user?.email === 'admin@zsmeservices.com'}
                   >
                     {form.professional.department
                       ? (DEPARTMENT_ROLES[form.professional.department] || []).map(r => <option key={r} value={r}>{r}</option>)
@@ -486,35 +493,54 @@ const UsersPage = () => {
   const isAdmin = currentUser.role === ROLES.ADMIN;
   const isHR = currentUser.role === ROLES.HR;
 
-  if (!isAdmin && !isHR) {
+  const config = getRoleConfig(currentUser.role, 'user_management');
+  
+  if (!config || !config.can_view) {
     return (
       <div className="empty-state">
         <div className="empty-state-icon">🔒</div>
         <div className="empty-state-title">Access Denied</div>
-        <div className="empty-state-text">User management requires Admin or HR role.</div>
+        <div className="empty-state-text">You do not have permission to view User Management.</div>
       </div>
     );
   }
 
-  const filtered = allUsers.filter(u => {
-    const matchSearch = !search ||
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase()) ||
-      u.employeeId.toLowerCase().includes(search.toLowerCase());
-    const matchRole = roleFilter === 'All' || u.role === roleFilter;
-    const matchDept = deptFilter === 'All' || u.department === deptFilter;
-    return matchSearch && matchRole && matchDept;
-  });
+  let filtered = getVisibleUsers(allUsers, currentUser, 'user_management', search, deptFilter, roleFilter);
+  
+  // Sort alphabetically by name
+  filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  const columns = config.visible_columns || [];
 
-  const handleSave = (formData) => {
+  const handleSave = async (formData) => {
     setFormError('');
     try {
       if (editUser) {
-        const { uuid, id, ...safe } = formData;
-        updateUser(editUser.uuid, safe);
+        const { uuid, id, password, ...safe } = formData;
+        
+        // Enforce constraints on primary admin
+        if (editUser.email === 'admin@zsmeservices.com') {
+          safe.email = 'admin@zsmeservices.com';
+          safe.role = 'Admin';
+          safe.department = 'Management';
+        }
+        
+        if (password) {
+          const res = await changePasswordOnServer(
+            editUser.uuid, 
+            password, 
+            currentUser.uuid, 
+            currentUser.email, 
+            true
+          );
+          safe.password = res.hashedPassword;
+          safe.must_change_password = false;
+        }
+        
+        await updateUser(editUser.uuid, safe);
         try { safeAddAuditLog('User Updated', currentUser.name, `Updated employee: ${formData.name}`); } catch (e) { console.warn('Audit log failed:', e.message); }
         showFeedback('✅ Employee updated successfully!');
       } else {
+        // New user password is encrypted by the backend POST /api/users
         createUser(formData);
         try { safeAddAuditLog('User Created', currentUser.name, `Created employee: ${formData.name}`); } catch (e) { console.warn('Audit log failed:', e.message); }
         showFeedback('✅ Employee created successfully!');
@@ -596,64 +622,74 @@ const UsersPage = () => {
           <table>
             <thead>
               <tr>
-                <th>Photo</th>
-                <th>Employee</th>
-                <th>Emp ID</th>
-                <th>UUID</th>
-                <th>Role</th>
-                <th>Department</th>
-                <th>Phone</th>
-                <th>Status</th>
-                {isAdmin && <th>Actions</th>}
+                {columns.includes('Photo') && <th>Photo</th>}
+                {columns.includes('Employee') && <th>Employee</th>}
+                {columns.includes('Emp ID') && <th>Emp ID</th>}
+                {columns.includes('UUID') && <th>UUID</th>}
+                {columns.includes('Role') && <th>Role</th>}
+                {columns.includes('Department') && <th>Department</th>}
+                {columns.includes('Phone') && <th>Phone</th>}
+                {columns.includes('Status') && <th>Status</th>}
+                {columns.includes('Actions') && config.can_edit && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
               {filtered.map(user => (
                 <tr key={user.uuid}>
-                  <td style={{ width: 52 }}>
-                    <ProfileImageUpload
-                      targetUser={user}
-                      size={40}
-                      readOnly={!rbac.canUploadImageFor(user.uuid)}
-                    />
-                  </td>
-                  <td>
-                    <div style={{ fontWeight: 600 }}>{user.name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{user.email}</div>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary)', fontSize: 13 }}>
-                        {user.employeeId}
+                  {columns.includes('Photo') && (
+                    <td style={{ width: 52 }}>
+                      <ProfileImageUpload
+                        targetUser={user}
+                        size={40}
+                        readOnly={!rbac.canUploadImageFor(user.uuid)}
+                      />
+                    </td>
+                  )}
+                  {columns.includes('Employee') && (
+                    <td>
+                      <div style={{ fontWeight: 600 }}>{user.name}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{user.email}</div>
+                    </td>
+                  )}
+                  {columns.includes('Emp ID') && (
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary)', fontSize: 13 }}>
+                          {user.employeeId}
+                        </span>
+                        {isAdmin && (
+                          <button className="btn btn-icon btn-ghost" style={{ width: 22, height: 22, fontSize: 11 }}
+                            onClick={() => setEmpIdUser(user)} title="Edit Employee ID">
+                            ✏️
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
+                  {columns.includes('UUID') && (
+                    <td>
+                      <span style={{ fontFamily: 'monospace', fontSize: 10, color: 'var(--text-muted)', background: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: 4 }}>
+                        {user.uuid.slice(0, 13)}…
                       </span>
-                      {isAdmin && (
-                        <button className="btn btn-icon btn-ghost" style={{ width: 22, height: 22, fontSize: 11 }}
-                          onClick={() => setEmpIdUser(user)} title="Edit Employee ID">
-                          ✏️
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                  <td>
-                    <span style={{ fontFamily: 'monospace', fontSize: 10, color: 'var(--text-muted)', background: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: 4 }}>
-                      {user.uuid.slice(0, 13)}…
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`badge ${user.role === ROLES.ADMIN ? 'badge-danger' : user.role === ROLES.HR ? 'badge-warning' : user.role === ROLES.SALES ? 'badge-success' : (DEPARTMENT_ROLES['Graphics'] || []).includes(user.role) ? 'badge-info' : 'badge-primary'}`}>
-                      {user.role}
-                    </span>
-                  </td>
-                  <td>{user.department}</td>
-                  <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{user.phone}</td>
-                  <td><span className={`badge ${user.status !== 'Inactive' ? 'badge-success' : 'badge-danger'}`}>{user.status || 'Active'}</span></td>
-                  {isAdmin && (
+                    </td>
+                  )}
+                  {columns.includes('Role') && (
+                    <td>
+                      <span className={`badge ${user.role === ROLES.ADMIN ? 'badge-danger' : user.role === ROLES.HR ? 'badge-warning' : user.role === ROLES.SALES ? 'badge-success' : (DEPARTMENT_ROLES['Graphics'] || []).includes(user.role) ? 'badge-info' : 'badge-primary'}`}>
+                        {user.role}
+                      </span>
+                    </td>
+                  )}
+                  {columns.includes('Department') && <td>{user.department}</td>}
+                  {columns.includes('Phone') && <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{user.phone}</td>}
+                  {columns.includes('Status') && <td><span className={`badge ${user.status !== 'Inactive' ? 'badge-success' : 'badge-danger'}`}>{user.status || 'Active'}</span></td>}
+                  {columns.includes('Actions') && config.can_edit && (
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
                         <button className="btn btn-sm btn-ghost" onClick={() => setViewUser(user)}>👁</button>
                         <button className="btn btn-sm btn-outline"
                           onClick={() => { setEditUser(user); setFormError(''); setShowForm(true); }}>✏️</button>
-                        {user.uuid !== currentUser.uuid && (
+                        {user.uuid !== currentUser.uuid && config.can_delete && user.email !== 'admin@zsmeservices.com' && (
                           <button className="btn btn-sm btn-danger" onClick={() => setDeleteConfirm(user)}>🗑</button>
                         )}
                       </div>

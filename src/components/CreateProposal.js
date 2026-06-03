@@ -14,7 +14,8 @@ import { useApp } from '../context/AppContext';
 import RichTextEditor from './RichTextEditor';
 
 const CreateProposal = ({ lead, onClose, onSave }) => {
-  const { currentUser } = useApp();
+  const { currentUser, sendEmail } = useApp();
+  const [alertModal, setAlertModal] = useState(null);
   
   const [selectedTemplate, setSelectedTemplate] = useState('new_proposal');
   const [emailSubject, setEmailSubject] = useState('');
@@ -29,11 +30,19 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
     return date.toISOString().split('T')[0];
   });
   
-  const [clientName] = useState(lead?.contactName || '');
-  const [businessName] = useState(lead?.businessName || '');
+  const [clientName, setClientName] = useState(lead?.contactName || '');
+  const [businessName, setBusinessName] = useState(lead?.businessName || '');
+  const [email, setEmail] = useState(lead?.email || '');
+  const [phone, setPhone] = useState(lead?.ownerPhone || '');
   const [items, setItems] = useState(() => {
     if (lead?.proposalType) {
-      const service = SERVICES.find(s => s.id === lead.proposalType?.toLowerCase().replace(' ', '')) || SERVICES[0];
+      const type = lead.proposalType.toLowerCase();
+      const service = SERVICES.find(s => 
+        s.id === type || 
+        s.name.toLowerCase() === type || 
+        s.id === type.replace(/\s+/g, '') ||
+        type.includes(s.id)
+      ) || SERVICES[0];
       return [{ ...service, quantity: 1, total: service.basePrice }];
     }
     return [{ ...SERVICES[0], quantity: 1, total: SERVICES[0].basePrice }];
@@ -67,21 +76,26 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
   const loadTemplate = (templateId, sig = savedSignature) => {
     const template = EMAIL_TEMPLATES.find(t => t.id === templateId);
     if (template) {
-      const mergedSubject = replaceMergeTags(template.subject, {
-        clientName: lead?.contactName || '',
-        businessName: lead?.businessName || '',
-        agentName,
-        companyName
-      });
-      setEmailSubject(mergedSubject);
-      setProposalTitle(`${template.name} - ${lead?.businessName || 'Proposal'}`);
+      const title = `${template.name} - ${lead?.businessName || 'Proposal'}`;
+      const validUntilDate = new Date();
+      validUntilDate.setDate(validUntilDate.getDate() + 30);
+      const validUntilFormatted = validUntilDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
       
-      let body = replaceMergeTags(template.body, {
-        clientName: lead?.contactName || '',
-        businessName: lead?.businessName || '',
-        agentName,
-        companyName
-      });
+      const templateData = {
+        company_name: companyName,
+        proposal_title: title,
+        client_name: lead?.contactName || lead?.prospectName || lead?.name || 'Valued Customer',
+        business_name: lead?.businessName || '',
+        agent_name: agentName,
+        valid_until: validUntilFormatted,
+        proposal_total: formatCurrency(totals.total || 0)
+      };
+
+      const mergedSubject = replaceMergeTags(template.subject, templateData);
+      setEmailSubject(mergedSubject);
+      setProposalTitle(title);
+      
+      let body = replaceMergeTags(template.body, templateData);
       body = body.replace(/\n/g, '<br/>');
       body += getHtmlSignature(sig);
       setEmailBody(body);
@@ -144,7 +158,7 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
       setTempSignatureName('');
       // Proactively reload the template to include the newly saved signature!
       loadTemplate(selectedTemplate, tempSignature);
-      window.alert('Signature saved successfully!');
+      setAlertModal({ title: '✅ Signature Saved', message: 'Signature saved successfully!' });
     }
   };
 
@@ -162,9 +176,16 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
 
   const updateItem = (index, field, value) => {
     const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
-    if (field === 'quantity' || field === 'basePrice') {
-      newItems[index].total = (newItems[index].quantity || 1) * (newItems[index].basePrice || 0);
+    if (typeof field === 'object' && field !== null) {
+      newItems[index] = { ...newItems[index], ...field };
+      if ('quantity' in field || 'basePrice' in field) {
+        newItems[index].total = (newItems[index].quantity || 1) * (newItems[index].basePrice || 0);
+      }
+    } else {
+      newItems[index] = { ...newItems[index], [field]: value };
+      if (field === 'quantity' || field === 'basePrice') {
+        newItems[index].total = (newItems[index].quantity || 1) * (newItems[index].basePrice || 0);
+      }
     }
     setItems(newItems);
   };
@@ -181,7 +202,7 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
 
   const formatCurrency = (n) => formatCurrencyAmount(n || 0, BASE_CURRENCY);
 
-  const calculatedTotal = totals.subtotal - totals.discount + ((totals.subtotal - totals.discount) * taxPercent / 100);
+  const calculatedTotal = totals.afterDiscount + (totals.afterDiscount * taxPercent / 100);
 
   const handleSaveDraft = async () => {
     const proposalData = {
@@ -196,6 +217,8 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
       validUntil,
       emailSubject,
       emailBody,
+      email,
+      phone,
       status: 'draft',
       createdAt: new Date().toISOString(),
     };
@@ -203,19 +226,34 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
     if (onSave) {
       onSave(proposalData);
     }
-    window.alert('Proposal saved as draft!');
+    setAlertModal({ title: '📄 Draft Saved', message: 'Proposal saved as draft!' });
     onClose();
   };
 
   const handleSend = async () => {
-    if (!lead?.email) {
-      window.alert('No email address for this lead.');
+    if (!email) {
+      setAlertModal({ title: '⚠️ Missing Email', message: 'No email address for this lead.' });
+      return;
+    }
+
+    const safeItems = Array.isArray(items) ? items : Object.values(items || {});
+    if (safeItems.length === 0) {
+      setAlertModal({ title: '⚠️ No Items', message: 'Please add at least one item to the proposal before sending.' });
       return;
     }
     
-    const emailConfig = currentUser?.emailConfig;
+    let emailConfig = null;
+    try {
+      const { getEmailByUserId } = await import('../services/emailService');
+      const uid = currentUser?.uuid || currentUser?.id;
+      const accounts = getEmailByUserId(uid, currentUser?.email);
+      emailConfig = accounts && accounts.length > 0 ? accounts[0] : null;
+    } catch (e) {
+      console.error('Failed to get email config:', e);
+    }
+    
     if (!emailConfig?.email) {
-      window.alert('Please configure your email in Profile → Email Settings first.');
+      setAlertModal({ title: '⚠️ Email Not Configured', message: 'Please configure your email in Profile → Email Settings first.' });
       return;
     }
     
@@ -225,24 +263,32 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
       const token = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const baseUrl = window.location.origin;
       
+      const validUntilFormatted = validUntil ? new Date(validUntil).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : "N/A";
       const proposal = {
         id: proposalId,
-        items,
+        items: safeItems,
         notes,
         discount,
         clientName,
         businessName,
+        title: proposalTitle || `Proposal for ${businessName}`,
+        validUntil: validUntilFormatted,
         currency: BASE_CURRENCY,
         acceptUrl: `${baseUrl}/proposal/accept/${token}`,
         rejectUrl: `${baseUrl}/proposal/reject/${token}`,
       };
 
-      generateProposalHTML(proposal, businessName, clientName);
-      generateProposalText(proposal, businessName, clientName);
+      const html = generateProposalHTML(proposal, safeItems, totals);
+      const text = generateProposalText(proposal, safeItems, totals);
       const subject = emailSubject || `Proposal for ${businessName}`;
 
-      console.log('Sending proposal email:', { to: lead.email, subject });
+      console.log('Sending proposal email:', { to: email, subject });
       console.log('Email body:', emailBody);
+
+      if (sendEmail) {
+        const combinedHtml = `${emailBody}<br/><br/>${html}`;
+        await sendEmail(email, subject, combinedHtml);
+      }
 
       if (onSave) {
         onSave({
@@ -250,7 +296,7 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
           leadId: lead?.id,
           clientName,
           businessName,
-          items,
+          items: safeItems,
           notes,
           discount,
           taxPercent,
@@ -258,6 +304,8 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
           validUntil,
           emailSubject: subject,
           emailBody,
+          email,
+          phone,
           total: calculatedTotal,
           currency: BASE_CURRENCY,
           status: 'sent',
@@ -267,10 +315,10 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
         });
       }
 
-      window.alert('Proposal sent successfully!');
+      setAlertModal({ title: '✅ Sent', message: 'Proposal sent successfully!' });
       onClose();
     } catch (error) {
-      window.alert('Failed to send proposal: ' + error.message);
+      setAlertModal({ title: '❌ Send Failed', message: 'Failed to send proposal: ' + error.message });
     } finally {
       setIsSending(false);
     }
@@ -320,27 +368,43 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 15 }}>
               <div>
                 <label style={{ display: 'block', marginBottom: 5, fontSize: 12, color: 'var(--text-muted)' }}>Business Name</label>
-                <div style={{ padding: '8px 12px', background: 'white', borderRadius: 6, border: '1px solid var(--border-color)' }}>
-                  {lead?.businessName || '—'}
-                </div>
+                <input
+                  type="text"
+                  className="form-control"
+                  style={{ background: 'white', padding: '8px 12px' }}
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                />
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: 5, fontSize: 12, color: 'var(--text-muted)' }}>Contact Name</label>
-                <div style={{ padding: '8px 12px', background: 'white', borderRadius: 6, border: '1px solid var(--border-color)' }}>
-                  {lead?.contactName || '—'}
-                </div>
+                <input
+                  type="text"
+                  className="form-control"
+                  style={{ background: 'white', padding: '8px 12px' }}
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                />
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: 5, fontSize: 12, color: 'var(--text-muted)' }}>Email</label>
-                <div style={{ padding: '8px 12px', background: 'white', borderRadius: 6, border: '1px solid var(--border-color)' }}>
-                  {lead?.email || '—'}
-                </div>
+                <input
+                  type="email"
+                  className="form-control"
+                  style={{ background: 'white', padding: '8px 12px' }}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: 5, fontSize: 12, color: 'var(--text-muted)' }}>Phone</label>
-                <div style={{ padding: '8px 12px', background: 'white', borderRadius: 6, border: '1px solid var(--border-color)' }}>
-                  {lead?.ownerPhone || '—'}
-                </div>
+                <input
+                  type="text"
+                  className="form-control"
+                  style={{ background: 'white', padding: '8px 12px' }}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
               </div>
             </div>
           </div>
@@ -564,22 +628,63 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
                 {items.map((item, index) => (
                   <tr key={index} style={{ borderBottom: '1px solid var(--border-color)' }}>
                     <td style={{ padding: 8 }}>
-                      <select
-                        className="form-control"
-                        style={{ fontSize: 12 }}
-                        value={item.id}
-                        onChange={(e) => {
-                          const service = SERVICES.find(s => s.id === e.target.value);
-                          updateItem(index, 'id', service.id);
-                          updateItem(index, 'name', service.name);
-                          updateItem(index, 'basePrice', service.basePrice);
-                          updateItem(index, 'total', service.basePrice * item.quantity);
-                        }}
-                      >
-                        {SERVICES.map(s => (
-                          <option key={s.id} value={s.id}>{s.name}</option>
-                        ))}
-                      </select>
+                      {item.id === 'custom' ? (
+                        <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            className="form-control"
+                            style={{ fontSize: 12 }}
+                            placeholder="Enter custom service name..."
+                            value={item.name === 'Custom Service' ? '' : item.name}
+                            onChange={(e) => updateItem(index, 'name', e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-ghost"
+                            onClick={() => {
+                              updateItem(index, {
+                                id: SERVICES[0].id,
+                                name: SERVICES[0].name,
+                                basePrice: SERVICES[0].basePrice,
+                                total: SERVICES[0].basePrice * item.quantity
+                              });
+                            }}
+                            style={{ padding: '4px 8px', fontSize: 12 }}
+                            title="Switch back to listed services"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <select
+                          className="form-control"
+                          style={{ fontSize: 12 }}
+                          value={item.id}
+                          onChange={(e) => {
+                            if (e.target.value === 'custom') {
+                              updateItem(index, {
+                                id: 'custom',
+                                name: 'Custom Service',
+                                basePrice: 0,
+                                total: 0
+                              });
+                            } else {
+                              const service = SERVICES.find(s => s.id === e.target.value);
+                              updateItem(index, {
+                                id: service.id,
+                                name: service.name,
+                                basePrice: service.basePrice,
+                                total: service.basePrice * item.quantity
+                              });
+                            }
+                          }}
+                        >
+                          {SERVICES.map(s => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                          ))}
+                          <option value="custom">✨ Custom Service...</option>
+                        </select>
+                      )}
                     </td>
                     <td style={{ padding: 8 }}>
                       <input
@@ -669,9 +774,10 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
                 <div style={{ fontSize: 12 }}>
                   <div>Subtotal: <strong>{formatCurrency(totals.subtotal)}</strong></div>
                   {discount > 0 && (
-                    <div>Discount ({discount}%): <strong>-{formatCurrency(totals.discount)}</strong></div>
+                    <div>Discount ({discount}%): <strong>-{formatCurrency(totals.discountAmount)}</strong></div>
                   )}
-                  <div>Tax ({taxPercent}%): <strong>{formatCurrency((totals.subtotal - totals.discount) * taxPercent / 100)}</strong></div>
+                  <div>Net Amount: <strong>{formatCurrency(totals.afterDiscount)}</strong></div>
+                  <div>Tax ({taxPercent}%): <strong>{formatCurrency(totals.afterDiscount * taxPercent / 100)}</strong></div>
                 </div>
                 <div style={{ fontSize: 20, fontWeight: 700 }}>
                   Total: {formatCurrency(calculatedTotal)}
@@ -707,7 +813,7 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
             <div style={{ padding: 20 }}>
               <div style={{ marginBottom: 20, padding: 15, background: '#f8f9fa', borderRadius: 8 }}>
                 <div style={{ marginBottom: 8 }}><strong>Subject:</strong> {emailSubject || `Proposal for ${businessName}`}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>To: {lead?.email}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>To: {email}</div>
               </div>
               
               <div 
@@ -753,8 +859,9 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
                 textAlign: 'right'
               }}>
                 <div style={{ fontSize: 13 }}>Subtotal: {formatCurrency(totals.subtotal)}</div>
-                {discount > 0 && <div style={{ fontSize: 13 }}>Discount ({discount}%): -{formatCurrency(totals.discount)}</div>}
-                <div style={{ fontSize: 13 }}>Tax ({taxPercent}%): {formatCurrency((totals.subtotal - totals.discount) * taxPercent / 100)}</div>
+                {discount > 0 && <div style={{ fontSize: 13 }}>Discount ({discount}%): -{formatCurrency(totals.discountAmount)}</div>}
+                <div style={{ fontSize: 13 }}>Net Amount: {formatCurrency(totals.afterDiscount)}</div>
+                <div style={{ fontSize: 13 }}>Tax ({taxPercent}%): {formatCurrency(totals.afterDiscount * taxPercent / 100)}</div>
                 <div style={{ fontSize: 22, fontWeight: 700, marginTop: 10 }}>
                   Total: {formatCurrency(calculatedTotal)}
                 </div>
@@ -771,6 +878,23 @@ const CreateProposal = ({ lead, onClose, onSave }) => {
               <button className="btn btn-primary" onClick={handleSend} disabled={isSending}>
                 {isSending ? '⏳ Sending...' : '📤 Send Proposal'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {alertModal && (
+        <div className="modal-overlay" onClick={() => setAlertModal(null)}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">{alertModal.title}</div>
+              <button className="btn btn-ghost" onClick={() => setAlertModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ whiteSpace: 'pre-line', margin: 0, lineHeight: 1.6 }}>{alertModal.message}</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" onClick={() => setAlertModal(null)}>OK</button>
             </div>
           </div>
         </div>

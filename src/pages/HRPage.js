@@ -4,6 +4,8 @@ import { ROLES, DEPARTMENTS, DEPARTMENT_ROLES } from '../data/mockData';
 import { UserFormModal, UserDetailModal } from './UsersPage';
 import ReportsTab from './ReportsTab';
 import AdvancedAttendanceReport from '../components/AdvancedAttendanceReport';
+import ActivityReports from '../components/ActivityReports';
+import { getRoleConfig, getVisibleUsers } from '../config/rolePermissions';
 
 const EmployeesTab = ({ allUsers, currentUser, updateUser, addAuditLog }) => {
   const [search, setSearch] = useState('');
@@ -12,14 +14,20 @@ const EmployeesTab = ({ allUsers, currentUser, updateUser, addAuditLog }) => {
   const [viewUser, setViewUser] = useState(null);
   const isHR = currentUser.role === ROLES.HR;
 
-  const visibleUsers = allUsers.filter(u => {
-    if (isHR && u.role === ROLES.ADMIN) return false;
-    const matchSearch = !search ||
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase()) ||
-      u.employeeId.toLowerCase().includes(search.toLowerCase());
-    return matchSearch;
-  });
+  const config = getRoleConfig(currentUser.role, 'hr_module');
+  
+  if (!config || !config.can_view) {
+    return (
+      <div className="empty-state">
+        <div className="empty-state-icon">🔒</div>
+        <div className="empty-state-title">Access Denied</div>
+        <div className="empty-state-text">You do not have permission to view this module.</div>
+      </div>
+    );
+  }
+
+  const visibleUsers = getVisibleUsers(allUsers, currentUser, 'hr_module', search);
+  const columns = config.visible_columns || [];
 
   const handleSave = (formData) => {
     try {
@@ -50,35 +58,44 @@ const EmployeesTab = ({ allUsers, currentUser, updateUser, addAuditLog }) => {
           <table>
             <thead>
               <tr>
-                <th>Employee</th>
-                <th>Emp ID</th>
-                <th>Role</th>
-                <th>Department</th>
-                <th>Status</th>
-                <th>Actions</th>
+                {columns.includes('Employee') && <th>Employee</th>}
+                {columns.includes('Emp ID') && <th>Emp ID</th>}
+                {columns.includes('Role') && <th>Role</th>}
+                {columns.includes('Department') && <th>Department</th>}
+                {columns.includes('Status') && <th>Status</th>}
+                {columns.includes('Actions') && config.can_edit && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
               {visibleUsers.map(user => (
                 <tr key={user.uuid}>
-                  <td>
-                    <div style={{ fontWeight: 600 }}>{user.name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{user.email}</div>
-                  </td>
-                  <td style={{ fontFamily: 'monospace', fontWeight: 700 }}>{user.employeeId}</td>
-                  <td>
-                    <span className={`badge ${user.role === ROLES.ADMIN ? 'badge-danger' : (DEPARTMENT_ROLES['Graphics'] || []).includes(user.role) ? 'badge-info' : 'badge-primary'}`}>
-                      {user.role}
-                    </span>
-                  </td>
-                  <td>{user.department}</td>
-                  <td><span className="badge badge-success">{user.status || 'Active'}</span></td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      <button className="btn btn-sm btn-ghost" onClick={() => setViewUser(user)} title="View Details">👁</button>
-                      <button className="btn btn-sm btn-outline" onClick={() => { setEditUser(user); setShowForm(true); }} title="Edit Employee">✏️</button>
-                    </div>
-                  </td>
+                  {columns.includes('Employee') && (
+                    <td>
+                      <div style={{ fontWeight: 600 }}>{user.name}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{user.email}</div>
+                    </td>
+                  )}
+                  {columns.includes('Emp ID') && <td style={{ fontFamily: 'monospace', fontWeight: 700 }}>{user.employeeId}</td>}
+                  {columns.includes('Role') && (
+                    <td>
+                      <span className={`badge ${user.role === ROLES.ADMIN ? 'badge-danger' : (DEPARTMENT_ROLES['Graphics'] || []).includes(user.role) ? 'badge-info' : 'badge-primary'}`}>
+                        {user.role}
+                      </span>
+                    </td>
+                  )}
+                  {columns.includes('Department') && <td>{user.department}</td>}
+                  {columns.includes('Status') && <td><span className="badge badge-success">{user.status || 'Active'}</span></td>}
+                  {columns.includes('Actions') && config.can_edit && (
+                    <td>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button className="btn btn-sm btn-ghost" onClick={() => setViewUser(user)} title="View Details">👁</button>
+                        <button className="btn btn-sm btn-outline" onClick={() => { setEditUser(user); setShowForm(true); }} title="Edit Employee">✏️</button>
+                        {user.uuid !== currentUser.uuid && config.can_delete && (
+                          <button className="btn btn-sm btn-danger" onClick={() => {/* Handle delete if supported in HRPage */}}>🗑</button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -110,12 +127,12 @@ const AttendanceTab = ({ allAttendance, allUsers, today, isHR, currentUser, mark
   const filtered = allAttendance.filter(a => {
     const matchDate = a.date === dateFilter;
     const matchSearch = !search || a.userName.toLowerCase().includes(search.toLowerCase());
-    const matchUser = userFilter === 'all' || a.userId === parseInt(userFilter);
-    if (!isHR) return a.userId === currentUser.id && matchDate;
+    const matchUser = userFilter === 'all' || String(a.userId) === String(userFilter);
+    if (!isHR) return String(a.userId) === String(currentUser.id) && matchDate;
     return matchDate && matchSearch && matchUser;
   });
 
-  const todayRecord = allAttendance.find(a => a.userId === currentUser.id && a.date === today);
+  const todayRecord = allAttendance.find(a => String(a.userId) === String(currentUser.id) && a.date === today);
   const activeBreak = todayRecord?.breaks?.find(b => !b.endTime);
   const activeMeeting = todayRecord?.meetings?.find(m => !m.endTime);
 
@@ -314,7 +331,7 @@ const ApplyLeaveTab = ({ applyLeave, addAuditLog, currentUser }) => {
 const HRPage = ({ defaultTab }) => {
   const {
     currentUser, allUsers, allAttendance, allLeaves,
-    updateLeave, applyLeave, markAttendance, updateUser, addAuditLog
+    updateLeave, applyLeave, markAttendance, updateUser, addAuditLog, deleteLeave
   } = useApp();
 
   const isHR = currentUser?.role === ROLES.HR || currentUser?.role === ROLES.ADMIN;
@@ -331,6 +348,7 @@ const HRPage = ({ defaultTab }) => {
     { id: 'attendance', name: '⏱ Attendance', roles: ['all'] },
     { id: 'leaves', name: '📅 Leave Requests', roles: [ROLES.ADMIN, ROLES.HR] },
     { id: 'apply', name: '➕ Apply Leave', roles: ['all'] },
+    { id: 'activity', name: '📊 Activity Reports', roles: [ROLES.ADMIN, ROLES.HR] },
     { id: 'reports', name: '📈 Reports', roles: [ROLES.ADMIN, ROLES.HR] }
   ];
 
@@ -412,12 +430,15 @@ const HRPage = ({ defaultTab }) => {
                     <td>{leave.date}</td>
                     <td><span className={`badge ${leave.status === 'Approved' ? 'badge-success' : leave.status === 'Rejected' ? 'badge-danger' : 'badge-warning'}`}>{leave.status}</span></td>
                     <td>
-                      {leave.status === 'Pending' && (
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          <button className="btn btn-sm btn-success" onClick={() => updateLeave(leave.id, 'Approved')}>✅</button>
-                          <button className="btn btn-sm btn-danger" onClick={() => updateLeave(leave.id, 'Rejected')}>✕</button>
-                        </div>
-                      )}
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {leave.status === 'Pending' && (
+                          <>
+                            <button className="btn btn-sm btn-success" onClick={() => updateLeave(leave.id, 'Approved')}>✅</button>
+                            <button className="btn btn-sm btn-danger" onClick={() => updateLeave(leave.id, 'Rejected')}>✕</button>
+                          </>
+                        )}
+                        <button className="btn btn-sm btn-danger" onClick={() => deleteLeave(leave.id)}>🗑 Delete</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -429,6 +450,16 @@ const HRPage = ({ defaultTab }) => {
 
       {tab === 'apply' && (
         <ApplyLeaveTab applyLeave={applyLeave} addAuditLog={addAuditLog} currentUser={currentUser} />
+      )}
+
+      {tab === 'activity' && (
+        <ActivityReports
+          allAttendance={allAttendance}
+          allUsers={allUsers}
+          allLeaves={allLeaves}
+          currentUser={currentUser}
+          isHR={isHR}
+        />
       )}
 
       {tab === 'reports' && isHR && (

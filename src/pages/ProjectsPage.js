@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { ROLES, DEPARTMENT_ROLES } from '../data/mockData';
 import { encrypt, decrypt } from '../services/cryptoService';
+import MultiAssignTeamMember from '../components/MultiAssignTeamMember';
 
 const ProjectsPage = () => {
   const { currentUser, allProjects, myProjects, allUsers, updateProject, deleteProject, addProjectReport } = useApp();
@@ -16,7 +17,25 @@ const ProjectsPage = () => {
   const [showCredentials, setShowCredentials] = useState({});
   const [search, setSearch] = useState('');
 
-  const isAuthorized = viewProject ? (currentUser.role === ROLES.ADMIN || currentUser.id === viewProject.assignedTo) : false;
+  const getAssignedDisplay = (proj) => {
+    if (proj.assignedMembers && proj.assignedMembers.length > 0) {
+      const names = proj.assignedMembers.map(id => {
+        const u = allUsers.find(user => String(user.id) === String(id) || String(user.uuid) === String(id));
+        return u ? (u.name || u.full_name) : null;
+      }).filter(Boolean);
+      if (names.length > 0) {
+        if (names.length === 1) return names[0];
+        return `${names[0]} (+${names.length - 1})`;
+      }
+    }
+    return proj.assignedToName || 'Unassigned';
+  };
+
+  const isAuthorized = viewProject
+    ? currentUser.role === ROLES.ADMIN ||
+      String(currentUser.id) === String(viewProject.assignedTo) ||
+      (viewProject.assignedMembers && Array.isArray(viewProject.assignedMembers) && viewProject.assignedMembers.map(String).includes(String(currentUser.id)))
+    : false;
 
   const filtered = projects.filter(p =>
     !search || p.projectName.toLowerCase().includes(search.toLowerCase()) || p.clientName.toLowerCase().includes(search.toLowerCase())
@@ -69,7 +88,7 @@ const ProjectsPage = () => {
             </div>
             <div className="card-body">
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
-                <span style={{ color: 'var(--text-muted)' }}>👤 {proj.assignedToName || 'Unassigned'}</span>
+                <span style={{ color: 'var(--text-muted)' }}>👤 {getAssignedDisplay(proj)}</span>
                 <span style={{ color: 'var(--text-muted)' }}>📅 {proj.deadline || proj.startDate}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 12 }}>
@@ -292,7 +311,7 @@ const ProjectsPage = () => {
                       <div style={{ color: 'var(--text-muted)', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>No reports yet</div>
                     )}
                   </div>
-                  {((currentUser.role === ROLES.BACKEND || graphicsRoles.includes(currentUser.role)) && viewProject.assignedTo === currentUser.id) || isAdmin ? (
+                  {((currentUser.role === ROLES.BACKEND || graphicsRoles.includes(currentUser.role)) && (String(viewProject.assignedTo) === String(currentUser.id) || (viewProject.assignedMembers && Array.isArray(viewProject.assignedMembers) && viewProject.assignedMembers.map(String).includes(String(currentUser.id))))) || isAdmin ? (
                     <div>
                       <textarea className="form-control" rows={3} value={reportText} onChange={e => setReportText(e.target.value)} placeholder="Write today's progress report... (Immutable after save)" />
                       <button className="btn btn-primary w-full mt-2" onClick={() => handleAddReport(viewProject.id)}>
@@ -397,6 +416,7 @@ const ProjectsPage = () => {
 
 const ProjectEditForm = ({ project, backendUsers, onSave, onClose }) => {
   const [form, setForm] = useState({
+    assignedMembers: project.assignedMembers || (project.assignedTo ? [project.assignedTo] : []),
     assignedTo: project.assignedTo || '',
     assignedToName: project.assignedToName || 'Unassigned',
     status: project.status || 'Planning',
@@ -421,9 +441,13 @@ const ProjectEditForm = ({ project, backendUsers, onSave, onClose }) => {
     notes: project.notes || '',
   });
 
-  const handleAssignee = (userId) => {
-    const user = backendUsers.find(u => u.id === parseInt(userId));
-    setForm(p => ({ ...p, assignedTo: parseInt(userId), assignedToName: user?.name || 'Unassigned' }));
+  const handleAssignmentChange = (ids, users) => {
+    setForm(p => ({
+      ...p,
+      assignedMembers: ids,
+      assignedTo: ids[0] || '',
+      assignedToName: users.length ? users.map(u => u.name || u.full_name).join(', ') : 'Unassigned'
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -467,12 +491,9 @@ const ProjectEditForm = ({ project, backendUsers, onSave, onClose }) => {
     <form onSubmit={handleSubmit}>
       <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div className="form-group">
+          <div className="form-group" style={{ gridColumn: '1 / -1' }}>
             <label className="form-label">👤 Assign To (Backend / Graphics)</label>
-            <select className="form-control" value={form.assignedTo} onChange={e => handleAssignee(e.target.value)}>
-              <option value="">Unassigned</option>
-              {backendUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-            </select>
+            <MultiAssignTeamMember value={form.assignedMembers} onChange={handleAssignmentChange} />
           </div>
           <div className="form-group">
             <label className="form-label">📊 Project Status</label>

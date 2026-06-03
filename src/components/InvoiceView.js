@@ -7,6 +7,7 @@ import html2pdf from 'html2pdf.js';
 import { encrypt, decrypt } from '../services/cryptoService';
 import { getActiveBackendUsers, getProjectClientDetails } from '../services/assignmentService';
 import EmailComposer from './EmailComposer';
+import MultiAssignTeamMember from './MultiAssignTeamMember';
 
 const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowAssign = false }) => {
   const { currentUser, allProjects, allSales, allLeads, createProject, updateProject, addNotification, allUsers, refreshInvoices, updateSale } = useApp();
@@ -25,6 +26,7 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
   const [newService, setNewService] = useState({ name: '', description: '', duration: 'Monthly', quantity: 1, unitPrice: 0 });
   const [newPayment, setNewPayment] = useState({ amount: 0, method: 'stripe', notes: '' });
   const [newInstallment, setNewInstallment] = useState({ dueDate: '', amount: 0, method: 'stripe' });
+  const [alertModal, setAlertModal] = useState(null);
 
   // Assignment states
   const [availableBackendUsers, setAvailableBackendUsers] = useState([]);
@@ -34,6 +36,7 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
   const [assignmentSuccess, setAssignmentSuccess] = useState('');
 
   const [assignForm, setAssignForm] = useState({
+    assignedMembers: [],
     assignedTo: '',
     assignedToName: '',
     googleProfileLink: '',
@@ -88,6 +91,7 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
       const existingProject = allProjects?.find(p => p.saleId === invoice.saleId);
       if (existingProject) {
         setAssignForm({
+          assignedMembers: existingProject.assignedMembers || (existingProject.assignedTo ? [existingProject.assignedTo] : []),
           assignedTo: existingProject.assignedTo || '',
           assignedToName: existingProject.assignedToName || '',
           googleProfileLink: existingProject.googleProfileLink || '',
@@ -215,7 +219,7 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
 
   const handleSendEmail = () => {
     if (!invoice.client?.email) {
-      window.alert('Client has no BILL TO email address specified.');
+      setAlertModal({ title: '⚠️ Missing Email', message: 'Client has no BILL TO email address specified.' });
       return;
     }
     
@@ -297,7 +301,7 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
 
   const handleSave = () => {
     if (!editedInvoice.client.businessName) {
-      window.alert('Business name is required');
+      setAlertModal({ title: '⚠️ Validation', message: 'Business name is required' });
       return;
     }
     
@@ -316,7 +320,7 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
           setTimeout(() => setSaveSuccess(''), 3000);
         }
       } catch (err) {
-        window.alert('Save failed: ' + err.message);
+        setAlertModal({ title: '❌ Save Failed', message: 'Save failed: ' + err.message });
       } finally {
         setIsSaving(false);
       }
@@ -457,7 +461,7 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
             {['FULL', 'PARTIAL', 'Paid'].includes(invoice.status) && (() => {
               const sale = allSales?.find(s => s.id === invoice.saleId);
               const project = allProjects?.find(p => p.saleId === invoice.saleId);
-              const isAssigned = project?.assignedTo && project.assignedTo !== null && project.assignedToName !== 'Unassigned';
+              const isAssigned = (project?.assignedTo && project.assignedTo !== null && project.assignedToName !== 'Unassigned') || (project?.assignedMembers && project.assignedMembers.length > 0);
               return !isAssigned ? (
                 <button className="btn btn-sm btn-primary" onClick={() => setShowAssignProject(true)}>👨‍💻 Assign Project</button>
               ) : null;
@@ -1237,12 +1241,13 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
         const handleSubmit = (e) => {
           e.preventDefault();
           if (!assignForm.assignedTo) {
-            window.alert('Please select a Backend Staff');
+            setAlertModal({ title: '⚠️ Validation', message: 'Please select a Backend Staff' });
             return;
           }
 
           const projectData = {
             ...existingProject,
+            assignedMembers: assignForm.assignedMembers || (assignForm.assignedTo ? [assignForm.assignedTo] : []),
             assignedTo: assignForm.assignedTo,
             assignedToName: assignForm.assignedToName,
             status: 'In Progress',
@@ -1277,14 +1282,20 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
           if (existingProject?.id) {
             updateProject(existingProject.id, projectData);
             
-            // Create notification for backend user
-            addNotification(
-              assignForm.assignedTo,
-              'Project Updated/Reassigned',
-              `Project updated: ${clientDetails?.businessName || 'Client Project'}`,
-              'project_assigned',
-              existingProject.id
-            );
+            // Create notification for backend users
+            const members = assignForm.assignedMembers && assignForm.assignedMembers.length > 0
+              ? assignForm.assignedMembers
+              : [assignForm.assignedTo];
+
+            members.forEach(userId => {
+              addNotification(
+                userId,
+                'Project Updated/Reassigned',
+                `Project updated: ${clientDetails?.businessName || 'Client Project'}`,
+                'project_assigned',
+                existingProject.id
+              );
+            });
             
             setAssignmentSuccess('Project assignment updated successfully!');
             setTimeout(() => setShowAssignProject(false), 2000);
@@ -1300,14 +1311,20 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
               reports: [],
             });
 
-            // Create notification for backend user
-            addNotification(
-              assignForm.assignedTo,
-              'New Project Assigned',
-              `You have been assigned a new project: ${clientDetails?.businessName || 'Client Project'}`,
-              'project_assigned',
-              newProject.id
-            );
+            // Create notification for backend users
+            const members = assignForm.assignedMembers && assignForm.assignedMembers.length > 0
+              ? assignForm.assignedMembers
+              : [assignForm.assignedTo];
+
+            members.forEach(userId => {
+              addNotification(
+                userId,
+                'New Project Assigned',
+                `You have been assigned a new project: ${clientDetails?.businessName || 'Client Project'}`,
+                'project_assigned',
+                newProject.id
+              );
+            });
 
             setAssignmentSuccess('Project created and assigned to backend successfully!');
             setTimeout(() => setShowAssignProject(false), 2000);
@@ -1380,19 +1397,18 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Assign To Team Member *</label>
-                    {isFetchingBackend ? (
-                      <div style={{ padding: 8, color: 'var(--text-muted)' }}>🔄 Loading available team members...</div>
-                    ) : (
-                      <select className="form-control" value={assignForm.assignedTo} onChange={e => handleAssignee(e.target.value)} required>
-                        <option value="">Select Team Member</option>
-                        {availableBackendUsers.length > 0 ? availableBackendUsers.map(user => (
-                          <option key={user.id} value={user.id}>{user.name} ({user.department || user.role}) - {user.status}</option>
-                        )) : (
-                          <option value="" disabled>No Team Members Available</option>
-                        )}
-                      </select>
-                    )}
+                    <label className="form-label" style={{ fontWeight: 600, display: 'block', marginBottom: 8 }}>Assign To Team Member *</label>
+                    <MultiAssignTeamMember
+                      value={assignForm.assignedMembers}
+                      onChange={(ids, users) => {
+                        setAssignForm(p => ({
+                          ...p,
+                          assignedMembers: ids,
+                          assignedTo: ids[0] || '',
+                          assignedToName: users.length ? users.map(u => u.name || u.full_name).join(', ') : 'Unassigned'
+                        }));
+                      }}
+                    />
                   </div>
 
                   <div style={{ background: 'var(--bg-secondary)', padding: 15, borderRadius: 8, marginBottom: 16 }}>
@@ -1610,6 +1626,23 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
                 ]
               }}
             />
+          </div>
+        </div>
+      )}
+
+      {alertModal && (
+        <div className="modal-overlay" onClick={() => setAlertModal(null)}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">{alertModal.title}</div>
+              <button className="btn btn-ghost" onClick={() => setAlertModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ whiteSpace: 'pre-line', margin: 0, lineHeight: 1.6 }}>{alertModal.message}</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" onClick={() => setAlertModal(null)}>OK</button>
+            </div>
           </div>
         </div>
       )}

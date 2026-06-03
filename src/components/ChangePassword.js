@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { validatePasswordStrength, verifyPassword, hashPassword, isPasswordHashed } from '../services/passwordService';
+import { validatePasswordStrength } from '../services/passwordService';
+import { changePasswordOnServer } from '../services/passwordSyncService';
 
 const ChangePassword = ({ onCancel, onSuccess }) => {
   const { currentUser, allUsers, updateUser } = useApp();
@@ -68,38 +69,18 @@ const ChangePassword = ({ onCancel, onSuccess }) => {
         return;
       }
 
-      const user = allUsers.find((u) => u.uuid === currentUser.uuid);
-      const isCurrentPasswordValid = await verifyPassword(formData.currentPassword, user.password);
-      
-      if (!isCurrentPasswordValid) {
-        setErrors({ currentPassword: 'Current password is incorrect' });
-        setIsLoading(false);
-        return;
-      }
-
-      const isDifferent = await verifyPassword(formData.newPassword, user.password).then(
-        (result) => !result
+      const response = await changePasswordOnServer(
+        currentUser.uuid, 
+        formData.newPassword, 
+        currentUser.uuid, 
+        currentUser.email, 
+        false, 
+        formData.currentPassword
       );
-      
-      if (!isDifferent) {
-        setErrors({ newPassword: 'New password must be different from current password' });
-        setIsLoading(false);
-        return;
-      }
 
-      const newHashedPassword = await hashPassword(formData.newPassword);
-      const updatedUser = {
-        ...user,
-        password: newHashedPassword,
-        updatedAt: new Date().toISOString(),
-        passwordChangedAt: new Date().toISOString()
-      };
-
-      updateUser(user.uuid, {
-        password: newHashedPassword,
-        updatedAt: new Date().toISOString(),
-        passwordChangedAt: new Date().toISOString()
-      });
+      // DO NOT STORE HASHED PASSWORD - it's now updated on backend only
+      // Password is verified against backend hash on next login
+      // No need to update local user object with password field
 
       setSuccessMessage('Password changed successfully! You can now log in with your new password.');
       setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -109,7 +90,11 @@ const ChangePassword = ({ onCancel, onSuccess }) => {
       }, 2000);
 
     } catch (error) {
-      setErrors({ submit: 'Failed to change password. Please try again.' });
+      if (error.message.toLowerCase().includes('current password')) {
+        setErrors({ currentPassword: error.message });
+      } else {
+        setErrors({ submit: 'Failed to change password: ' + error.message });
+      }
       console.error('Password change error:', error);
     }
 

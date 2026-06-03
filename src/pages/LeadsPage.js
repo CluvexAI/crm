@@ -7,9 +7,31 @@ import CurrencyDropdown from '../components/CurrencyDropdown';
 import { isValidE164, isSamePhone } from '../services/phoneService';
 import { DEFAULT_COUNTRY, getCountryByCode, getCountryByName } from '../services/countryService';
 import { BASE_CURRENCY, convertCurrency, formatCurrencyAmount } from '../services/currencyService';
+import api from '../services/apiService';
+
+const DuplicateWarningBanner = ({ warning }) => {
+  if (!warning || !warning.isDuplicate) return null;
+  return (
+    <div style={{ background: '#FEF2F2', border: '1px solid #F87171', color: '#991B1B', padding: '12px', borderRadius: '6px', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
+        <span style={{ fontSize: '18px' }}>⚠️</span>
+        DUPLICATE LEAD DETECTED
+      </div>
+      <div style={{ marginTop: '8px', fontSize: '13px' }}>
+        <strong>Match Found On:</strong> {warning.matched_on} ({warning.matched_value})<br/>
+        <strong>Registered By:</strong> {warning.owner_agent_name}<br/>
+        <strong>Last Activity:</strong> {warning.days_since_activity} days ago<br/>
+      </div>
+      <div style={{ marginTop: '8px', background: '#FCA5A5', color: '#7F1D1D', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: '12px', fontWeight: 'bold' }}>
+        🚫 BLOCKED — Available in {warning.days_remaining} day(s)
+      </div>
+    </div>
+  );
+};
 
 const LeadForm = ({ lead, onClose, onSave }) => {
-  const { checkPhoneDuplicate } = useApp();
+  const { currentUser, checkPhoneDuplicate } = useApp();
+  const [alertModal, setAlertModal] = useState(null);
   const [form, setForm] = useState(lead || {
     contactName: '', businessName: '', ownerPhone: '', altPhone: '',
     website: '', address: '', county: '', email: '',
@@ -18,7 +40,8 @@ const LeadForm = ({ lead, onClose, onSave }) => {
     countryName: 'Ireland', countryCode: 'IE', dialCode: '+353',
   });
   const [errors, setErrors] = useState({});
-  const [phoneWarning, setPhoneWarning] = useState(null);
+  const [duplicateWarning, setDuplicateWarning] = useState(null);
+  const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(
     lead?.countryCode ? { code: lead.countryCode, dialCode: lead.dialCode, name: lead.countryName } : DEFAULT_COUNTRY
   );
@@ -28,14 +51,35 @@ const LeadForm = ({ lead, onClose, onSave }) => {
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
-  const handlePhoneBlur = () => {
-    if (!form.ownerPhone) return;
-    const result = checkPhoneDuplicate(form.ownerPhone, lead?.id);
-    if (result.isDuplicate) {
-      setPhoneWarning(result);
-    } else {
-      setPhoneWarning(null);
+  React.useEffect(() => {
+    if (lead?.id) return; // Do not check duplicates when editing existing lead
+    
+    if (!form.ownerPhone && !form.email && !form.website) {
+      setDuplicateWarning(null);
+      return;
     }
+
+    const timer = setTimeout(async () => {
+      setIsCheckingDuplicate(true);
+      try {
+        const res = await api.leads.checkDuplicate(form.ownerPhone, form.email, form.website, currentUser.id);
+        if (res && res.isDuplicate) {
+          setDuplicateWarning(res);
+        } else {
+          setDuplicateWarning(null);
+        }
+      } catch (err) {
+        console.error('Duplicate check failed', err);
+      } finally {
+        setIsCheckingDuplicate(false);
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [form.ownerPhone, form.email, form.website, lead?.id, currentUser.id]);
+
+  const handlePhoneBlur = () => {
+    // Keep empty, handled by useEffect debounce
   };
 
   const validateAltPhone = () => {
@@ -57,7 +101,7 @@ const LeadForm = ({ lead, onClose, onSave }) => {
     if (!form.contactName) errs.contactName = 'Contact name required';
     if (!form.businessName) errs.businessName = 'Business name required';
     if (!form.ownerPhone) errs.ownerPhone = 'Phone number required';
-    if (phoneWarning?.blocked) errs.ownerPhone = `Lead with this phone contacted ${phoneWarning.daysSince} days ago (<30 days). Blocked.`;
+    if (duplicateWarning?.isDuplicate) errs.duplicate = 'Duplicate lead blocked';
     if (!form.businessCategory) errs.businessCategory = 'Category required';
     if (!form.city) errs.city = 'City required';
 
@@ -68,9 +112,33 @@ const LeadForm = ({ lead, onClose, onSave }) => {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) onSave(form);
+    
+    if (lead?.id) {
+      if (validate()) onSave(form);
+      return;
+    }
+
+    if (!validate()) return;
+
+    // Final hard block before submit (in case user clicks Save before debounce completes)
+    setIsCheckingDuplicate(true);
+    try {
+      const res = await api.leads.checkDuplicate(form.ownerPhone, form.email, form.website, currentUser.id);
+      if (res && res.isDuplicate) {
+        setDuplicateWarning(res);
+        setErrors(prev => ({ ...prev, duplicate: 'Duplicate lead blocked' }));
+        return; // BLOCK submission
+      }
+    } catch (err) {
+      console.error('Final duplicate check failed', err);
+      // Fall through to let the database trigger block it if it's truly a duplicate
+    } finally {
+      setIsCheckingDuplicate(false);
+    }
+
+    onSave(form);
   };
 
   return (
@@ -105,11 +173,6 @@ const LeadForm = ({ lead, onClose, onSave }) => {
                   required
                   defaultCountry={selectedCountry}
                 />
-                {phoneWarning && !phoneWarning.blocked && (
-                  <div style={{ fontSize: 12, color: 'var(--warning)', marginTop: 4, fontWeight: 500 }}>
-                    ⚠️ Phone exists (last contacted {phoneWarning.daysSince} days ago – allowed)
-                  </div>
-                )}
               </div>
               <div className="form-group">
                 <label className="form-label">Alternate Phone</label>
@@ -189,9 +252,10 @@ const LeadForm = ({ lead, onClose, onSave }) => {
               )}
             </div>
           </div>
+            {duplicateWarning && <DuplicateWarningBanner warning={duplicateWarning} />}
           <div className="modal-footer">
             <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" disabled={isCheckingDuplicate || (duplicateWarning && duplicateWarning.isDuplicate)}>
               {lead ? '💾 Save Changes' : '➕ Create Lead'}
             </button>
           </div>
@@ -256,6 +320,7 @@ const LeadsPage = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [showConvertModal, setShowConvertModal] = useState(null);
   const [selectedLeads, setSelectedLeads] = useState([]);
+  const [alertModal, setAlertModal] = useState(null);
 
   const isAdmin = currentUser.role === 'Admin';
   const canDelete = rbac.can('DELETE_LEAD');
@@ -267,14 +332,26 @@ const LeadsPage = () => {
     return matchSearch && matchStatus;
   });
 
-  const handleSave = (form) => {
-    if (editLead) {
-      updateLead(editLead.id, form);
-      setEditLead(null);
-    } else {
-      createLead(form);
+  const handleSave = async (form) => {
+    try {
+      if (editLead) {
+        await updateLead(editLead.id, form);
+        setEditLead(null);
+      } else {
+        await createLead(form);
+      }
+      setShowForm(false);
+    } catch (err) {
+      // Keep form open for ALL duplicate errors — alert already shown by AppContext
+      if (err.message && (
+        err.message.startsWith('DUPLICATE_LEAD') ||
+        err.message.includes('DUPLICATE_LEAD_LOCAL') ||
+        err.message.includes('Duplicate check could not be completed')
+      )) {
+        return; // Form stays open, user sees the warning
+      }
+      console.error('Failed to save lead:', err);
     }
-    setShowForm(false);
   };
 
   const toggleSelectLead = (id) => {
@@ -288,7 +365,7 @@ const LeadsPage = () => {
       setSelectedLeads([]);
     } catch (error) {
       console.error(error);
-      window.alert(error.message || "Failed to delete leads");
+      setAlertModal({ title: '❌ Delete Failed', message: error.message || 'Failed to delete leads' });
     }
   };
 
@@ -451,12 +528,30 @@ const LeadsPage = () => {
           }}
         />
       )}
+
+      {alertModal && (
+        <div className="modal-overlay" onClick={() => setAlertModal(null)}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">{alertModal.title}</div>
+              <button className="btn btn-ghost" onClick={() => setAlertModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ whiteSpace: 'pre-line', margin: 0, lineHeight: 1.6 }}>{alertModal.message}</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" onClick={() => setAlertModal(null)}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
   const { currentUser } = useApp();
+  const [alertModal, setAlertModal] = useState(null);
   const [currency, setCurrency] = useState({ code: 'EUR', symbol: '€', name: 'Euro' });
   const [proposals, setProposals] = useState([
     { type: lead?.proposalType || '', package: '', description: '', amount: '', additionalNotes: '' }
@@ -588,20 +683,20 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.email) {
-      window.alert("Email is required to convert to sale.");
-      throw new Error("Email is required to convert to sale");
+      setAlertModal({ title: '⚠️ Validation', message: 'Email is required to convert to sale.' });
+      return;
     }
     if (!form.country) {
-      window.alert("Country is required for billing.");
-      throw new Error("Country is required for billing");
+      setAlertModal({ title: '⚠️ Validation', message: 'Country is required for billing.' });
+      return;
     }
     if (proposals.length === 0) {
-      window.alert("At least one proposal is required");
-      throw new Error("At least one proposal is required");
+      setAlertModal({ title: '⚠️ Validation', message: 'At least one proposal is required' });
+      return;
     }
     if (form.paymentStatus === 'Installments' && installmentWarning) {
-      window.alert(installmentWarning);
-      throw new Error("Installment total mismatch");
+      setAlertModal({ title: '⚠️ Installment Mismatch', message: installmentWarning });
+      return;
     }
 
     const finalProposals = proposals.map(p => ({
@@ -790,6 +885,23 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
           </div>
         </form>
       </div>
+
+      {alertModal && (
+        <div className="modal-overlay" onClick={() => setAlertModal(null)}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">{alertModal.title}</div>
+              <button className="btn btn-ghost" onClick={() => setAlertModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ whiteSpace: 'pre-line', margin: 0, lineHeight: 1.6 }}>{alertModal.message}</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" onClick={() => setAlertModal(null)}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

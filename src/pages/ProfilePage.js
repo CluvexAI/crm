@@ -4,6 +4,8 @@ import ProfileImageUpload from '../components/ProfileImageUpload';
 import { can } from '../services/rbacService';
 import { formatFileSize } from '../services/uploadService';
 import { encrypt, maskPassword } from '../services/cryptoService';
+import { changePasswordOnServer } from '../services/passwordSyncService';
+import { validatePasswordStrength } from '../services/passwordService';
 
 const InfoRow = ({ label, value, editing, field, type = 'text', readOnly = false, form, setForm }) => (
   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid var(--border-light)', gap: 16 }}>
@@ -50,26 +52,41 @@ const ProfilePage = () => {
     if (!current) { setPassError('Please enter current password.'); return; }
     if (!newPass) { setPassError('Please enter new password.'); return; }
     if (!confirm) { setPassError('Please confirm new password.'); return; }
-    if (newPass.length < 8) { setPassError('New password must be at least 8 characters.'); return; }
+    
+    // Use full password policy validation
+    const validation = validatePasswordStrength(newPass);
+    if (!validation.isValid) {
+      setPassError(validation.errors.join('; '));
+      return;
+    }
+    
     if (newPass !== confirm) { setPassError('Passwords do not match.'); return; }
     if (current === newPass) { setPassError('New password must be different from current password.'); return; }
     
-    const { verifyPassword, hashPassword } = await import('../services/passwordService');
-    
-    const isValidCurrent = await verifyPassword(current, currentUser.password);
-    if (!isValidCurrent) { setPassError('Current password is incorrect.'); return; }
-    
-    const isDifferent = await verifyPassword(newPass, currentUser.password).then(r => !r);
-    if (!isDifferent) { setPassError('New password must be different from current password.'); return; }
-    
-    const newHashedPassword = await hashPassword(newPass);
-    updateUser(currentUser.uuid, { 
-      password: newHashedPassword,
-      passwordChangedAt: new Date().toISOString()
-    });
-    setPassSuccess(true);
-    setChangePass({ current: '', newPass: '', confirm: '' });
-    setTimeout(() => setPassSuccess(false), 3500);
+    try {
+      const response = await changePasswordOnServer(
+        currentUser.uuid, 
+        newPass, 
+        currentUser.uuid, 
+        currentUser.email, 
+        false, 
+        current
+      );
+      
+      // DO NOT STORE HASHED PASSWORD IN CONTEXT/LOCALSTORAGE
+      // Password is now updated on backend only
+      // User will need to login again with new password
+      
+      setPassSuccess(true);
+      setChangePass({ current: '', newPass: '', confirm: '' });
+      setTimeout(() => setPassSuccess(false), 3500);
+    } catch (err) {
+      if (err.message.toLowerCase().includes('current password')) {
+        setPassError(err.message);
+      } else {
+        setPassError('Failed to update password: ' + err.message);
+      }
+    }
   };
 
   const getInitials = (name) =>
@@ -262,7 +279,7 @@ const ProfilePage = () => {
                 <label className="form-label">New Password</label>
                 <input className="form-control" type="password" value={changePass.newPass}
                   onChange={e => setChangePass(p => ({ ...p, newPass: e.target.value }))} required />
-                <div className="form-hint">Minimum 6 characters</div>
+                <div className="form-hint">Minimum 8 characters with uppercase, lowercase, number, and special character</div>
               </div>
               <div className="form-group">
                 <label className="form-label">Confirm New Password</label>
@@ -356,6 +373,7 @@ const EmailSettingsTab = () => {
   const [testResult, setTestResult] = useState(null);
   const [saving, setSaving] = useState(false);
   const [isConfigured, setIsConfigured] = useState(false);
+  const [modal, setModal] = useState(null);
 
   // Load from Canonical Store on mount
   React.useEffect(() => {
@@ -424,9 +442,28 @@ message: result.message,
     }
   };
 
+  const handleModalClose = () => {
+    const isSaveSuccess = modal && modal.isSaveSuccess;
+    setModal(null);
+    if (isSaveSuccess) {
+      setTimeout(async () => {
+        try {
+          await syncEmails();
+          setModal({
+            title: '✅ Sync Complete',
+            message: 'Email sync complete!',
+            isError: false,
+          });
+        } catch (e) {
+          console.error('Sync error:', e);
+        }
+      }, 500);
+    }
+  };
+
   const handleSave = () => {
     if (!emailForm.email || !emailForm.password) {
-      window.alert('Please enter email and password');
+      setModal({ title: '⚠️ Validation', message: 'Please enter email and password', isError: true });
       return;
     }
     setSaving(true);
@@ -438,16 +475,8 @@ message: result.message,
       };
       updateEmailConfig(currentUser.id, configToSave);
       setSaving(false);
-      window.alert('✅ Email configuration saved!\n\nSyncing your emails...');
-      setTimeout(async () => {
-        try {
-          await syncEmails();
-          window.alert('✅ Email sync complete!');
-        } catch (e) {
-          console.error('Sync error:', e);
-        }
-      }, 500);
-}, 800);
+      setModal({ title: '✅ Configuration Saved', message: 'Email configuration saved!\n\nSyncing your emails...', isError: false, isSaveSuccess: true });
+    }, 800);
   };
 
 
@@ -564,6 +593,23 @@ message: result.message,
           </button>
         </div>
       </div>
+
+      {modal && (
+        <div className="modal-overlay" onClick={handleModalClose}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">{modal.title}</div>
+              <button className="btn btn-ghost" onClick={handleModalClose}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ whiteSpace: 'pre-line', margin: 0, lineHeight: 1.6 }}>{modal.message}</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" onClick={handleModalClose}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -6,6 +6,7 @@ import { PROPOSAL_TYPES, getNextInvoiceNumber, saveCustomInvoice, getCompanySett
 const CreateInvoiceModal = ({ onClose, refreshInvoices }) => {
   const { allSales, allLeads, currentUser, allUsers } = useApp();
   const companySettings = getCompanySettings();
+  const [alertModal, setAlertModal] = useState(null);
 
   // Primary Metadata State
   const [invoiceNumber, setInvoiceNumber] = useState('');
@@ -160,7 +161,7 @@ const CreateInvoiceModal = ({ onClose, refreshInvoices }) => {
 
   const handleRemoveServiceRow = (id) => {
     if (services.length <= 1) {
-      window.alert('At least one service line item is required.');
+      setAlertModal({ title: '⚠️ Validation', message: 'At least one service line item is required.' });
       return;
     }
     setServices(prev => prev.filter(row => row.id !== id));
@@ -233,15 +234,15 @@ const CreateInvoiceModal = ({ onClose, refreshInvoices }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!businessName.trim()) {
-      window.alert('Business name is required.');
+      setAlertModal({ title: '⚠️ Validation', message: 'Business name is required.' });
       return;
     }
     if (!invoiceNumber.trim()) {
-      window.alert('Invoice number is required.');
+      setAlertModal({ title: '⚠️ Validation', message: 'Invoice number is required.' });
       return;
     }
     if (enableInstallments && !isInstallmentSumValid) {
-      window.alert(`Installment schedule total (${installmentsTotal.toFixed(2)}) must exactly equal the Grand Total (${grandTotal.toFixed(2)}). Please adjust the installments.`);
+      setAlertModal({ title: '⚠️ Installment Mismatch', message: `Installment schedule total (${installmentsTotal.toFixed(2)}) must exactly equal the Grand Total (${grandTotal.toFixed(2)}). Please adjust the installments.` });
       return;
     }
 
@@ -373,7 +374,7 @@ const CreateInvoiceModal = ({ onClose, refreshInvoices }) => {
       setIsSubmitting(false);
       onClose();
     } catch (err) {
-      window.alert(`Failed to save invoice: ${err.message}`);
+      setAlertModal({ title: '❌ Save Failed', message: `Failed to save invoice: ${err.message}` });
       setIsSubmitting(false);
     }
   };
@@ -795,6 +796,22 @@ const CreateInvoiceModal = ({ onClose, refreshInvoices }) => {
           </form>
         </div>
 
+      {alertModal && (
+        <div className="modal-overlay" onClick={() => setAlertModal(null)}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">{alertModal.title}</div>
+              <button className="btn btn-ghost" onClick={() => setAlertModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ whiteSpace: 'pre-line', margin: 0, lineHeight: 1.6 }}>{alertModal.message}</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" onClick={() => setAlertModal(null)}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );

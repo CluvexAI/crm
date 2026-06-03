@@ -23,6 +23,21 @@ export const initializeSalesDatabase = (defaultSales) => {
   const stored = getStorage();
   if (stored) {
     console.log('[SalesDB] Loaded', stored.length, 'sales from storage');
+    // Data Integrity Check: Patch missing timestamps/version
+    let needsPatch = false;
+    const patched = stored.map(s => {
+      let changed = false;
+      const newS = { ...s };
+      if (!newS.createdAt) { newS.createdAt = new Date().toISOString(); changed = true; }
+      if (!newS.updatedAt) { newS.updatedAt = newS.createdAt; changed = true; }
+      if (!newS.version) { newS.version = 1; changed = true; }
+      if (changed) needsPatch = true;
+      return newS;
+    });
+    if (needsPatch) {
+      setStorage(patched);
+      return patched;
+    }
     return stored;
   }
   console.log('[SalesDB] Initializing with default sales');
@@ -70,11 +85,17 @@ export const updateSaleRecord = (id, saleData) => {
   }
   
   const currentSale = sales[index];
+  
+  // Optimistic Locking Check
+  if (saleData.version !== undefined && saleData.version !== currentSale.version) {
+    throw new Error('CONFLICT: This record was updated by someone else. Please refresh and try again.');
+  }
+
   const updatedSale = {
     ...currentSale,
     ...saleData,
     updatedAt: new Date().toISOString(),
-    version: (currentSale.version || 0) + 1
+    version: (currentSale.version || 1) + 1
   };
   
   sales[index] = updatedSale;
@@ -86,7 +107,7 @@ export const updateSaleRecord = (id, saleData) => {
 
 export const deleteSaleRecord = (id) => {
   const sales = getStorage() || [];
-  const filtered = sales.filter(s => s.id !== id);
+  const filtered = sales.filter(s => String(s.id) !== String(id));
   setStorage(filtered);
   console.log('[SalesDB] Deleted sale:', id);
   return true;

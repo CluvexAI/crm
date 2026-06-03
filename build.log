@@ -1,0 +1,198 @@
+Starting the development server...
+
+Failed to compile.
+
+[eslint] 
+src\pages\SalesPage.js
+  Line 711:8:   'alertModal' is not defined     no-undef
+  Line 712:55:  'setAlertModal' is not defined  no-undef
+  Line 715:45:  'alertModal' is not defined     no-undef
+  Line 716:64:  'setAlertModal' is not defined  no-undef
+  Line 719:82:  'alertModal' is not defined     no-undef
+  Line 722:66:  'setAlertModal' is not defined  no-undef
+
+Search for the keywords to learn more about each error.
+[1m[33mWARNING[39m[22m in [1m./node_modules/html2pdf.js/dist/html2pdf.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\html2pdf.js\dist\SVGPathData.module.js.map' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\html2pdf.js\dist\SVGPathData.module.js.map'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/ai-api.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\ai-api.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\ai-api.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/ai.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\ai.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\ai.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/auth-api.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\auth-api.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\auth-api.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/auth.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\auth.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\auth.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/cloud-events.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\cloud-events.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\cloud-events.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/compute-services-api.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\compute-services-api.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\compute-services-api.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/compute-services.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\compute-services.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\compute-services.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/database-api.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\database-api.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\database-api.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/database.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\database.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\database.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/deployments-api.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\deployments-api.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\deployments-api.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/deployments.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\deployments.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\deployments.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/docs.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\docs.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\docs.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/email-api.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\email-api.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\email-api.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/functions-api.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\functions-api.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\functions-api.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/functions.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\functions.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\functions.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/index.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\index.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\index.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/logs-api.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\logs-api.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\logs-api.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/logs.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\logs.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\logs.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/metadata.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\metadata.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\metadata.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/payments-api.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\payments-api.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\payments-api.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/payments.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\payments.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\payments.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/realtime-api.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\realtime-api.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\realtime-api.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/realtime.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\realtime.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\realtime.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/schedules-api.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\schedules-api.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\schedules-api.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/schedules.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\schedules.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\schedules.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/secrets-api.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\secrets-api.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\secrets-api.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/secrets.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\secrets.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\secrets.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/storage-api.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\storage-api.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\storage-api.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/storage.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\storage.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\storage.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m./node_modules/@insforge/shared-schemas/dist/s3-access-key.schema.js[39m[22m
+[1mModule Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mFailed[39m[22m[1m to parse source map from 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\s3-access-key.schema.ts' file: [1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'H:\zsmeservices-crm\crm\node_modules\@insforge\shared-schemas\src\s3-access-key.schema.ts'[39m[22m
+
+[1m[33mWARNING[39m[22m in [1m[eslint] 
+src\components\CreateProposal.js
+  Line 5:3:    'getSignature' is defined but never used                                                                                                  no-unused-vars
+  Line 102:6:  React Hook useEffect has missing dependencies: 'loadTemplate' and 'selectedTemplate'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+src\components\InvoiceView.js
+  Line 3:48:     'COMPANY_INFO' is defined but never used                 no-unused-vars
+  Line 3:89:     'addServiceItem' is defined but never used               no-unused-vars
+  Line 3:105:    'updateServiceItem' is defined but never used            no-unused-vars
+  Line 3:124:    'removeServiceItem' is defined but never used            no-unused-vars
+  Line 3:227:    'getCustomerInvoice' is defined but never used           no-unused-vars
+  Line 5:10:     'ROLES' is defined but never used                        no-unused-vars
+  Line 13:47:    'allLeads' is assigned a value but never used            no-unused-vars
+  Line 25:10:    'isGeneratingPdf' is assigned a value but never used     no-unused-vars
+  Line 33:10:    'isFetchingBackend' is assigned a value but never used   no-unused-vars
+  Line 184:9:    'handleAddCharge' is assigned a value but never used     no-unused-vars
+  Line 192:9:    'handleUpdateCharge' is assigned a value but never used  no-unused-vars
+  Line 200:9:    'handleRemoveCharge' is assigned a value but never used  no-unused-vars
+  Line 267:9:    'handleFooterChange' is assigned a value but never used  no-unused-vars
+  Line 462:21:   'sale' is assigned a value but never used                no-unused-vars
+  Line 1236:15:  'handleAssignee' is assigned a value but never used      no-unused-vars
+
+src\pages\LeadsPage.js
+  Line 33:24:  'checkPhoneDuplicate' is assigned a value but never used  no-unused-vars
+  Line 34:10:  'alertModal' is assigned a value but never used           no-unused-vars
+  Line 34:22:  'setAlertModal' is assigned a value but never used        no-unused-vars
+  Line 326:9:  'canDelete' is assigned a value but never used            no-unused-vars
+
+src\pages\ProfilePage.js
+  Line 67:13:  'response' is assigned a value but never used     no-unused-vars
+  Line 92:9:   'getInitials' is assigned a value but never used  no-unused-vars
+
+src\pages\SalesPage.js
+  Line 1:27:   'useEffect' is defined but never used                  no-unused-vars
+  Line 3:10:   'BASE_CURRENCY' is defined but never used              no-unused-vars
+  Line 3:47:   'getCurrencySymbol' is defined but never used          no-unused-vars
+  Line 4:10:   'aggregateCustomerPayments' is defined but never used  no-unused-vars
+  Line 4:37:   'getOverallPaymentStats' is defined but never used     no-unused-vars
+  Line 5:10:   'fetchDashboardSummary' is defined but never used      no-unused-vars
+  Line 13:9:   'displayCustomers' is assigned a value but never used  no-unused-vars
+  Line 17:10:  'alertModal' is assigned a value but never used        no-unused-vars
+  Line 32:17:  'setStats' is assigned a value but never used          no-unused-vars
+  Line 40:19:  'setLoading' is assigned a value but never used        no-unused-vars
+  Line 323:7:  'AgingTab' is assigned a value but never used          no-unused-vars
+  Line 327:9:  'getBucketBadge' is assigned a value but never used    no-unused-vars
+
+[39m[22m
+
+[1m[31mERROR[39m[22m in [1m[eslint] 
+src\pages\SalesPage.js
+  Line 711:8:   'alertModal' is not defined     no-undef
+  Line 712:55:  'setAlertModal' is not defined  no-undef
+  Line 715:45:  'alertModal' is not defined     no-undef
+  Line 716:64:  'setAlertModal' is not defined  no-undef
+  Line 719:82:  'alertModal' is not defined     no-undef
+  Line 722:66:  'setAlertModal' is not defined  no-undef
+
+Search for the keywords to learn more about each [1m[31merror[39m[22m[1m.[39m[22m
+
+webpack compiled with [1m[31m1 error[39m[22m and [1m[33m32 warnings[39m[22m

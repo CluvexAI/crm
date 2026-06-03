@@ -511,7 +511,7 @@ export const syncEmails = async (config) => {
   return { inbox: [], sent: [] };
 };
 
-export const sendEmailViaSMTP = async (config, toEmail, subject, body) => {
+export const sendEmailViaSMTP = async (config, toEmail, subject, body, attachments = []) => {
   const globalConfig = getMailConfig();
   const password = safeDecrypt(config.password);
 
@@ -531,7 +531,8 @@ export const sendEmailViaSMTP = async (config, toEmail, subject, body) => {
           to: toEmail,
           subject: subject || '',
           text: body || '',
-          html: `<div style="font-family: sans-serif;">${(body || '').replace(/\n/g, '<br>')}</div>`
+          html: `<div style="font-family: sans-serif;">${(body || '').replace(/\n/g, '<br>')}</div>`,
+          attachments: attachments
         }
       })
     });

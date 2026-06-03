@@ -11,6 +11,12 @@ export const SERVICES = [
   { id: 'maintenance', name: 'Website Maintenance', basePrice: 3000, description: 'Monthly maintenance and updates' },
   { id: 'video', name: 'Video Production', basePrice: 18000, description: 'Video creation and editing' },
   { id: 'consulting', name: 'Digital Consulting', basePrice: 5000, description: 'Digital strategy consultation' },
+  { id: 'gmb', name: 'GMB Plan', basePrice: 5000, description: 'Google My Business Optimization Plan' },
+  { id: 'gmbsupport', name: 'GMB Support Plan', basePrice: 3000, description: 'Google My Business Support Plan' },
+  { id: 'sem', name: 'SEM Plan', basePrice: 10000, description: 'Search Engine Marketing Plan' },
+  { id: 'googleads', name: 'Google Ads Plan', basePrice: 12000, description: 'Google Ads Management Plan' },
+  { id: 'visitingcard', name: 'Visiting Card Design Plan', basePrice: 1500, description: 'Professional Visiting Card Design' },
+  { id: 'reviewscanner', name: 'Review Scanner', basePrice: 4500, description: 'Business Review Scanner & Analytics' },
 ];
 
 export const MERGE_TAGS = [
@@ -80,12 +86,9 @@ Let us know if you would like to discuss any of these changes.
 
 export const replaceMergeTags = (text, values) => {
   if (!text) return '';
-  let result = text;
-  Object.keys(values).forEach(key => {
-    const regex = new RegExp(`{{${key}}}`, 'gi');
-    result = result.replace(regex, values[key] || '');
+  return text.replace(/\{\{([\w_]+)\}\}/g, (match, key) => {
+    return values[key] !== undefined && values[key] !== null ? values[key] : match;
   });
-  return result;
 };
 
 export const getSignature = (agentName, phone, email, company) => {

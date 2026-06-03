@@ -326,7 +326,8 @@ const OutlookEmailPage = () => {
         { ...emailAccount, password, name: currentUser?.name || emailAccount.email },
         emailData.to,
         emailData.subject,
-        emailData.body || ''
+        emailData.body || '',
+        emailData.attachments || []
       );
       const sent = {
         id: generateId(), userId: uid,

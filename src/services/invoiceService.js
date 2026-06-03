@@ -1,5 +1,6 @@
 import { BASE_CURRENCY, CURRENCIES, getCurrencySymbol } from './currencyService';
 import { sales as salesData } from '../data/mockData';
+import api from './apiService';
 
 const INVOICE_STORAGE_KEY = 'zsm_invoices';
 const INVOICE_AUDIT_KEY = 'zsm_invoice_audit';
@@ -759,12 +760,22 @@ const saveInvoice = (invoice) => {
   }
 
   localStorage.setItem(INVOICE_STORAGE_KEY, JSON.stringify(invoices));
+
+  // Sync to InsForge central database asynchronously
+  api.invoices.create(invoice).catch(err => {
+    console.warn('[invoiceService] Failed to save invoice centrally:', err.message);
+  });
 };
 
 export const deleteInvoice = (invoiceId) => {
   const invoices = getAllInvoices();
   const filtered = invoices.filter(i => i.id !== invoiceId);
   localStorage.setItem(INVOICE_STORAGE_KEY, JSON.stringify(filtered));
+
+  // Sync deletion to InsForge central database asynchronously
+  api.invoices.delete(invoiceId).catch(err => {
+    console.warn('[invoiceService] Failed to delete invoice centrally:', err.message);
+  });
 };
 
 export const formatInvoiceAmount = (amount, currency = BASE_CURRENCY) => {

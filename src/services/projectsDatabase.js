@@ -89,13 +89,13 @@ export const deleteProjectRecord = (id, hardDelete = false) => {
   const projects = getStorage() || [];
 
   if (hardDelete) {
-    const filtered = projects.filter(p => p.id !== id);
+    const filtered = projects.filter(p => String(p.id) !== String(id));
     setStorage(filtered);
     console.log('[ProjectsDB] Hard deleted project:', id);
     return true;
   }
 
-  const index = projects.findIndex(p => p.id === id);
+  const index = projects.findIndex(p => String(p.id) === String(id));
   if (index === -1) {
     console.warn('[ProjectsDB] Project not found for soft delete:', id);
     return false;

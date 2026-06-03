@@ -1,0 +1,20 @@
+[GHOST DETECTED] Auto-removing tombstoned user: operations@zsmeservices.com
+[GHOST DETECTED] Auto-removing tombstoned user: billing@zsmeservices.com
+[INTEGRITY FAIL] Required production user missing: 53984c72-7fc6-47a5-be0a-94bb7382c067 — provisioning
+[INTEGRITY FAIL] Required production user missing: 3fc54ade-f756-46ee-a571-43191703de19 — provisioning
+[GHOST DETECTED] Auto-removing tombstoned user: operations@zsmeservices.com
+[GHOST DETECTED] Auto-removing tombstoned user: billing@zsmeservices.com
+[INTEGRITY FAIL] Required production user missing: 53984c72-7fc6-47a5-be0a-94bb7382c067 — provisioning
+[INTEGRITY FAIL] Required production user missing: 3fc54ade-f756-46ee-a571-43191703de19 — provisioning
+[GHOST DETECTED] Auto-removing tombstoned user: operations@zsmeservices.com
+[GHOST DETECTED] Auto-removing tombstoned user: billing@zsmeservices.com
+[INTEGRITY FAIL] Required production user missing: 53984c72-7fc6-47a5-be0a-94bb7382c067 — provisioning
+[INTEGRITY FAIL] Required production user missing: 3fc54ade-f756-46ee-a571-43191703de19 — provisioning
+[GHOST DETECTED] Auto-removing tombstoned user: operations@zsmeservices.com
+[GHOST DETECTED] Auto-removing tombstoned user: billing@zsmeservices.com
+[INTEGRITY FAIL] Required production user missing: 53984c72-7fc6-47a5-be0a-94bb7382c067 — provisioning
+[INTEGRITY FAIL] Required production user missing: 3fc54ade-f756-46ee-a571-43191703de19 — provisioning
+[GHOST DETECTED] Auto-removing tombstoned user: operations@zsmeservices.com
+[GHOST DETECTED] Auto-removing tombstoned user: billing@zsmeservices.com
+[INTEGRITY FAIL] Required production user missing: 53984c72-7fc6-47a5-be0a-94bb7382c067 — provisioning
+[INTEGRITY FAIL] Required production user missing: 3fc54ade-f756-46ee-a571-43191703de19 — provisioning

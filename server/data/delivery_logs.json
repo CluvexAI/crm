@@ -510,5 +510,85 @@
     "status": "delivered",
     "messageId": "<10bd40fa-960e-057f-b663-62873e632bdb@zsmeservices.com>",
     "timestamp": "2026-05-23T10:58:06.382Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<fbc71d16-75be-bfe4-9a46-33211b138cee@zsmeservices.com>",
+    "timestamp": "2026-05-26T08:15:08.423Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "postmark",
+    "recipient": "test@example.com",
+    "status": "failed",
+    "error": "You tried to send to recipient(s) that have been marked as inactive. Found inactive addresses: . Inactive recipients are ones that have generated a hard bounce, a spam complaint, or a manual suppression.",
+    "timestamp": "2026-05-26T08:24:16.803Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "hi",
+    "status": "failed",
+    "error": "No recipients defined",
+    "timestamp": "2026-05-26T08:29:49.541Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<588d9dca-e463-57d5-ad0c-5e761349ea55@zsmeservices.com>",
+    "timestamp": "2026-05-26T08:31:13.976Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "2cf2ea21-0ac0-4ba6-8f47-f6aa91ae79e1",
+    "timestamp": "2026-05-27T10:56:46.453Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "d109be4c-c616-4b72-a611-fc885308b03a",
+    "timestamp": "2026-05-27T12:14:05.212Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "0c8bf5f0-58fb-447c-9605-8346a05aad1d",
+    "timestamp": "2026-05-27T14:18:09.520Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "ehtesham.nasim@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<ff104f6d-feff-f071-4bc7-1c6314c32fe4@zsmeservices.com>",
+    "timestamp": "2026-06-03T05:59:18.207Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "mdrizwan.hussain@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<d403cca4-049d-d495-58a7-7d1f106ab58d@zsmeservices.com>",
+    "timestamp": "2026-06-03T08:33:09.104Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "mdrizwan.hussain@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<79461cd0-22a5-c1af-3708-41458002810c@zsmeservices.com>",
+    "timestamp": "2026-06-03T08:49:31.440Z"
   }
 ]
