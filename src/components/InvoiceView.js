@@ -462,9 +462,11 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
               const sale = allSales?.find(s => s.id === invoice.saleId);
               const project = allProjects?.find(p => p.saleId === invoice.saleId);
               const isAssigned = (project?.assignedTo && project.assignedTo !== null && project.assignedToName !== 'Unassigned') || (project?.assignedMembers && project.assignedMembers.length > 0);
-              return !isAssigned ? (
-                <button className="btn btn-sm btn-primary" onClick={() => setShowAssignProject(true)}>👨‍💻 Assign Project</button>
-              ) : null;
+              return (
+                <button className="btn btn-sm btn-primary" onClick={() => setShowAssignProject(true)}>
+                  {isAssigned ? '✏️ Manage Assignment' : '👨‍💻 Assign Project'}
+                </button>
+              );
             })()}
             <button className="btn btn-icon btn-ghost" onClick={onClose}>✕</button>
           </div>

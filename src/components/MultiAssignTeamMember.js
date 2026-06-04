@@ -62,6 +62,7 @@ const TeamMemberPopup = ({
         👥 Select Team Member
       </span>
       <button
+        type="button"
         onClick={onClose}
         style={{
           background: 'none', border: 'none', cursor: 'pointer',
@@ -98,6 +99,7 @@ const TeamMemberPopup = ({
     <div style={{ display: 'flex', borderBottom: '1px solid #f0f0f0' }}>
       {['All', 'Backend', 'Graphics'].map(tab => (
         <button
+          type="button"
           key={tab}
           onClick={() => setActiveTab(tab)}
           style={{
@@ -371,6 +373,7 @@ const MultiAssignTeamMember = ({ value = [], onChange }) => {
 
                 {/* Remove button */}
                 <button
+                  type="button"
                   onClick={() => handleRemoveUser(row.id)}
                   aria-label={`Remove ${row.selectedUser.name || row.selectedUser.full_name}`}
                   title="Remove"
@@ -387,6 +390,7 @@ const MultiAssignTeamMember = ({ value = [], onChange }) => {
             ) : (
               // ── Empty Row — Selector Trigger ────────────────────────────
               <button
+                type="button"
                 onClick={() => {
                   setPopupOpen(row.id);
                   setSearchQuery('');

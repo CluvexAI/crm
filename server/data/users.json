@@ -980,30 +980,6 @@
     "must_change_password": false
   },
   {
-    "uuid": "53984c72-7fc6-47a5-be0a-94bb7382c067",
-    "id": "53984c72-7fc6-47a5-be0a-94bb7382c067",
-    "email": "operations@zsmeservices.com",
-    "name": "Operations Manager",
-    "role": "Manager",
-    "department": "Operations",
-    "status": "active",
-    "employeeId": "EMP-OPS-001",
-    "createdAt": "2026-06-03T12:38:49.196Z",
-    "updatedAt": "2026-06-03T12:38:49.196Z"
-  },
-  {
-    "uuid": "3fc54ade-f756-46ee-a571-43191703de19",
-    "id": "3fc54ade-f756-46ee-a571-43191703de19",
-    "email": "billing@zsmeservices.com",
-    "name": "Billing Specialist",
-    "role": "Employee",
-    "department": "Billing",
-    "status": "active",
-    "employeeId": "EMP-BIL-001",
-    "createdAt": "2026-06-03T12:38:49.198Z",
-    "updatedAt": "2026-06-03T12:38:49.198Z"
-  },
-  {
     "name": "Sumana Ghosh",
     "email": "sumana.ghosh@zsmeservices.com",
     "phone": "+91",
@@ -1050,5 +1026,29 @@
     "createdAt": "2026-06-03T12:46:34.642Z",
     "updatedAt": "2026-06-03T12:46:34.642Z",
     "version": 1
+  },
+  {
+    "uuid": "53984c72-7fc6-47a5-be0a-94bb7382c067",
+    "id": "53984c72-7fc6-47a5-be0a-94bb7382c067",
+    "email": "operations@zsmeservices.com",
+    "name": "Operations Manager",
+    "role": "Manager",
+    "department": "Operations",
+    "status": "active",
+    "employeeId": "EMP-OPS-001",
+    "createdAt": "2026-06-04T12:11:02.974Z",
+    "updatedAt": "2026-06-04T12:11:02.974Z"
+  },
+  {
+    "uuid": "3fc54ade-f756-46ee-a571-43191703de19",
+    "id": "3fc54ade-f756-46ee-a571-43191703de19",
+    "email": "billing@zsmeservices.com",
+    "name": "Billing Specialist",
+    "role": "Employee",
+    "department": "Billing",
+    "status": "active",
+    "employeeId": "EMP-BIL-001",
+    "createdAt": "2026-06-04T12:11:02.986Z",
+    "updatedAt": "2026-06-04T12:11:02.986Z"
   }
 ]

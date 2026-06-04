@@ -350,6 +350,14 @@ const LeadsPage = () => {
       )) {
         return; // Form stays open, user sees the warning
       }
+      // Show error alert for update failures
+      if (editLead) {
+        setAlertModal({
+          title: '❌ Update Failed',
+          message: err.message || 'Failed to update lead. Please try again.'
+        });
+        return; // Keep form open so user can retry
+      }
       console.error('Failed to save lead:', err);
     }
   };

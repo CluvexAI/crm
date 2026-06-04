@@ -9,8 +9,9 @@ import CreateInvoiceModal from '../components/CreateInvoiceModal';
 const SalesPage = () => {
   const { allInvoices, myInvoices, updateInvoice, refreshInvoices, deleteInvoice, currentUser, myCustomers, allUsers, allSales, allLeads, allProjects, updateSale } = useApp();
   const isAdmin = currentUser?.role === 'Admin';
-  const displayInvoices = isAdmin ? allInvoices : myInvoices;
-  const displayCustomers = isAdmin ? [] : myCustomers;
+  const isManager = isAdmin || currentUser?.role === 'Accounts' || currentUser?.department === 'Accounts';
+  const displayInvoices = isManager ? allInvoices : myInvoices;
+  const displayCustomers = isManager ? [] : myCustomers;
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [companySettings, setCompanySettings] = useState(() => getCompanySettings());
@@ -40,7 +41,7 @@ const SalesPage = () => {
   const [loading, setLoading] = useState(false);
 
   // Use consistent calculations matching Dashboard
-  const displaySales = isAdmin ? allSales : allSales.filter(s => s.createdBy === currentUser.id || s.closedBy === currentUser.id);
+  const displaySales = isManager ? allSales : allSales.filter(s => s.createdBy === currentUser.id || s.closedBy === currentUser.id);
   const totalSalesValueEUR = displaySales.reduce((sum, sale) => sum + (sale.totalAmount || sale.amount || 0), 0);
   
   // Total collected should use invoices or sales? Invoices represent actual money collected.
@@ -49,7 +50,7 @@ const SalesPage = () => {
   // Total Due: this is all unpaid invoiced amounts PLUS pending un-invoiced installments.
   // Instead of complex parsing, let's just use: Total Sale Value - Total Collected
   const totalDueEUR = totalSalesValueEUR - totalCollectedEUR;
-  const totalCustomers = isAdmin ? (stats.totalCustomers || 0) : myCustomers.length;
+  const totalCustomers = isManager ? (stats.totalCustomers || 0) : myCustomers.length;
 
   const getFilteredInvoices = () => {
     let filtered = displayInvoices;
@@ -515,6 +516,7 @@ const InvoicesTab = ({ allInvoices, updateInvoice, deleteInvoice, formatCurrency
   const [generatingLink, setGeneratingLink] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [alertModal, setAlertModal] = useState(null);
+  const [confirmModal, setConfirmModal] = useState(null);
 
   const canCreateInvoice = ['Accounts', 'Admin'].includes(currentUser?.role);
 
@@ -647,14 +649,17 @@ const InvoicesTab = ({ allInvoices, updateInvoice, deleteInvoice, formatCurrency
                         <button className="btn btn-sm btn-ghost" onClick={() => { setViewInvoice(inv); setInvoiceEditMode(false); }}>👁 View</button>
                         <button className="btn btn-sm btn-primary" onClick={() => { setViewInvoice(inv); setInvoiceEditMode(true); }}>✏️ Edit</button>
                         <button className="btn btn-sm btn-danger" onClick={() => {
-                          // eslint-disable-next-line no-alert
-                          if (window.confirm('Delete invoice ' + (inv.invoiceNumber || inv.id) + '?')) {
-                            deleteInvoice(inv.id);
-                            if (inv.saleId && updateSale) {
-                              updateSale(inv.saleId, { amount: 0, totalAmount: 0, saleStatus: 'Deleted' });
+                          setConfirmModal({
+                            title: '🗑️ Delete Invoice',
+                            message: 'Are you sure you want to delete invoice ' + (inv.invoiceNumber || inv.id) + '?',
+                            onConfirm: () => {
+                              deleteInvoice(inv.id);
+                              if (inv.saleId && updateSale) {
+                                updateSale(inv.saleId, { amount: 0, totalAmount: 0, saleStatus: 'Deleted' });
+                              }
+                              if (refreshInvoices) refreshInvoices();
                             }
-                            if (refreshInvoices) refreshInvoices();
-                          }
+                          });
                         }}>🗑️</button>
                         {['Pending', 'PENDING'].includes(inv.status) && (
                           <>
@@ -676,9 +681,9 @@ const InvoicesTab = ({ allInvoices, updateInvoice, deleteInvoice, formatCurrency
                           const project = allProjects?.find(p => p.saleId === inv.saleId);
                           const isAssigned = (project?.assignedTo && project.assignedTo !== null && project.assignedToName !== 'Unassigned') || (project?.assignedMembers && project.assignedMembers.length > 0);
                           const isPaid = ['Paid', 'FULL'].includes(inv.status);
-                          return isPaid && !isAssigned ? (
+                          return isPaid ? (
                             <button className="btn btn-sm btn-primary" onClick={() => { setViewInvoice(inv); setInvoiceShowAssign(true); }}>
-                              👨‍💻 Assign Project
+                              {isAssigned ? '✏️ Manage Assignment' : '👨‍💻 Assign Project'}
                             </button>
                           ) : null;
                         })()}
@@ -721,6 +726,24 @@ const InvoicesTab = ({ allInvoices, updateInvoice, deleteInvoice, formatCurrency
             </div>
             <div className="modal-footer">
               <button className="btn btn-primary" onClick={() => setAlertModal(null)}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmModal && (
+        <div className="modal-overlay" onClick={() => setConfirmModal(null)}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">{confirmModal.title}</div>
+              <button className="btn btn-ghost" onClick={() => setConfirmModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ whiteSpace: 'pre-line', margin: 0, lineHeight: 1.6 }}>{confirmModal.message}</p>
+            </div>
+            <div className="modal-footer" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button className="btn btn-outline" onClick={() => setConfirmModal(null)}>Cancel</button>
+              <button className="btn btn-danger" onClick={() => { confirmModal.onConfirm(); setConfirmModal(null); }}>Delete</button>
             </div>
           </div>
         </div>

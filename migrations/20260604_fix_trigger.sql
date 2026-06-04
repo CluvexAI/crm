@@ -1,41 +1,4 @@
--- 20260529_strict_backend_guard.sql
--- ZERO-BYPASS BACKEND GUARD FOR DUPLICATE LEADS
-
--- 1. Ensure deleted_at column exists
-ALTER TABLE crm_leads ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
-
--- 2. Create the exact last-10-digit normalizer
-CREATE OR REPLACE FUNCTION normalize_phone_last10(p_phone TEXT) RETURNS TEXT AS $$
-DECLARE
-  v_digits TEXT;
-BEGIN
-  IF p_phone IS NULL OR p_phone = '' THEN RETURN NULL; END IF;
-  
-  -- Strip all non-numeric characters
-  v_digits := REGEXP_REPLACE(p_phone, '\D', '', 'g');
-  
-  -- Handle common international dialing mistakes (Country Code + Trunk Prefix 0)
-  IF v_digits LIKE '3530%' THEN
-    v_digits := '353' || SUBSTRING(v_digits FROM 5);
-  ELSIF v_digits LIKE '440%' THEN
-    v_digits := '44' || SUBSTRING(v_digits FROM 4);
-  ELSIF v_digits LIKE '610%' THEN
-    v_digits := '61' || SUBSTRING(v_digits FROM 4);
-  END IF;
-
-  -- Strip all leading zeros
-  v_digits := LTRIM(v_digits, '0');
-  
-  -- Return up to the last 10 digits
-  IF LENGTH(v_digits) > 10 THEN
-    RETURN RIGHT(v_digits, 10);
-  END IF;
-  
-  RETURN v_digits;
-END;
-$$ LANGUAGE plpgsql;
-
--- 3. Create the ironclad trigger function
+-- Fix for guard_duplicate_crm_leads to properly handle TG_OP
 CREATE OR REPLACE FUNCTION guard_duplicate_crm_leads()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -82,7 +45,6 @@ BEGIN
 
   -- If a match is found, BLOCK the insert/update by raising an exception
   IF FOUND THEN
-    -- The frontend specifically catches 'DUPLICATE_LEAD'
     RAISE EXCEPTION 'DUPLICATE_LEAD_DETECTED: Lead already owned by % (Last activity % days ago)', 
       COALESCE(v_match.created_by_name, 'another agent'), v_match.days_since_activity;
   END IF;
@@ -90,10 +52,3 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
--- 4. Apply the trigger (Runs BEFORE every INSERT or UPDATE)
-DROP TRIGGER IF EXISTS trigger_guard_duplicate_crm_leads ON crm_leads;
-CREATE TRIGGER trigger_guard_duplicate_crm_leads
-BEFORE INSERT OR UPDATE ON crm_leads
-FOR EACH ROW
-EXECUTE FUNCTION guard_duplicate_crm_leads();

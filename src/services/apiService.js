@@ -102,6 +102,7 @@ const mapLeadToDB = (lead) => {
     company_type: clean.companyType || clean.company_type || '',
     remarks: clean.remarks || [],
     created_at: clean.createdAt || clean.created_at || new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     last_follow_up: clean.lastFollowUp || clean.last_follow_up || new Date().toISOString(),
     proposal_type: clean.proposalType || clean.proposal_type || ''
   };
@@ -434,9 +435,13 @@ export const api = {
     },
     update: async (id, updates) => {
       const clean = mapLeadToDB({ ...updates, id });
-      let { data, error } = await db.from('crm_leads').update(clean).eq('id', id);
+      // Never send immutable fields in an UPDATE payload —
+      // id must not be in the SET clause (prevents PK mutation & trigger self-match),
+      // created_at/created_by are write-once fields.
+      const { id: _id, created_at: _ca, created_by: _cb, created_by_name: _cbn, ...updatePayload } = clean;
+      let { data, error } = await db.from('crm_leads').update(updatePayload).eq('id', id);
       if (error && (error.code === '42P01' || error.message?.includes('does not exist'))) {
-        ({ data, error } = await db.from('leads').update(clean).eq('id', id));
+        ({ data, error } = await db.from('leads').update(updatePayload).eq('id', id));
       }
       if (error) throw error;
       return mapLeadFromDB(data?.[0]) || updates;

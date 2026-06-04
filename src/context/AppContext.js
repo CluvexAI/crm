@@ -422,7 +422,7 @@ export const AppProvider = ({ children }) => {
   const addNotification = (userId, title, message, type, referenceId) => {
     try {
       const notification = {
-        id: Date.now(),
+        id: Date.now() + Math.random(),
         userId,
         title,
         message,
@@ -954,6 +954,11 @@ export const AppProvider = ({ children }) => {
       updatedLead = await api.leads.update(id, dataToSave);
       updateLeadRecord(id, updatedLead);
     } catch (err) {
+      // If it's a duplicate detection error from the DB trigger, propagate it
+      // so the user is informed instead of silently falling back to localStorage
+      if (err.message && (err.message.includes('DUPLICATE_LEAD') || err.message.includes('duplicate'))) {
+        throw err;
+      }
       console.error('[AppContext] Failed to update lead centrally, updating locally:', err);
       updatedLead = updateLeadRecord(id, dataToSave);
     }
