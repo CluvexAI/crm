@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:5001/api/users';
+const API_BASE = 'https://zsmeservices.web.app/api/users';
 
 /**
  * Changes a user's password on the backend synchronously.

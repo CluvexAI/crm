@@ -7,7 +7,7 @@
 
 import { getTombstones } from './userDatabase';
 
-const BACKEND_BASE = 'http://localhost:5001';
+const BACKEND_BASE = process.env.REACT_APP_API_URL || '';
 
 /**
  * Validates and filters user backup data, removing tombstoned and mock users.

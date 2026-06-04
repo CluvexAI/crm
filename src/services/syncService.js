@@ -13,7 +13,7 @@ import {
 } from './userDatabase';
 
 const SYNC_BLOCKED_LOG_KEY = 'zsm_crm_sync_blocked_log';
-const BACKEND_BASE = 'http://localhost:5001';
+const BACKEND_BASE = process.env.REACT_APP_API_URL || '';
 
 /**
  * Log a blocked sync attempt to localStorage and sync it to the backend log file

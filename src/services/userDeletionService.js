@@ -45,7 +45,7 @@ const SYNCED_EMAILS_KEY      = 'zsm_synced_emails';
 const PROJECTS_KEY           = 'zsm_crm_projects';
 const ATTENDANCE_KEY         = 'zsm_crm_attendance';
 const LEAVES_KEY             = 'zsm_crm_leaves';
-const BACKEND_BASE           = 'http://localhost:5001';
+const BACKEND_BASE           = process.env.REACT_APP_API_URL || '';
 
 // ─── Deletion Audit Log ───────────────────────────────────────────────────────
 

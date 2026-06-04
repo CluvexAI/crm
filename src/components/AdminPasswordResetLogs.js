@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const PROXY = 'http://localhost:5001';
+const PROXY = process.env.REACT_APP_API_URL || '';
 
 const AdminPasswordResetLogs = () => {
   const [logs, setLogs] = useState([]);

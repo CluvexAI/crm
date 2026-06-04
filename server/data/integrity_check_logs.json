@@ -1,5 +1,95 @@
 [
   {
+    "id": "integ_1780580045742",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-04T13:34:05.742Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1780579727363",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-04T13:28:47.363Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1780579603563",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-04T13:26:43.563Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1780579546475",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-04T13:25:46.475Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1780579003559",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-04T13:16:43.559Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1780578741773",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-04T13:12:21.773Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1780578520878",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-04T13:08:40.878Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1780578335319",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-04T13:05:35.319Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1780576534108",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-04T12:35:34.108Z",
+    "status": "completed"
+  },
+  {
     "id": "integ_1780575062990",
     "check_type": "ghost_user_check",
     "ghosts_found": 2,

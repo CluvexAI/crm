@@ -2,7 +2,7 @@ import { decrypt } from './cryptoService';
 import { getMailConfig } from './emailService';
 import { io } from 'socket.io-client';
 
-const PROXY = 'http://localhost:5001';
+const PROXY = process.env.REACT_APP_API_URL || '';
 
 // ─── Socket connection ────────────────────────────────────────────────────────
 let socket = null;
