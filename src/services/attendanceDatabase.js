@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'zsm_crm_attendance';
+const API_BASE = (process.env.REACT_APP_API_URL || '') + '/api/attendance';
 
 const getStorage = () => {
   try {
@@ -17,6 +18,38 @@ const setStorage = (data) => {
     console.error('Error writing to localStorage:', e);
     return false;
   }
+};
+
+export const fetchAndSyncAttendance = async () => {
+  try {
+    const res = await fetch(API_BASE);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+
+    if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+      setStorage(json.data);
+      console.log(`[AttendanceDB] Synced ${json.data.length} logs from backend`);
+      return json.data;
+    }
+
+    // Backend is empty, seed with local storage
+    const localLogs = getStorage();
+    if (localLogs && localLogs.length > 0) {
+      const seedRes = await fetch(`${API_BASE}/seed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ logs: localLogs })
+      });
+      const seedJson = await seedRes.json();
+      if (seedJson.success) {
+        console.log(`[AttendanceDB] Seeded backend with ${localLogs.length} logs`);
+      }
+      return localLogs;
+    }
+  } catch (err) {
+    console.warn('[AttendanceDB] Backend unreachable — using localStorage fallback:', err.message);
+  }
+  return getStorage() || [];
 };
 
 export const initializeAttendanceDatabase = (defaultData) => {
@@ -41,31 +74,27 @@ export const setAllAttendanceLogs = (data) => {
 
 export const upsertAttendanceLog = (logData) => {
   const logs = getStorage() || [];
-  
-  // Find if log exists for this user on this date
   const index = logs.findIndex(l => l.userId === logData.userId && l.date === logData.date);
   
+  let newOrUpdatedLog;
   if (index === -1) {
-    // Create new
-    const newLog = {
-      id: Date.now(),
-      ...logData,
-      createdAt: new Date().toISOString()
-    };
-    logs.push(newLog);
-    setStorage(logs);
+    newOrUpdatedLog = { id: Date.now(), ...logData, createdAt: new Date().toISOString() };
+    logs.push(newOrUpdatedLog);
     console.log('[AttendanceDB] Created log for', logData.date);
-    return newLog;
   } else {
-    // Update existing
-    const updatedLog = {
-      ...logs[index],
-      ...logData,
-      updatedAt: new Date().toISOString()
-    };
-    logs[index] = updatedLog;
-    setStorage(logs);
+    newOrUpdatedLog = { ...logs[index], ...logData, updatedAt: new Date().toISOString() };
+    logs[index] = newOrUpdatedLog;
     console.log('[AttendanceDB] Updated log for', logData.date);
-    return updatedLog;
   }
+  
+  setStorage(logs);
+
+  // Sync to backend asynchronously
+  fetch(API_BASE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newOrUpdatedLog)
+  }).catch(err => console.warn('[AttendanceDB] Failed to sync log to backend:', err.message));
+
+  return newOrUpdatedLog;
 };

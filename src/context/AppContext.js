@@ -74,6 +74,7 @@ import {
   deleteProjectRecord
 } from '../services/projectsDatabase';
 import {
+  fetchAndSyncAttendance,
   initializeAttendanceDatabase,
   getAllAttendanceLogs,
   upsertAttendanceLog as upsertAttendanceLogDB,
@@ -382,12 +383,12 @@ export const AppProvider = ({ children }) => {
       setAllProjects(dbProjects);
 
       // Initialize attendance from database
-      let dbAttendance = getAllAttendanceLogs();
+      let dbAttendance = await fetchAndSyncAttendance();
       if (!dbAttendance || dbAttendance.length === 0) {
         initializeAttendanceDatabase(initialAttendance);
         dbAttendance = initialAttendance;
       } else {
-        console.log('[AppContext] Loaded', dbAttendance.length, 'attendance logs from database');
+        console.log('[AppContext] Loaded', dbAttendance.length, 'attendance logs from backend/local');
       }
       setAllAttendance(dbAttendance);
 
@@ -1195,7 +1196,7 @@ export const AppProvider = ({ children }) => {
     deleteProjectRecord(id, true);
 
     // Sync to backend database
-    fetch('/api/projects/' + id, {
+    fetch((process.env.REACT_APP_API_URL || '') + '/api/projects/' + id, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: currentUser.id, userName: currentUser.name, role: currentUser.role }),

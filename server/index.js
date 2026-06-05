@@ -29,7 +29,7 @@ app.use(cors());
 app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '50mb' }));
 
-const PORT = process.env.MAIL_SERVER_PORT || 5001;
+const PORT = process.env.PORT || process.env.MAIL_SERVER_PORT || 5001;
 
 // ─── Data Persistence ────────────────────────────────────────────────────────
 const DATA_DIR = path.join(__dirname, 'data');
@@ -43,6 +43,7 @@ const CUSTOM_DNS_FILE = path.join(DATA_DIR, 'custom_dns.json');
 const DAILY_REPORTS_FILE = path.join(DATA_DIR, 'daily_reports.json');
 const STRIPE_CONFIG_FILE = path.join(DATA_DIR, 'stripe_config.json');
 const USERS_STORE_FILE = path.join(DATA_DIR, 'users.json');
+const ATTENDANCE_FILE = path.join(DATA_DIR, 'attendance.json');
 const DELETED_UUIDS_FILE = path.join(DATA_DIR, 'deleted_uuids.json');
 const MIGRATION_LOGS_FILE = path.join(DATA_DIR, 'migration_logs.json');
 const MIGRATION_ERRORS_FILE = path.join(DATA_DIR, 'migration_error_logs.json');
@@ -88,6 +89,7 @@ let customDnsRecords = readJSON(CUSTOM_DNS_FILE, [
   { id: '2', name: 'mail.zsmeservices.com', type: 'MX', value: 'mail.zsmeservices.com', priority: 0, ttl: 14400, status: 'Verified', createdAt: new Date().toISOString() }
 ]);
 let dailyReports = readJSON(DAILY_REPORTS_FILE, []);
+let attendanceLogs = readJSON(ATTENDANCE_FILE, []);
 let stripeConfig = readJSON(STRIPE_CONFIG_FILE, {
   secretKey: '',
   publishableKey: '',
@@ -1751,6 +1753,45 @@ io.on('connection', (socket) => {
 // Start integrity checks on startup
 const { runGhostUserIntegrityCheck } = require('./services/integrityService');
 runGhostUserIntegrityCheck().catch(err => console.error('[IntegrityStartup] Failed:', err.message));
+
+// ─── Attendance APIs ─────────────────────────────────────────────────────────
+
+app.get('/api/attendance', (req, res) => {
+  res.json({ success: true, data: attendanceLogs });
+});
+
+app.post('/api/attendance/seed', (req, res) => {
+  const { logs } = req.body;
+  if (logs && Array.isArray(logs)) {
+    let added = 0;
+    logs.forEach(log => {
+      const exists = attendanceLogs.find(l => l.userId === log.userId && l.date === log.date);
+      if (!exists) {
+        attendanceLogs.push(log);
+        added++;
+      }
+    });
+    if (added > 0) writeJSON(ATTENDANCE_FILE, attendanceLogs);
+    res.json({ success: true, added });
+  } else {
+    res.status(400).json({ success: false, message: 'Invalid payload' });
+  }
+});
+
+app.post('/api/attendance', (req, res) => {
+  const logData = req.body;
+  const index = attendanceLogs.findIndex(l => l.userId === logData.userId && l.date === logData.date);
+  
+  if (index === -1) {
+    attendanceLogs.push(logData);
+  } else {
+    attendanceLogs[index] = { ...attendanceLogs[index], ...logData };
+  }
+  
+  writeJSON(ATTENDANCE_FILE, attendanceLogs);
+  io.emit('attendance:updated', logData);
+  res.json({ success: true, data: logData });
+});
 
 server.listen(PORT, () => {
   console.log(`Mail Proxy REPAIRED on port ${PORT}`);
