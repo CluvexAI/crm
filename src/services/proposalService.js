@@ -316,7 +316,7 @@ export const sendProposalEmail = async (to, subject, html) => {
     body: html,
     isHtml: true
   };
-  const response = await fetch('/api/emails/send', {
+  const response = await fetch((process.env.REACT_APP_API_URL || '') + '/api/emails/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(emailData)

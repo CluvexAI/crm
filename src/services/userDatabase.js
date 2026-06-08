@@ -1,7 +1,7 @@
 const STORAGE_KEY = 'zsm_crm_users';
 const TOMBSTONE_KEY = 'zsm_crm_deleted_uuids'; // FIX #3–4: Persistent tombstone store
 const CURRENT_VERSION = '1.0';
-const API_BASE = 'https://zsmeservices.web.app/api/users';
+const API_BASE = (process.env.REACT_APP_API_URL || '') + '/api/users';
 
 // ─── Tombstone Helpers ────────────────────────────────────────────────────────
 

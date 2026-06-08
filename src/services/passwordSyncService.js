@@ -1,4 +1,4 @@
-const API_BASE = 'https://zsmeservices.web.app/api/users';
+const API_BASE = (process.env.REACT_APP_API_URL || '') + '/api/users';
 
 /**
  * Changes a user's password on the backend synchronously.

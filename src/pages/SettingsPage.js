@@ -17,7 +17,7 @@ const SettingsPage = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    fetch('/api/settings/stripe')
+    fetch((process.env.REACT_APP_API_URL || '') + '/api/settings/stripe')
       .then(res => res.json())
       .then(data => {
         if (data.success && data.config) {
@@ -35,7 +35,7 @@ const SettingsPage = () => {
   const handleSaveStripe = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/settings/stripe', {
+      const res = await fetch((process.env.REACT_APP_API_URL || '') + '/api/settings/stripe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(stripeConfig)
@@ -55,7 +55,7 @@ const SettingsPage = () => {
   const handleTestConnection = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/settings/stripe/verify', {
+      const res = await fetch((process.env.REACT_APP_API_URL || '') + '/api/settings/stripe/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(stripeConfig)

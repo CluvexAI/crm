@@ -523,7 +523,7 @@ const InvoicesTab = ({ allInvoices, updateInvoice, deleteInvoice, formatCurrency
   const handleGenerateLink = async (inv) => {
     setGeneratingLink(inv.id);
     try {
-      const res = await fetch('/api/stripe/payment-link', {
+      const res = await fetch((process.env.REACT_APP_API_URL || '') + '/api/stripe/payment-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

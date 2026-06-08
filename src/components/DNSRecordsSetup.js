@@ -25,7 +25,7 @@ const DNSRecordsSetup = () => {
   const fetchRecords = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/custom-dns-records');
+      const res = await fetch((process.env.REACT_APP_API_URL || '') + '/api/custom-dns-records');
       const json = await res.json();
       if (json.success) {
         setRecords(json.data);

@@ -918,7 +918,7 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
                       onClick={async () => {
                         if (!window.confirm('Are you sure you want to regenerate this link? It will update the payment amount to the current outstanding due.')) return;
                         try {
-                          const res = await fetch('/api/stripe/payment-link', {
+                          const res = await fetch((process.env.REACT_APP_API_URL || '') + '/api/stripe/payment-link', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -956,7 +956,7 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
                     className="btn btn-sm btn-primary" 
                     onClick={async () => {
                       try {
-                        const res = await fetch('/api/stripe/payment-link', {
+                        const res = await fetch((process.env.REACT_APP_API_URL || '') + '/api/stripe/payment-link', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
@@ -1560,7 +1560,7 @@ const InvoiceView = ({ invoiceId, onClose, initialEditMode = false, initialShowA
 
                   const systemConfig = getMailConfig();
 
-                  const response = await fetch('/api/mail/send', {
+                  const response = await fetch((process.env.REACT_APP_API_URL || '') + '/api/mail/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

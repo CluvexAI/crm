@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { io } from 'socket.io-client';
 import {
   users as initialUsers,
   leads as initialLeads,
@@ -120,6 +121,27 @@ export const AppProvider = ({ children }) => {
 
   const hideAlertModal = useCallback(() => {
     setAlertModal(null);
+  }, []);
+
+  // Real-time attendance syncing
+  useEffect(() => {
+    const PROXY = process.env.REACT_APP_API_URL || '';
+    const socket = io(PROXY, { transports: ['websocket', 'polling'] });
+    
+    socket.on('attendance:updated', (updatedLog) => {
+      setAllAttendance(prev => {
+        const existingIndex = prev.findIndex(a => a.userId === updatedLog.userId && a.date === updatedLog.date);
+        if (existingIndex >= 0) {
+          const newArr = [...prev];
+          newArr[existingIndex] = { ...prev[existingIndex], ...updatedLog };
+          return newArr;
+        } else {
+          return [...prev, updatedLog];
+        }
+      });
+    });
+
+    return () => socket.disconnect();
   }, []);
 
   useEffect(() => {
@@ -541,6 +563,7 @@ export const AppProvider = ({ children }) => {
       localStorage.setItem('zsm_crm_current_user_email', user.email?.toLowerCase() || '');
       registerChatUser(user);
       addAuditLog('User Login', user.name, `Login successful`);
+      markAttendance(user.id, user.name, 'login');
       // Run migration with correct authenticated user ID
       runOneTimeMigration(user.id).catch(() => {});
       return { success: true, user: sessionUser };
@@ -1309,7 +1332,12 @@ export const AppProvider = ({ children }) => {
     // Quick timeout to sync to DB after state updates
     setTimeout(() => {
       setAllAttendance(current => {
-        setAllAttendanceLogs(current);
+        const recordToSync = current.find(a => a.userId === userId && a.date === today);
+        if (recordToSync) {
+          upsertAttendanceLogDB(recordToSync);
+        } else {
+          setAllAttendanceLogs(current);
+        }
         return current;
       });
     }, 100);

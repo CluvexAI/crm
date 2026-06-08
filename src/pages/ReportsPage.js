@@ -49,7 +49,7 @@ const ReportsPage = () => {
     console.log('[REPORT] Initiating submission for:', todayStr);
     setSubmitting(true);
     try {
-      const res = await fetch('/api/reports/daily', {
+      const res = await fetch((process.env.REACT_APP_API_URL || '') + '/api/reports/daily', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

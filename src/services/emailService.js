@@ -21,7 +21,7 @@ export const DEFAULT_MAIL_CONFIG = {
 };
 
 const warn = (msg, extra = {}) => console.warn('[emailService]', msg, extra);
-const err = (msg, extra = {}) => console.error('[emailService]', msg, extra);
+const logError = (msg, extra = {}) => console.error('[emailService]', msg, extra);
 
 export const getMailConfig = () => {
   try {
@@ -97,7 +97,7 @@ export const getUserEmails = () => {
 
 export const saveUserEmails = (emails) => {
   if (!Array.isArray(emails)) {
-    err('saveUserEmails called with non-array, aborting save');
+    logError('saveUserEmails called with non-array, aborting save');
     return false;
   }
   const cleaned = autoHealEmails(emails);
@@ -108,7 +108,7 @@ export const saveUserEmails = (emails) => {
 export const addUserEmail = (userId, userName, userRole, email, password, extraConfig = {}) => {
   try {
     if (!email || typeof email !== 'string' || !email.includes('@')) {
-      err('addUserEmail called with invalid email', { email, userId });
+      logError('addUserEmail called with invalid email', { email, userId });
       throw new Error('Invalid email address');
     }
 
@@ -147,7 +147,7 @@ export const addUserEmail = (userId, userName, userRole, email, password, extraC
     saveUserEmails(emails);
     return newEmail;
   } catch (e) {
-    err('addUserEmail failed', { error: e.message });
+    logError('addUserEmail failed', { error: e.message });
     return null;
   }
 };
@@ -167,7 +167,7 @@ export const updateUserEmail = (id, updates) => {
     saveUserEmails(emails);
     return emails[index];
   } catch (e) {
-    err('updateUserEmail failed', { id, error: e.message });
+    logError('updateUserEmail failed', { id, error: e.message });
     return null;
   }
 };
@@ -178,7 +178,7 @@ export const deleteUserEmail = (id) => {
     saveUserEmails(emails);
     return true;
   } catch (e) {
-    err('deleteUserEmail failed', { id, error: e.message });
+    logError('deleteUserEmail failed', { id, error: e.message });
     return false;
   }
 };
@@ -192,7 +192,7 @@ export const getEmailById = (id) => {
     const emails = getUserEmails();
     return emails.find(e => e.id === id) || null;
   } catch (e) {
-    err('getEmailById failed', { id, error: e.message });
+    logError('getEmailById failed', { id, error: e.message });
     return null;
   }
 };
@@ -209,7 +209,7 @@ export const getEmailByUserId = (userId, userEmail = null) => {
     }
     return [];
   } catch (e) {
-    err('getEmailByUserId failed', { userId, userEmail, error: e.message });
+    logError('getEmailByUserId failed', { userId, userEmail, error: e.message });
     return [];
   }
 };
@@ -225,7 +225,7 @@ export const toggleEmailActive = (id) => {
     saveUserEmails(getUserEmails().map(e => e.id === id ? email : e));
     return email;
   } catch (e) {
-    err('toggleEmailActive failed', { id, error: e.message });
+    logError('toggleEmailActive failed', { id, error: e.message });
     return null;
   }
 };
@@ -250,7 +250,7 @@ export const testImapConnection = async (emailId) => {
   const testResult = { timestamp: new Date().toISOString(), success: false, message: '', errorType: null };
 
   try {
-    const response = await fetch('/api/mail/test-imap', {
+    const response = await fetch((process.env.REACT_APP_API_URL || '') + '/api/mail/test-imap', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -286,7 +286,7 @@ export const testSmtpConnection = async (emailId) => {
   const testResult = { timestamp: new Date().toISOString(), success: false, message: '', errorType: null };
 
   try {
-    const response = await fetch('/api/mail/test-smtp', {
+    const response = await fetch((process.env.REACT_APP_API_URL || '') + '/api/mail/test-smtp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -323,7 +323,7 @@ export const sendTestEmail = async (emailId, recipientEmail) => {
   logEmailActivity({ type: 'SEND_TEST', from: email.email || 'unknown', to: recipientEmail, timestamp: result.timestamp });
 
   try {
-    const response = await fetch('/api/mail/send', {
+    const response = await fetch((process.env.REACT_APP_API_URL || '') + '/api/mail/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -360,7 +360,7 @@ export const testMailServerConnection = async () => {
   const result = { timestamp: new Date().toISOString(), imap: { success: false, message: '' }, smtp: { success: false, message: '' } };
 
   try {
-    const imapRes = await fetch('/api/mail/test-imap', {
+    const imapRes = await fetch((process.env.REACT_APP_API_URL || '') + '/api/mail/test-imap', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ config: { host: config.imapHost, port: config.imapPort, user: 'test@example.com', pass: 'test' } })
@@ -372,7 +372,7 @@ export const testMailServerConnection = async () => {
   }
 
   try {
-    const smtpRes = await fetch('/api/mail/test-smtp', {
+    const smtpRes = await fetch((process.env.REACT_APP_API_URL || '') + '/api/mail/test-smtp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ config: { host: config.smtpHost, port: config.smtpPort, user: 'test@example.com', pass: 'test' } })
@@ -399,7 +399,7 @@ export const logEmailActivity = (log) => {
     if (logs.length > 500) logs.length = 500;
     localStorage.setItem(EMAIL_LOGS_KEY, JSON.stringify(logs));
   } catch (e) {
-    err('logEmailActivity failed', { error: e.message });
+    logError('logEmailActivity failed', { error: e.message });
   }
   return log;
 };
@@ -418,7 +418,7 @@ export const updateSyncState = (state) => {
   try {
     localStorage.setItem(SYNC_STATE_KEY, JSON.stringify(state));
   } catch (e) {
-    err('updateSyncState failed', { error: e.message });
+    logError('updateSyncState failed', { error: e.message });
   }
 };
 
@@ -433,7 +433,7 @@ export const runFullSync = async () => {
   for (const email of emails) {
     try {
       const password = safeDecrypt(email.password);
-      const response = await fetch('/api/mail/sync', {
+      const response = await fetch((process.env.REACT_APP_API_URL || '') + '/api/mail/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -484,7 +484,7 @@ export const syncEmails = async (config) => {
   const password = safeDecrypt(config.password);
 
   try {
-    const response = await fetch('/api/mail/sync', {
+    const response = await fetch((process.env.REACT_APP_API_URL || '') + '/api/mail/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -520,7 +520,7 @@ export const sendEmailViaSMTP = async (config, toEmail, subject, body, attachmen
       (typeof body === 'string' && body.trim().startsWith('<') ? body : `<div style="font-family: sans-serif;">${(body || '').replace(/\n/g, '<br>')}</div>`);
 
   try {
-    const response = await fetch('/api/mail/send', {
+    const response = await fetch((process.env.REACT_APP_API_URL || '') + '/api/mail/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -544,7 +544,7 @@ export const sendEmailViaSMTP = async (config, toEmail, subject, body, attachmen
     if (!data.success) throw new Error(data.message || 'SMTP Send Failed');
     return data;
   } catch (err) {
-    err('sendEmailViaSMTP failed', { error: err.message });
+    logError('sendEmailViaSMTP failed', { error: err.message });
     throw err;
   }
 };
@@ -554,7 +554,7 @@ export const fetchEmailBody = async (config, folder, uid) => {
   const password = safeDecrypt(config.password);
 
   try {
-    const response = await fetch('/api/mail/fetch-body', {
+    const response = await fetch((process.env.REACT_APP_API_URL || '') + '/api/mail/fetch-body', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

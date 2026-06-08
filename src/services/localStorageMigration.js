@@ -136,7 +136,7 @@ const isLeadDuplicate = (lead, existingLeads) => {
 
 const postMigrationLog = async (summary) => {
   try {
-    await fetch('/api/migration/log', {
+    await fetch((process.env.REACT_APP_API_URL || '') + '/api/migration/log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -316,7 +316,7 @@ export const runOneTimeMigration = async (currentUserId) => {
 
       // Post the exact migration error to the backend for audit
       try {
-        await fetch('/api/migration/log-error', {
+        await fetch((process.env.REACT_APP_API_URL || '') + '/api/migration/log-error', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
