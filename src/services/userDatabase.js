@@ -137,9 +137,10 @@ export const getAllUsers = () => {
   return users || [];
 };
 
-export const getUserById = (uuid) => {
+export const getUserById = (identifier) => {
   const users = getStorage();
-  return users?.find(u => u.uuid === uuid) || null;
+  if (!identifier) return null;
+  return users?.find(u => String(u.uuid) === String(identifier) || String(u.id) === String(identifier)) || null;
 };
 
 export const createUserRecord = (userData) => {

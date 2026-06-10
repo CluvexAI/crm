@@ -454,6 +454,7 @@ const LeadsPage = () => {
                   </th>
                   <th>#</th>
                   <th>Contact / Business</th>
+                  {isAdmin && <th>Sales Agent</th>}
                   <th>Phone</th>
                   <th>Category</th>
                   <th>Proposal</th>
@@ -483,6 +484,11 @@ const LeadsPage = () => {
                         <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>✉️ {lead.email || 'No email'}</div>
                         {(lead.city || lead.targetArea) && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>📍 {lead.city || lead.targetArea}</div>}
                       </td>
+                      {isAdmin && (
+                        <td>
+                          <div style={{ fontSize: 13, fontWeight: 500 }}>{lead.createdByName || 'Unknown'}</div>
+                        </td>
+                      )}
                       <td style={{ fontFamily: 'monospace', fontSize: 13 }}>
                         {lead.ownerPhone}
                         {lead.altPhone && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{lead.altPhone}</div>}

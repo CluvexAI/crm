@@ -1036,8 +1036,8 @@
     "department": "Operations",
     "status": "active",
     "employeeId": "EMP-OPS-001",
-    "createdAt": "2026-06-08T09:34:57.221Z",
-    "updatedAt": "2026-06-08T09:34:57.221Z"
+    "createdAt": "2026-06-10T08:22:26.681Z",
+    "updatedAt": "2026-06-10T08:22:26.681Z"
   },
   {
     "uuid": "3fc54ade-f756-46ee-a571-43191703de19",
@@ -1048,7 +1048,7 @@
     "department": "Billing",
     "status": "active",
     "employeeId": "EMP-BIL-001",
-    "createdAt": "2026-06-08T09:34:57.227Z",
-    "updatedAt": "2026-06-08T09:34:57.227Z"
+    "createdAt": "2026-06-10T08:22:26.684Z",
+    "updatedAt": "2026-06-10T08:22:26.684Z"
   }
 ]

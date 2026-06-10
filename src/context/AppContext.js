@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import {
   users as initialUsers,
@@ -77,9 +77,7 @@ import {
 import {
   fetchAndSyncAttendance,
   initializeAttendanceDatabase,
-  getAllAttendanceLogs,
   upsertAttendanceLog as upsertAttendanceLogDB,
-  setAllAttendanceLogs
 } from '../services/attendanceDatabase';
 import { runOneTimeMigration } from '../services/localStorageMigration';
 
@@ -123,6 +121,9 @@ export const AppProvider = ({ children }) => {
     setAlertModal(null);
   }, []);
 
+  // Ref to track in-flight attendance saves — prevents polling from overwriting optimistic state
+  const attendanceSyncInFlightRef = useRef(false);
+
   // Real-time attendance syncing
   useEffect(() => {
     const PROXY = process.env.REACT_APP_API_URL || '';
@@ -141,7 +142,30 @@ export const AppProvider = ({ children }) => {
       });
     });
 
-    return () => socket.disconnect();
+    // Fallback polling — guards against wiping state with empty data or overwriting in-flight saves
+    const syncInterval = setInterval(async () => {
+      // Skip polling while a save is in progress to prevent overwriting optimistic state
+      if (attendanceSyncInFlightRef.current) {
+        console.log('[AttendancePoll] Skipping — sync in flight');
+        return;
+      }
+      try {
+        const dbAttendance = await fetchAndSyncAttendance();
+        // FIX: Only overwrite state when server returned real data.
+        // fetchAndSyncAttendance returns [] on API failure — an empty array is truthy,
+        // so the old `if (dbAttendance)` check always passed and wiped state.
+        if (dbAttendance && dbAttendance.length > 0) {
+          setAllAttendance(dbAttendance);
+        }
+      } catch (err) {
+        console.warn('Attendance polling failed:', err);
+      }
+    }, 15000);
+
+    return () => {
+      socket.disconnect();
+      clearInterval(syncInterval);
+    };
   }, []);
 
   useEffect(() => {
@@ -1271,29 +1295,31 @@ export const AppProvider = ({ children }) => {
 
   // ─── Attendance ───────────────────────────────────────────────────────────
 
-  const markAttendance = (userId, userName, type) => {
+  const markAttendance = async (userId, userName, type) => {
     const today = new Date().toISOString().split('T')[0];
     const now = new Date().toISOString();
+
+    // Track the record we need to sync so we can await the backend POST
+    let recordToSync = null;
 
     setAllAttendance((prev) => {
       const existing = prev.find((a) => a.userId === userId && a.date === today);
 
       if (type === 'login') {
         if (existing) return prev;
-        return [
-          ...prev,
-          {
-            id: Date.now(),
-            userId,
-            userName,
-            date: today,
-            loginTime: now,
-            logoutTime: null,
-            breaks: [],
-            meetings: [],
-            status: 'Present',
-          },
-        ];
+        const newRecord = {
+          id: Date.now(),
+          userId,
+          userName,
+          date: today,
+          loginTime: now,
+          logoutTime: null,
+          breaks: [],
+          meetings: [],
+          status: 'Present',
+        };
+        recordToSync = newRecord;
+        return [...prev, newRecord];
       }
 
       if (!existing) return prev;
@@ -1326,65 +1352,82 @@ export const AppProvider = ({ children }) => {
         updated.meetings = newMeetings;
       }
 
+      recordToSync = updated;
       return prev.map((a) => (a.userId === userId && a.date === today ? updated : a));
     });
     
-    // Quick timeout to sync to DB after state updates
-    setTimeout(() => {
-      setAllAttendance(current => {
-        const recordToSync = current.find(a => a.userId === userId && a.date === today);
-        if (recordToSync) {
-          upsertAttendanceLogDB(recordToSync);
-        } else {
-          setAllAttendanceLogs(current);
-        }
-        return current;
-      });
-    }, 100);
+    // FIX: Await the backend sync instead of fire-and-forget setTimeout.
+    // This ensures the server has the record before the next poll cycle
+    // can overwrite our optimistic state update.
+    if (recordToSync) {
+      attendanceSyncInFlightRef.current = true;
+      try {
+        await upsertAttendanceLogDB(recordToSync);
+      } catch (err) {
+        console.error('[markAttendance] Backend sync failed:', err.message);
+      } finally {
+        attendanceSyncInFlightRef.current = false;
+      }
+    }
   };
 
-  const submitDailyReport = (userId, userName, date, workSummary) => {
+  const submitDailyReport = async (userId, userName, date, workSummary) => {
+    let recordToSync = null;
+
     setAllAttendance((prev) => {
       const existing = prev.find((a) => a.userId === userId && a.date === date);
       if (existing) {
-        return prev.map((a) => (a.userId === userId && a.date === date ? { ...a, workSummary } : a));
+        const updated = { ...existing, workSummary };
+        recordToSync = updated;
+        return prev.map((a) => (a.userId === userId && a.date === date ? updated : a));
       }
-      return [
-        ...prev,
-        {
-          id: Date.now(),
-          userId,
-          userName,
-          date,
-          loginTime: null,
-          logoutTime: null,
-          breaks: [],
-          meetings: [],
-          status: 'Present',
-          workSummary
-        },
-      ];
+      const newRecord = {
+        id: Date.now(),
+        userId,
+        userName,
+        date,
+        loginTime: null,
+        logoutTime: null,
+        breaks: [],
+        meetings: [],
+        status: 'Present',
+        workSummary
+      };
+      recordToSync = newRecord;
+      return [...prev, newRecord];
     });
 
-    setTimeout(() => {
-      setAllAttendance(current => {
-        setAllAttendanceLogs(current);
-        return current;
-      });
-    }, 100);
+    // Await backend sync (same pattern as markAttendance)
+    if (recordToSync) {
+      attendanceSyncInFlightRef.current = true;
+      try {
+        await upsertAttendanceLogDB(recordToSync);
+      } catch (err) {
+        console.error('[submitDailyReport] Backend sync failed:', err.message);
+      } finally {
+        attendanceSyncInFlightRef.current = false;
+      }
+    }
     
     addAuditLog('Daily Report Submitted', userName, `Work summary submitted for ${date}`);
   };
 
-  const manuallyUpsertAttendanceLog = (logData) => {
-    const updatedLog = upsertAttendanceLogDB(logData);
-    setAllAttendance((prev) => {
-      const exists = prev.find(a => a.userId === logData.userId && a.date === logData.date);
-      if (exists) {
-        return prev.map(a => (a.userId === logData.userId && a.date === logData.date ? updatedLog : a));
-      }
-      return [...prev, updatedLog];
-    });
+  const manuallyUpsertAttendanceLog = async (logData) => {
+    attendanceSyncInFlightRef.current = true;
+    try {
+      const updatedLog = await upsertAttendanceLogDB(logData);
+      setAllAttendance((prev) => {
+        const exists = prev.find(a => a.userId === logData.userId && a.date === logData.date);
+        if (exists) {
+          return prev.map(a => (a.userId === logData.userId && a.date === logData.date ? updatedLog : a));
+        }
+        return [...prev, updatedLog];
+      });
+    } catch (err) {
+      console.error('[manuallyUpsertAttendanceLog] Backend sync failed:', err.message);
+    } finally {
+      attendanceSyncInFlightRef.current = false;
+    }
     addAuditLog('Attendance Modified manually', currentUser.name, `Modified log for ${logData.userName} on ${logData.date}`);
   };
 

@@ -1,0 +1,15 @@
+[auth]
+require_email_verification = false
+verify_email_method = "code"
+reset_password_method = "code"
+allowed_redirect_urls = [
+  "https://zsm-crm.web.app/auth/callback",
+  "https://zsm-crm.firebaseapp.com/auth/callback",
+  "http://localhost:3000/auth/callback",
+  "http://localhost:5173/auth/callback",
+  "http://localhost:5000/auth/callback"
+]
+
+[auth.password]
+min_length = 8
+require_number = true
