@@ -1,112 +1,100 @@
-/**
- * attendanceDatabase.js — 100% backend-driven attendance persistence.
- *
- * ALL reads and writes go directly to the backend REST API.
- * Zero localStorage usage — attendance survives browser history clears.
- */
-
+const STORAGE_KEY = 'zsm_crm_attendance';
 const API_BASE = (process.env.REACT_APP_API_URL || '') + '/api/attendance';
-const USERS_API = (process.env.REACT_APP_API_URL || '') + '/api/users';
 
-/**
- * Fetch ALL attendance logs from the backend.
- * Primary source: dedicated /api/attendance endpoint.
- * Fallback: aggregate from user records' attendanceLogs arrays.
- */
-export const fetchAndSyncAttendance = async () => {
+const getStorage = () => {
   try {
-    // Primary: dedicated attendance API
-    const res = await fetch(API_BASE);
-    if (res.ok) {
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        console.log(`[AttendanceDB] Synced ${json.data.length} logs from /api/attendance`);
-        return json.data;
-      }
-    }
-  } catch (err) {
-    console.warn('[AttendanceDB] /api/attendance unreachable:', err.message);
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null;
+  } catch (e) {
+    console.error('Error reading from localStorage:', e);
+    return null;
   }
-
-  // Fallback: aggregate from user records
-  try {
-    const res = await fetch(USERS_API);
-    if (res.ok) {
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        let allLogs = [];
-        json.data.forEach(u => {
-          if (u.attendanceLogs && Array.isArray(u.attendanceLogs)) {
-            allLogs = [...allLogs, ...u.attendanceLogs];
-          }
-        });
-        if (allLogs.length > 0) {
-          console.log(`[AttendanceDB] Fallback: aggregated ${allLogs.length} logs from user records`);
-          return allLogs;
-        }
-      }
-    }
-  } catch (err) {
-    console.warn('[AttendanceDB] Users API fallback also failed:', err.message);
-  }
-
-  return [];
 };
 
-/**
- * No-op: attendance is not stored locally.
- */
+const setStorage = (data) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return true;
+  } catch (e) {
+    console.error('Error writing to localStorage:', e);
+    return false;
+  }
+};
+
+export const fetchAndSyncAttendance = async () => {
+  try {
+    const res = await fetch(API_BASE);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+
+    if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+      setStorage(json.data);
+      console.log(`[AttendanceDB] Synced ${json.data.length} logs from backend`);
+      return json.data;
+    }
+
+    // Backend is empty, seed with local storage
+    const localLogs = getStorage();
+    if (localLogs && localLogs.length > 0) {
+      const seedRes = await fetch(`${API_BASE}/seed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ logs: localLogs })
+      });
+      const seedJson = await seedRes.json();
+      if (seedJson.success) {
+        console.log(`[AttendanceDB] Seeded backend with ${localLogs.length} logs`);
+      }
+      return localLogs;
+    }
+  } catch (err) {
+    console.warn('[AttendanceDB] Backend unreachable — using localStorage fallback:', err.message);
+  }
+  return getStorage() || [];
+};
+
 export const initializeAttendanceDatabase = (defaultData) => {
-  console.log('[AttendanceDB] Returning default attendance (no localStorage)');
+  const stored = getStorage();
+  if (stored) {
+    console.log('[AttendanceDB] Loading attendance from localStorage');
+    return stored;
+  }
+  console.log('[AttendanceDB] Initializing database with default attendance');
+  setStorage(defaultData);
   return defaultData;
 };
 
-/**
- * No-op: returns empty — all reads go through fetchAndSyncAttendance.
- */
 export const getAllAttendanceLogs = () => {
-  return [];
+  const data = getStorage();
+  return data || [];
 };
 
-/**
- * No-op: attendance is not stored in localStorage.
- */
 export const setAllAttendanceLogs = (data) => {
-  // Intentionally empty — no localStorage
+  setStorage(data);
 };
 
-/**
- * Upsert a single attendance log directly to the backend.
- * This POSTs to /api/attendance which saves to attendance.json on the server.
- * No localStorage is touched at any point.
- *
- * IMPORTANT: This function is async and MUST be awaited so the backend has the
- * record before the next polling cycle overwrites optimistic React state.
- */
-export const upsertAttendanceLog = async (logData) => {
-  let newOrUpdatedLog = { ...logData };
-  if (!newOrUpdatedLog.id) {
-    newOrUpdatedLog.id = Date.now();
-    newOrUpdatedLog.createdAt = new Date().toISOString();
+export const upsertAttendanceLog = (logData) => {
+  const logs = getStorage() || [];
+  const index = logs.findIndex(l => l.userId === logData.userId && l.date === logData.date);
+  
+  let newOrUpdatedLog;
+  if (index === -1) {
+    newOrUpdatedLog = { id: Date.now(), ...logData, createdAt: new Date().toISOString() };
+    logs.push(newOrUpdatedLog);
+    console.log('[AttendanceDB] Created log for', logData.date);
   } else {
-    newOrUpdatedLog.updatedAt = new Date().toISOString();
+    newOrUpdatedLog = { ...logs[index], ...logData, updatedAt: new Date().toISOString() };
+    logs[index] = newOrUpdatedLog;
+    console.log('[AttendanceDB] Updated log for', logData.date);
   }
+  
+  setStorage(logs);
 
-  // Sync to backend via dedicated attendance API — awaited to prevent race conditions
-  try {
-    const res = await fetch(API_BASE, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newOrUpdatedLog),
-    });
-    if (!res.ok) {
-      console.error('[AttendanceDB] Backend POST failed:', res.status, res.statusText);
-    } else {
-      console.log('[AttendanceDB] ✅ Synced attendance log to backend for', newOrUpdatedLog.date);
-    }
-  } catch (err) {
-    console.error('[AttendanceDB] Failed to sync attendance to backend:', err.message);
-  }
+  // Sync to backend asynchronously
+  fetch(API_BASE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newOrUpdatedLog)
+  }).catch(err => console.warn('[AttendanceDB] Failed to sync log to backend:', err.message));
 
   return newOrUpdatedLog;
 };
