@@ -321,8 +321,9 @@ const LeadsPage = () => {
   const [showConvertModal, setShowConvertModal] = useState(null);
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [alertModal, setAlertModal] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const isAdmin = currentUser.role === 'Admin';
+  const isAdmin = currentUser?.role?.toLowerCase() === 'admin';
   const canDelete = rbac.can('DELETE_LEAD');
   const leads = isAdmin ? allLeads : myLeads;
 

@@ -1,5 +1,6 @@
+import { api } from './apiService';
+
 const STORAGE_KEY = 'zsm_crm_attendance';
-const API_BASE = (process.env.REACT_APP_API_URL || '') + '/api/attendance';
 
 const getStorage = () => {
   try {
@@ -21,35 +22,34 @@ const setStorage = (data) => {
 };
 
 export const fetchAndSyncAttendance = async () => {
+  let allLogs = getStorage() || [];
+  
   try {
-    const res = await fetch(API_BASE);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-
-    if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-      setStorage(json.data);
-      console.log(`[AttendanceDB] Synced ${json.data.length} logs from backend`);
-      return json.data;
-    }
-
-    // Backend is empty, seed with local storage
-    const localLogs = getStorage();
-    if (localLogs && localLogs.length > 0) {
-      const seedRes = await fetch(`${API_BASE}/seed`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ logs: localLogs })
+    // Sync from Insforge users table
+    const users = await api.users.getAll();
+    if (users && Array.isArray(users)) {
+      let dbLogs = [];
+      users.forEach(u => {
+        if (u.attendanceLogs && Array.isArray(u.attendanceLogs)) {
+          dbLogs = [...dbLogs, ...u.attendanceLogs];
+        }
       });
-      const seedJson = await seedRes.json();
-      if (seedJson.success) {
-        console.log(`[AttendanceDB] Seeded backend with ${localLogs.length} logs`);
+      if (dbLogs.length > 0) {
+        // Merge dbLogs and local logs, preferring dbLogs
+        const logMap = new Map();
+        allLogs.forEach(l => logMap.set(`${l.userId}_${l.date}`, l));
+        dbLogs.forEach(l => logMap.set(`${l.userId}_${l.date}`, l));
+        
+        allLogs = Array.from(logMap.values());
+        setStorage(allLogs);
+        console.log(`[AttendanceDB] Synced ${dbLogs.length} logs from Insforge users table`);
       }
-      return localLogs;
     }
   } catch (err) {
-    console.warn('[AttendanceDB] Backend unreachable — using localStorage fallback:', err.message);
+    console.warn('[AttendanceDB] Insforge sync failed:', err.message);
   }
-  return getStorage() || [];
+
+  return allLogs;
 };
 
 export const initializeAttendanceDatabase = (defaultData) => {
@@ -72,7 +72,7 @@ export const setAllAttendanceLogs = (data) => {
   setStorage(data);
 };
 
-export const upsertAttendanceLog = (logData) => {
+export const upsertAttendanceLog = async (logData) => {
   const logs = getStorage() || [];
   const index = logs.findIndex(l => l.userId === logData.userId && l.date === logData.date);
   
@@ -89,12 +89,14 @@ export const upsertAttendanceLog = (logData) => {
   
   setStorage(logs);
 
-  // Sync to backend asynchronously
-  fetch(API_BASE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(newOrUpdatedLog)
-  }).catch(err => console.warn('[AttendanceDB] Failed to sync log to backend:', err.message));
+  // Sync to Insforge users table
+  try {
+    const userLogs = logs.filter(l => l.userId === logData.userId);
+    await api.users.update(logData.userId, { attendanceLogs: userLogs });
+    console.log('[AttendanceDB] Successfully synced to Insforge for user:', logData.userId);
+  } catch (err) {
+    console.error('[AttendanceDB] Failed to sync log to Insforge:', err.message);
+  }
 
   return newOrUpdatedLog;
 };

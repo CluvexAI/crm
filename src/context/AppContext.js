@@ -1308,7 +1308,12 @@ export const AppProvider = ({ children }) => {
     // Quick timeout to sync to DB after state updates
     setTimeout(() => {
       setAllAttendance(current => {
-        setAllAttendanceLogs(current);
+        const recordToSync = current.find(a => a.userId === userId && a.date === today);
+        if (recordToSync) {
+          upsertAttendanceLogDB(recordToSync);
+        } else {
+          setAllAttendanceLogs(current);
+        }
         return current;
       });
     }, 100);
@@ -1339,7 +1344,12 @@ export const AppProvider = ({ children }) => {
 
     setTimeout(() => {
       setAllAttendance(current => {
-        setAllAttendanceLogs(current);
+        const recordToSync = current.find(a => a.userId === userId && a.date === date);
+        if (recordToSync) {
+          upsertAttendanceLogDB(recordToSync);
+        } else {
+          setAllAttendanceLogs(current);
+        }
         return current;
       });
     }, 100);
@@ -1347,8 +1357,8 @@ export const AppProvider = ({ children }) => {
     addAuditLog('Daily Report Submitted', userName, `Work summary submitted for ${date}`);
   };
 
-  const manuallyUpsertAttendanceLog = (logData) => {
-    const updatedLog = upsertAttendanceLogDB(logData);
+  const manuallyUpsertAttendanceLog = async (logData) => {
+    const updatedLog = await upsertAttendanceLogDB(logData);
     setAllAttendance((prev) => {
       const exists = prev.find(a => a.userId === logData.userId && a.date === logData.date);
       if (exists) {
