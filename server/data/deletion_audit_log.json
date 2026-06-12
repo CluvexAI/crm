@@ -1,5 +1,85 @@
 [
   {
+    "id": "del_integrity_1781270066834",
+    "deletedUserUuid": "3fc54ade-f756-46ee-a571-43191703de19",
+    "deletedUserEmail": "billing@zsmeservices.com",
+    "deletedUserName": "Billing Specialist",
+    "deletedByUuid": "system_integrity_check",
+    "deletedByName": "System Integrity Daemon",
+    "deletionType": "hard_delete_auto",
+    "deletionSource": "system_integrity_check",
+    "deletionReason": "Ghost user auto-removed — tombstone match for email: billing@zsmeservices.com",
+    "tombstoneCreated": true,
+    "blockResync": true,
+    "blockRestore": true,
+    "tablesClean": [
+      "backend_users_json"
+    ],
+    "startedAt": "2026-06-12T13:14:26.834Z",
+    "completedAt": "2026-06-12T13:14:26.834Z",
+    "receivedAt": "2026-06-12T13:14:26.834Z"
+  },
+  {
+    "id": "del_integrity_1781270066733",
+    "deletedUserUuid": "53984c72-7fc6-47a5-be0a-94bb7382c067",
+    "deletedUserEmail": "operations@zsmeservices.com",
+    "deletedUserName": "Operations Manager",
+    "deletedByUuid": "system_integrity_check",
+    "deletedByName": "System Integrity Daemon",
+    "deletionType": "hard_delete_auto",
+    "deletionSource": "system_integrity_check",
+    "deletionReason": "Ghost user auto-removed — tombstone match for email: operations@zsmeservices.com",
+    "tombstoneCreated": true,
+    "blockResync": true,
+    "blockRestore": true,
+    "tablesClean": [
+      "backend_users_json"
+    ],
+    "startedAt": "2026-06-12T13:14:26.733Z",
+    "completedAt": "2026-06-12T13:14:26.733Z",
+    "receivedAt": "2026-06-12T13:14:26.733Z"
+  },
+  {
+    "id": "del_integrity_1781269806755",
+    "deletedUserUuid": "3fc54ade-f756-46ee-a571-43191703de19",
+    "deletedUserEmail": "billing@zsmeservices.com",
+    "deletedUserName": "Billing Specialist",
+    "deletedByUuid": "system_integrity_check",
+    "deletedByName": "System Integrity Daemon",
+    "deletionType": "hard_delete_auto",
+    "deletionSource": "system_integrity_check",
+    "deletionReason": "Ghost user auto-removed — tombstone match for email: billing@zsmeservices.com",
+    "tombstoneCreated": true,
+    "blockResync": true,
+    "blockRestore": true,
+    "tablesClean": [
+      "backend_users_json"
+    ],
+    "startedAt": "2026-06-12T13:10:06.755Z",
+    "completedAt": "2026-06-12T13:10:06.755Z",
+    "receivedAt": "2026-06-12T13:10:06.755Z"
+  },
+  {
+    "id": "del_integrity_1781269806414",
+    "deletedUserUuid": "53984c72-7fc6-47a5-be0a-94bb7382c067",
+    "deletedUserEmail": "operations@zsmeservices.com",
+    "deletedUserName": "Operations Manager",
+    "deletedByUuid": "system_integrity_check",
+    "deletedByName": "System Integrity Daemon",
+    "deletionType": "hard_delete_auto",
+    "deletionSource": "system_integrity_check",
+    "deletionReason": "Ghost user auto-removed — tombstone match for email: operations@zsmeservices.com",
+    "tombstoneCreated": true,
+    "blockResync": true,
+    "blockRestore": true,
+    "tablesClean": [
+      "backend_users_json"
+    ],
+    "startedAt": "2026-06-12T13:10:06.414Z",
+    "completedAt": "2026-06-12T13:10:06.414Z",
+    "receivedAt": "2026-06-12T13:10:06.415Z"
+  },
+  {
     "id": "del_integrity_1781267998599",
     "deletedUserUuid": "3fc54ade-f756-46ee-a571-43191703de19",
     "deletedUserEmail": "billing@zsmeservices.com",

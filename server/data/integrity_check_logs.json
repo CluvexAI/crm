@@ -1,5 +1,25 @@
 [
   {
+    "id": "integ_1781270067062",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-12T13:14:27.062Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1781269807038",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-12T13:10:07.038Z",
+    "status": "completed"
+  },
+  {
     "id": "integ_1781267998693",
     "check_type": "ghost_user_check",
     "ghosts_found": 2,
@@ -4977,26 +4997,6 @@
     "mock_users_found": 0,
     "mock_users_removed": 0,
     "checked_at": "2026-05-27T09:54:17.183Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1779873857138",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-27T09:24:17.138Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1779872057095",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 0,
-    "ghosts_removed": 0,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-27T08:54:17.095Z",
     "status": "completed"
   }
 ]

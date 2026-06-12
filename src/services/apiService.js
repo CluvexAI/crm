@@ -407,27 +407,27 @@ export const api = {
   users: {
     getAll: async () => {
       const { data, error } = await db.from('users').select('*');
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return data || [];
     },
     getById: async (id) => {
       const { data, error } = await db.from('users').select('*').eq('id', id).single();
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return data;
     },
     create: async (user) => {
       const { data, error } = await db.from('users').insert([user]);
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return data?.[0] || user;
     },
     update: async (id, updates) => {
       const { data, error } = await db.from('users').update(updates).eq('id', id);
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return data?.[0] || updates;
     },
     delete: async (id) => {
       const { error } = await db.from('users').delete().eq('id', id);
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
     }
   },
 
@@ -437,7 +437,7 @@ export const api = {
       if (error && (error.code === '42P01' || error.message?.includes('does not exist'))) {
         ({ data, error } = await db.from('leads').select('*'));
       }
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return (data || []).map(mapLeadFromDB);
     },
     getById: async (id) => {
@@ -445,7 +445,7 @@ export const api = {
       if (error && (error.code === '42P01' || error.message?.includes('does not exist'))) {
         ({ data, error } = await db.from('leads').select('*').eq('id', id).single());
       }
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return mapLeadFromDB(data);
     },
     checkDuplicate: async (phone, email, website, agentId) => {
@@ -480,7 +480,7 @@ export const api = {
         if (error.code === '42P01' || error.message?.includes('does not exist')) {
           throw new Error('ACTION_REQUIRED: Run 20260529_create_crm_leads.sql in InsForge SQL Editor.');
         }
-        throw error;
+        throw new Error(error.message || JSON.stringify(error));
       }
       return mapLeadFromDB(data?.[0]) || lead;
     },
@@ -494,7 +494,7 @@ export const api = {
       if (error && (error.code === '42P01' || error.message?.includes('does not exist'))) {
         ({ data, error } = await db.from('leads').update(updatePayload).eq('id', id));
       }
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return mapLeadFromDB(data?.[0]) || updates;
     },
     delete: async (id) => {
@@ -502,7 +502,7 @@ export const api = {
       if (error && (error.code === '42P01' || error.message?.includes('does not exist'))) {
         ({ error } = await db.from('leads').delete().eq('id', id));
       }
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
     },
     addFollowupLog: async (leadId, agentId, text) => {
       try {
@@ -521,58 +521,58 @@ export const api = {
   sales: {
     getAll: async () => {
       const { data, error } = await db.from('sales').select('*');
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return (data || []).map(mapSaleFromDB);
     },
     getById: async (id) => {
       const { data, error } = await db.from('sales').select('*').eq('id', id).single();
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return mapSaleFromDB(data);
     },
     create: async (sale) => {
       const clean = mapSaleToDB(sale);
       const { data, error } = await db.from('sales').insert([clean]);
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return mapSaleFromDB(data?.[0]) || sale;
     },
     update: async (id, updates) => {
       const clean = mapSaleToDB({ ...updates, id });
       const { data, error } = await db.from('sales').update(clean).eq('id', id);
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return mapSaleFromDB(data?.[0]) || updates;
     },
     delete: async (id) => {
       const { error } = await db.from('sales').delete().eq('id', id);
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
     }
   },
 
   invoices: {
     getAll: async () => {
       const { data, error } = await db.from('invoices').select('*');
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return (data || []).map(mapInvoiceFromDB);
     },
     getById: async (id) => {
       const { data, error } = await db.from('invoices').select('*').eq('id', id).single();
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return mapInvoiceFromDB(data);
     },
     create: async (invoice) => {
       const clean = mapInvoiceToDB(invoice);
       const { data, error } = await db.from('invoices').insert([clean]);
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return mapInvoiceFromDB(data?.[0]) || invoice;
     },
     update: async (id, updates) => {
       const clean = mapInvoiceToDB({ ...updates, id });
       const { data, error } = await db.from('invoices').update(clean).eq('id', id);
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return mapInvoiceFromDB(data?.[0]) || updates;
     },
     delete: async (id) => {
       const { error } = await db.from('invoices').delete().eq('id', id);
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
     }
   },
 
@@ -582,7 +582,7 @@ export const api = {
       const { data, error } = await db.from('attendance').select('*');
       if (error) {
         console.error('[API:attendance.getAll] Error:', error.message);
-        throw error;
+        throw new Error(error.message || JSON.stringify(error));
       }
       return (data || []).map(mapAttendanceFromDB);
     },
@@ -590,7 +590,7 @@ export const api = {
     // Fetch logs for a specific date
     getByDate: async (date) => {
       const { data, error } = await db.from('attendance').select('*').eq('date', date);
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return (data || []).map(mapAttendanceFromDB);
     },
 
@@ -600,7 +600,7 @@ export const api = {
         .from('attendance')
         .select('*')
         .eq('user_id', String(userId));
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
       return (data || []).map(mapAttendanceFromDB);
     },
 
@@ -615,42 +615,18 @@ export const api = {
       console.log('[API:attendance.upsert] Sending to Insforge:', clean);
 
       try {
-        // 1. Check if record exists
-        const { data: existing } = await db
+        const { data, error } = await db
           .from('attendance')
-          .select('id')
-          .eq('user_id', clean.user_id)
-          .eq('date', clean.date)
-          .maybeSingle();
+          .upsert([clean], { onConflict: 'user_id,date' })
+          .select();
 
-        let resultData, resultError;
-
-        if (existing && existing.id) {
-          // Update
-          const { data, error } = await db
-            .from('attendance')
-            .update(clean)
-            .eq('id', existing.id)
-            .select();
-          resultData = data;
-          resultError = error;
-        } else {
-          // Insert
-          const { data, error } = await db
-            .from('attendance')
-            .insert([clean])
-            .select();
-          resultData = data;
-          resultError = error;
+        if (error) {
+          console.error('[API:attendance.upsert] Insforge error:', error.message, error);
+          throw new Error(error.message || JSON.stringify(error));
         }
 
-        if (resultError) {
-          console.error('[API:attendance.upsert] Insforge error:', resultError.message, resultError);
-          throw resultError;
-        }
-
-        console.log('[API:attendance.upsert] ✅ Success. Returned row:', resultData?.[0]);
-        return mapAttendanceFromDB(resultData?.[0]) || logData;
+        console.log('[API:attendance.upsert] ✅ Success. Returned row:', data?.[0]);
+        return mapAttendanceFromDB(data?.[0]) || logData;
       } catch (err) {
         console.error('[API:attendance.upsert] Fatal error:', err.message);
         throw err;
@@ -660,7 +636,7 @@ export const api = {
     // Delete a single attendance record by id
     delete: async (id) => {
       const { error } = await db.from('attendance').delete().eq('id', id);
-      if (error) throw error;
+      if (error) throw new Error(error.message || JSON.stringify(error));
     }
   }
 };
