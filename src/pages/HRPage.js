@@ -12,6 +12,7 @@ const EmployeesTab = ({ allUsers, currentUser, updateUser, addAuditLog }) => {
   const [showForm, setShowForm] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [viewUser, setViewUser] = useState(null);
+  const canViewAll = currentUser.role === ROLES.HR || currentUser.role === ROLES.ADMIN;
   const isHR = currentUser.role === ROLES.HR;
 
   const config = getRoleConfig(currentUser.role, 'hr_module');
@@ -106,7 +107,7 @@ const EmployeesTab = ({ allUsers, currentUser, updateUser, addAuditLog }) => {
       {showForm && (
         <UserFormModal
           user={editUser}
-          isHR={isHR}
+          isHR={isHR} canViewAll={isHR}
           onClose={() => { setShowForm(false); setEditUser(null); }}
           onSave={handleSave}
         />
@@ -116,7 +117,7 @@ const EmployeesTab = ({ allUsers, currentUser, updateUser, addAuditLog }) => {
   );
 };
 
-const AttendanceTab = ({ allAttendance, allUsers, today, isHR, currentUser, markAttendance, allLeaves, manuallyUpsertAttendanceLog }) => {
+const AttendanceTab = ({ allAttendance, allUsers, today, isHR, canViewAll, currentUser, markAttendance, allLeaves, manuallyUpsertAttendanceLog }) => {
   const [viewMode, setViewMode] = useState('daily'); // 'daily' or 'advanced'
   const [dateFilter, setDateFilter] = useState(today);
   const [search, setSearch] = useState('');
@@ -128,7 +129,7 @@ const AttendanceTab = ({ allAttendance, allUsers, today, isHR, currentUser, mark
     const matchDate = a.date === dateFilter;
     const matchSearch = !search || a.userName.toLowerCase().includes(search.toLowerCase());
     const matchUser = userFilter === 'all' || String(a.userId) === String(userFilter);
-    if (!isHR) return String(a.userId) === String(currentUser.id) && matchDate;
+    if (!canViewAll) return String(a.userId) === String(currentUser.id) && matchDate;
     return matchDate && matchSearch && matchUser;
   });
 
@@ -407,7 +408,7 @@ const HRPage = ({ defaultTab }) => {
           allAttendance={allAttendance}
           allUsers={allUsers}
           today={today}
-          isHR={isHR}
+          isHR={isHR} canViewAll={isHR}
           currentUser={currentUser}
           markAttendance={markAttendance}
         />
@@ -456,7 +457,7 @@ const HRPage = ({ defaultTab }) => {
           allUsers={allUsers}
           allAttendance={allAttendance}
           allLeaves={allLeaves}
-          isHR={isHR}
+          isHR={isHR} canViewAll={isHR}
         />
       )}
     </div>

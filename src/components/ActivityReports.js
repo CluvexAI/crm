@@ -54,7 +54,7 @@ const ActivityReports = ({ allAttendance, allUsers, allLeaves, currentUser, isHR
     if (!isHR || selectedUser === 'all') {
       return filteredAttendance;
     }
-    return filteredAttendance.filter(a => parseInt(a.userId) === parseInt(selectedUser));
+    return filteredAttendance.filter(a => String(a.userId) === String(selectedUser));
   }, [allAttendance, selectedUser, isHR, currentUser.role, allUsers]);
 
   // Daily Report Data

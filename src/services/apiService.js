@@ -197,6 +197,57 @@ const mapSaleFromDB = (dbSale) => {
   };
 };
 
+// ─── Attendance Mappers ────────────────────────────────────────────────────────
+
+/**
+ * Map JS camelCase attendance log → Insforge snake_case columns.
+ *
+ * Column types in Insforge after migration:
+ *   user_id      TEXT        (CRM uses Date.now() numeric strings)
+ *   user_name    TEXT
+ *   date         DATE        (YYYY-MM-DD — already correct from CRM)
+ *   login_time   TIMESTAMPTZ (full ISO timestamp from CRM)
+ *   logout_time  TIMESTAMPTZ (full ISO timestamp from CRM)
+ *   breaks       JSONB
+ *   meetings     JSONB
+ *   work_summary TEXT
+ *   status       TEXT
+ */
+const mapAttendanceToDB = (log) => {
+  if (!log) return log;
+  return {
+    // user_id must be TEXT — CRM stores userId as Date.now() (too big for INTEGER)
+    // Do NOT call String() here; pass raw value so Insforge SDK sends correct type
+    user_id:      String(log.userId ?? log.user_id ?? ''),
+    user_name:    log.userName  || log.user_name  || '',
+    date:         log.date      || '',                      // YYYY-MM-DD — DATE compatible
+    // TIMESTAMPTZ columns accept full ISO strings — pass as-is, never truncate to HH:MM
+    login_time:   log.loginTime  || log.login_time  || null,
+    logout_time:  log.logoutTime || log.logout_time || null,
+    breaks:       log.breaks   || [],
+    meetings:     log.meetings || [],
+    work_summary: log.workSummary || log.work_summary || null,
+    status:       log.status   || 'Present',
+  };
+};
+
+const mapAttendanceFromDB = (dbLog) => {
+  if (!dbLog) return null;
+  return {
+    id:          dbLog.id,          // UUID string after table recreation
+    userId:      dbLog.user_id,     // TEXT
+    userName:    dbLog.user_name    || '',
+    date:        dbLog.date,        // DATE → 'YYYY-MM-DD'
+    loginTime:   dbLog.login_time   || null,   // TIMESTAMPTZ
+    logoutTime:  dbLog.logout_time  || null,   // TIMESTAMPTZ
+    breaks:      Array.isArray(dbLog.breaks)   ? dbLog.breaks   : [],
+    meetings:    Array.isArray(dbLog.meetings) ? dbLog.meetings : [],
+    workSummary: dbLog.work_summary || null,
+    status:      dbLog.status       || 'Present',
+    createdAt:   dbLog.created_at   || null,
+  };
+};
+
 const mapInvoiceToDB = (inv) => {
   if (!inv) return inv;
   return {
@@ -521,6 +572,94 @@ export const api = {
     },
     delete: async (id) => {
       const { error } = await db.from('invoices').delete().eq('id', id);
+      if (error) throw error;
+    }
+  },
+
+  attendance: {
+    // Fetch ALL attendance logs from Insforge
+    getAll: async () => {
+      const { data, error } = await db.from('attendance').select('*');
+      if (error) {
+        console.error('[API:attendance.getAll] Error:', error.message);
+        throw error;
+      }
+      return (data || []).map(mapAttendanceFromDB);
+    },
+
+    // Fetch logs for a specific date
+    getByDate: async (date) => {
+      const { data, error } = await db.from('attendance').select('*').eq('date', date);
+      if (error) throw error;
+      return (data || []).map(mapAttendanceFromDB);
+    },
+
+    // Fetch logs for a specific user
+    getByUser: async (userId) => {
+      const { data, error } = await db
+        .from('attendance')
+        .select('*')
+        .eq('user_id', String(userId));
+      if (error) throw error;
+      return (data || []).map(mapAttendanceFromDB);
+    },
+
+    /**
+     * Atomic upsert using Insforge's native upsert.
+     * onConflict targets the UNIQUE (user_id, date) constraint.
+     * Single round-trip — no race condition.
+     */
+    upsert: async (logData) => {
+      const clean = mapAttendanceToDB(logData);
+
+      console.log('[API:attendance.upsert] Sending to Insforge:', clean);
+
+      try {
+        // 1. Check if record exists
+        const { data: existing } = await db
+          .from('attendance')
+          .select('id')
+          .eq('user_id', clean.user_id)
+          .eq('date', clean.date)
+          .maybeSingle();
+
+        let resultData, resultError;
+
+        if (existing && existing.id) {
+          // Update
+          const { data, error } = await db
+            .from('attendance')
+            .update(clean)
+            .eq('id', existing.id)
+            .select();
+          resultData = data;
+          resultError = error;
+        } else {
+          // Insert
+          const { data, error } = await db
+            .from('attendance')
+            .insert([clean])
+            .select();
+          resultData = data;
+          resultError = error;
+        }
+
+        if (resultError) {
+          console.error('[API:attendance.upsert] Insforge error:', resultError.message, resultError);
+          throw resultError;
+        }
+
+        console.log('[API:attendance.upsert] ✅ Success. Returned row:', resultData?.[0]);
+        return mapAttendanceFromDB(resultData?.[0]) || logData;
+      } catch (err) {
+        console.error('[API:attendance.upsert] Fatal error:', err.message);
+        throw err;
+      }
+    },
+
+    // Delete a single attendance record by id
+    delete: async (id) => {
+      const { error } = await db.from('attendance').delete().eq('id', id);
       if (error) throw error;
     }
   }

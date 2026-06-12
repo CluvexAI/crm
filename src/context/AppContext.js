@@ -76,6 +76,7 @@ import {
 import {
   initializeAttendanceDatabase,
   getAllAttendanceLogs,
+  fetchAndSyncAttendance,
   upsertAttendanceLog as upsertAttendanceLogDB,
   setAllAttendanceLogs
 } from '../services/attendanceDatabase';
@@ -381,13 +382,21 @@ export const AppProvider = ({ children }) => {
       }
       setAllProjects(dbProjects);
 
-      // Initialize attendance from database
-      let dbAttendance = getAllAttendanceLogs();
+      // ── Load attendance from Insforge DB (primary source of truth) ──────────
+      console.log('[AppContext] Loading attendance logs from Insforge...');
+      let dbAttendance = [];
+      try {
+        dbAttendance = await fetchAndSyncAttendance();
+        console.log('[AppContext] Attendance loaded:', dbAttendance.length, 'logs (Insforge + local merged)');
+      } catch (e) {
+        console.error('[AppContext] fetchAndSyncAttendance failed, using local cache:', e);
+        dbAttendance = getAllAttendanceLogs();
+      }
+
+      // Seed with mock data only if no data exists anywhere
       if (!dbAttendance || dbAttendance.length === 0) {
         initializeAttendanceDatabase(initialAttendance);
         dbAttendance = initialAttendance;
-      } else {
-        console.log('[AppContext] Loaded', dbAttendance.length, 'attendance logs from database');
       }
       setAllAttendance(dbAttendance);
 
