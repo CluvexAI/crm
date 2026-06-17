@@ -47,6 +47,7 @@ const ATTENDANCE_FILE = path.join(DATA_DIR, 'attendance.json');
 const DELETED_UUIDS_FILE = path.join(DATA_DIR, 'deleted_uuids.json');
 const MIGRATION_LOGS_FILE = path.join(DATA_DIR, 'migration_logs.json');
 const MIGRATION_ERRORS_FILE = path.join(DATA_DIR, 'migration_error_logs.json');
+const CHAT_DATA_FILE = path.join(DATA_DIR, 'chat_data.json');
 const PASSWORD_AUDIT_FILE = path.join(DATA_DIR, 'password_audit.json');
 if (!fs.existsSync(PASSWORD_AUDIT_FILE)) writeJSON(PASSWORD_AUDIT_FILE, []);
 
@@ -198,7 +199,10 @@ kP2TZdg75NQZEFd/Gf30Gu79dAsRMFtlQ/2YoumtN+Rgq7HoUjAt7vhDrHIbTPkN
     tls: { rejectUnauthorized: false },
     pool: true,
     maxConnections: 5,
-    maxMessages: 100
+    maxMessages: 100,
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 30000
   });
 };
 
@@ -792,8 +796,25 @@ app.post('/api/dns/verify', async (req, res) => {
 
       if (spfRecords.length > 1) {
         status = 'invalid';
-        message = `CRITICAL: ${spfRecords.length} SPF records found. You must only have ONE. Duplicate SPF records cause permanent delivery failure.`;
-        issues.push('Multiple SPF records detected');
+        
+        // Automatic SPF record optimization
+        const uniqueTokens = new Set();
+        let failMechanism = '~all';
+        spfRecords.forEach(record => {
+          record.split(/\s+/).forEach(token => {
+            if (token === 'v=spf1') return;
+            if (token.endsWith('all')) {
+              if (token === '-all') failMechanism = '-all';
+              return;
+            }
+            if (token) uniqueTokens.add(token);
+          });
+        });
+        const optimizedSpf = `v=spf1 ${Array.from(uniqueTokens).join(' ')} ${failMechanism}`;
+        
+        message = `CRITICAL: ${spfRecords.length} SPF records found. You must only have ONE. Duplicate SPF records cause permanent delivery failure. Please delete your existing SPF records and replace them with the following optimized record: ${optimizedSpf}`;
+        issues.push('Multiple SPF records detected. You must merge them into a single record.');
+        issues.push(`Action Required: Use this optimized record: ${optimizedSpf}`);
         currentRecord = spfRecords.join(' | ');
       } else if (spfRecords.length === 1) {
         const spf = spfRecords[0];
@@ -1039,7 +1060,7 @@ app.get('/api/reports/:userId', (req, res) => {
   if (req.params.userId === 'all') {
     return res.json({ success: true, data: dailyReports });
   }
-  const userReports = dailyReports.filter(r => r.userId === req.params.userId);
+  const userReports = dailyReports.filter(r => String(r.userId) === String(req.params.userId));
   res.json({ success: true, data: userReports });
 });
 
@@ -1737,9 +1758,67 @@ app.get('/api/admin/migration-errors', (req, res) => {
   }
 });
 
+// ─── Chat Data Store ──────────────────────────────────────────────────────────
+const chatDefaults = () => ({ conversations: {}, messages: {}, presence: {} });
+let chatData = readJSON(CHAT_DATA_FILE, chatDefaults());
+if (!chatData.conversations) chatData.conversations = {};
+if (!chatData.messages) chatData.messages = {};
+if (!chatData.presence) chatData.presence = {};
+
+const saveChatData = () => {
+  try { writeJSON(CHAT_DATA_FILE, chatData); } catch (e) { console.error('[Chat] Save failed:', e.message); }
+};
+
+// Debounced save to avoid thrashing disk on rapid messages
+let chatSaveTimer = null;
+const debouncedSaveChatData = () => {
+  if (chatSaveTimer) clearTimeout(chatSaveTimer);
+  chatSaveTimer = setTimeout(saveChatData, 500);
+};
+
+// Helper: sanitize message text (XSS prevention)
+const sanitizeText = (text) => {
+  if (typeof text !== 'string') return '';
+  return text.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+};
+
+// ─── Chat REST Endpoints ──────────────────────────────────────────────────────
+
+// GET /api/chat/sync?userId=XXX — full state sync for a user
+app.get('/api/chat/sync', (req, res) => {
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ success: false, message: 'userId required' });
+
+  // Return only conversations the user participates in
+  const userConversations = {};
+  const userMessages = {};
+  Object.keys(chatData.conversations).forEach(chatId => {
+    const conv = chatData.conversations[chatId];
+    if (conv.participants?.map(String).includes(String(userId))) {
+      userConversations[chatId] = conv;
+      userMessages[chatId] = chatData.messages[chatId] || [];
+    }
+  });
+
+  return res.json({
+    success: true,
+    data: {
+      conversations: userConversations,
+      messages: userMessages,
+      presence: chatData.presence || {},
+    }
+  });
+});
+
 // ─── Socket.io (Real-time) ────────────────────────────────────────────────────
 
+// Track which socket IDs belong to which user (for multi-tab support)
+const userSockets = {}; // { userId: Set<socketId> }
+
 io.on('connection', (socket) => {
+  let socketUserId = null;
+
+  // ── Email subscription (existing functionality) ──
   socket.on('subscribe', ({ userId, config }) => {
     socket.join(`user_${userId}`);
     console.log(`[Socket] User ${userId} joined`);
@@ -1747,7 +1826,173 @@ io.on('connection', (socket) => {
       startImapListener(userId, config);
     }
   });
+
+  // ── Chat: User comes online ──
+  socket.on('chat:subscribe', ({ userId, userName }) => {
+    if (!userId) return;
+    socketUserId = String(userId);
+    socket.join(`chat_${socketUserId}`);
+
+    // Track this socket for the user
+    if (!userSockets[socketUserId]) userSockets[socketUserId] = new Set();
+    userSockets[socketUserId].add(socket.id);
+
+    // Update presence
+    if (!chatData.presence[socketUserId]) chatData.presence[socketUserId] = {};
+    chatData.presence[socketUserId].status = 'online';
+    chatData.presence[socketUserId].lastSeen = new Date().toISOString();
+    if (userName) chatData.presence[socketUserId].userName = userName;
+    debouncedSaveChatData();
+
+    // Broadcast presence to all connected chat users
+    io.emit('chat:presence', { userId: socketUserId, status: 'online', lastSeen: chatData.presence[socketUserId].lastSeen });
+    console.log(`[Chat] User ${socketUserId} (${userName || 'unknown'}) online. Sockets: ${userSockets[socketUserId].size}`);
+  });
+
+  // ── Chat: Ensure a conversation exists ──
+  socket.on('chat:ensure_conversation', ({ chatId, conversation }) => {
+    if (!chatId || !conversation) return;
+    if (!chatData.conversations[chatId]) {
+      chatData.conversations[chatId] = conversation;
+      if (!chatData.messages[chatId]) chatData.messages[chatId] = [];
+      debouncedSaveChatData();
+    }
+    // Notify all participants so their conversation list updates
+    const participants = conversation.participants || [];
+    participants.forEach(pid => {
+      io.to(`chat_${String(pid)}`).emit('chat:conversation_updated', { conversation: chatData.conversations[chatId] });
+    });
+  });
+
+  // ── Chat: Send a message ──
+  socket.on('chat:send', ({ chatId, message }) => {
+    if (!chatId || !message || !message.id) return;
+
+    // Sanitize message text
+    const sanitized = { ...message, text: sanitizeText(message.text) };
+
+    // Ensure conversation and messages array exist
+    if (!chatData.messages[chatId]) chatData.messages[chatId] = [];
+
+    // Dedup: check if message ID already exists
+    const exists = chatData.messages[chatId].some(m => m.id === sanitized.id);
+    if (exists) return;
+
+    chatData.messages[chatId].push(sanitized);
+
+    // Update conversation lastMessage
+    if (chatData.conversations[chatId]) {
+      chatData.conversations[chatId].lastMessage = {
+        text: sanitized.type === 'file' ? `📎 ${sanitized.attachments?.[0]?.fileName || 'File'}` : sanitized.text,
+        senderId: sanitized.senderId,
+        senderName: sanitized.senderName,
+        timestamp: sanitized.timestamp,
+        type: sanitized.type,
+      };
+    }
+
+    debouncedSaveChatData();
+
+    // Emit to all participants of this conversation
+    const conv = chatData.conversations[chatId];
+    if (conv && conv.participants) {
+      conv.participants.forEach(pid => {
+        io.to(`chat_${String(pid)}`).emit('chat:message', { chatId, message: sanitized });
+      });
+    } else {
+      // Fallback: emit to sender room
+      io.to(`chat_${String(sanitized.senderId)}`).emit('chat:message', { chatId, message: sanitized });
+    }
+  });
+
+  // ── Chat: Edit a message ──
+  socket.on('chat:edit', ({ chatId, messageId, newText }) => {
+    if (!chatId || !messageId || !chatData.messages[chatId]) return;
+    const safe = sanitizeText(newText);
+    chatData.messages[chatId] = chatData.messages[chatId].map(m =>
+      m.id === messageId ? { ...m, text: safe, edited: true } : m
+    );
+    debouncedSaveChatData();
+    const conv = chatData.conversations[chatId];
+    if (conv && conv.participants) {
+      conv.participants.forEach(pid => {
+        io.to(`chat_${String(pid)}`).emit('chat:message_edited', { chatId, messageId, newText: safe });
+      });
+    }
+  });
+
+  // ── Chat: Delete a message ──
+  socket.on('chat:delete', ({ chatId, messageId }) => {
+    if (!chatId || !messageId || !chatData.messages[chatId]) return;
+    chatData.messages[chatId] = chatData.messages[chatId].map(m =>
+      m.id === messageId ? { ...m, deleted: true, text: 'This message was deleted', attachments: [] } : m
+    );
+    debouncedSaveChatData();
+    const conv = chatData.conversations[chatId];
+    if (conv && conv.participants) {
+      conv.participants.forEach(pid => {
+        io.to(`chat_${String(pid)}`).emit('chat:message_deleted', { chatId, messageId });
+      });
+    }
+  });
+
+  // ── Chat: Mark messages as read ──
+  socket.on('chat:read', ({ chatId, userId }) => {
+    if (!chatId || !userId || !chatData.messages[chatId]) return;
+    let changed = false;
+    chatData.messages[chatId] = chatData.messages[chatId].map(m => {
+      const readByStrings = (m.readBy || []).map(String);
+      if (!readByStrings.includes(String(userId))) {
+        changed = true;
+        return { ...m, readBy: [...(m.readBy || []), userId] };
+      }
+      return m;
+    });
+    if (changed) {
+      debouncedSaveChatData();
+      const conv = chatData.conversations[chatId];
+      if (conv && conv.participants) {
+        conv.participants.forEach(pid => {
+          io.to(`chat_${String(pid)}`).emit('chat:messages_read', { chatId, userId: String(userId) });
+        });
+      }
+    }
+  });
+
+  // ── Chat: Typing indicator ──
+  socket.on('chat:typing', ({ chatId, userId, userName, isTyping }) => {
+    if (!chatId) return;
+    const conv = chatData.conversations[chatId];
+    if (conv && conv.participants) {
+      conv.participants.forEach(pid => {
+        if (String(pid) !== String(userId)) {
+          io.to(`chat_${String(pid)}`).emit('chat:typing', { chatId, userId, userName, isTyping });
+        }
+      });
+    }
+  });
+
+  // ── Disconnect ──
+  socket.on('disconnect', () => {
+    if (socketUserId && userSockets[socketUserId]) {
+      userSockets[socketUserId].delete(socket.id);
+      // Only mark offline if this was the user's last socket (handles multi-tab)
+      if (userSockets[socketUserId].size === 0) {
+        delete userSockets[socketUserId];
+        if (chatData.presence[socketUserId]) {
+          chatData.presence[socketUserId].status = 'offline';
+          chatData.presence[socketUserId].lastSeen = new Date().toISOString();
+          debouncedSaveChatData();
+        }
+        io.emit('chat:presence', { userId: socketUserId, status: 'offline', lastSeen: new Date().toISOString() });
+        console.log(`[Chat] User ${socketUserId} offline (all tabs closed)`);
+      } else {
+        console.log(`[Chat] User ${socketUserId} closed a tab. Remaining sockets: ${userSockets[socketUserId].size}`);
+      }
+    }
+  });
 });
+
 
 
 // Start integrity checks on startup

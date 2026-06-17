@@ -95,7 +95,7 @@ const ReportsPage = () => {
       d.setDate(d.getDate() - i);
       return d.toISOString().split('T')[0];
     });
-    return reports.filter(r => last7Days.includes(r.reportDate) && (activeTab === 'team' || r.userId === currentUser.id));
+    return reports.filter(r => last7Days.includes(r.reportDate) && (isAdmin || r.userId === currentUser.id));
   };
 
   const getMonthlySummary = () => {
@@ -104,7 +104,7 @@ const ReportsPage = () => {
       d.setDate(d.getDate() - i);
       return d.toISOString().split('T')[0];
     });
-    return reports.filter(r => last30Days.includes(r.reportDate) && (activeTab === 'team' || r.userId === currentUser.id));
+    return reports.filter(r => last30Days.includes(r.reportDate) && (isAdmin || r.userId === currentUser.id));
   };
 
   return (
