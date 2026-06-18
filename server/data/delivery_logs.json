@@ -710,5 +710,37 @@
     "status": "delivered",
     "messageId": "<3ffe80d3-442c-73c1-d5be-8adaa332dbdb@zsmeservices.com>",
     "timestamp": "2026-06-04T10:13:31.060Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<a749f396-fcda-f79e-aeff-015e28b24f98@zsmeservices.com>",
+    "timestamp": "2026-06-16T12:12:00.752Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "failed",
+    "error": "read ECONNRESET",
+    "timestamp": "2026-06-16T12:23:37.456Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "failed",
+    "error": "Invalid login: 535 Incorrect authentication data",
+    "timestamp": "2026-06-18T10:49:52.378Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<4499decc-a7ef-719a-3311-214ec049494d@zsmeservices.com>",
+    "timestamp": "2026-06-18T10:52:13.379Z"
   }
 ]

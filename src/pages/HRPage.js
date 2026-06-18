@@ -117,13 +117,14 @@ const EmployeesTab = ({ allUsers, currentUser, updateUser, addAuditLog }) => {
   );
 };
 
-const AttendanceTab = ({ allAttendance, allUsers, today, isHR, canViewAll, currentUser, markAttendance, allLeaves, manuallyUpsertAttendanceLog }) => {
+const AttendanceTab = ({ allAttendance, allUsers, today, isHR, canViewAll, currentUser, markAttendance, logout, allLeaves, manuallyUpsertAttendanceLog }) => {
   const [viewMode, setViewMode] = useState('daily'); // 'daily' or 'advanced'
   const [dateFilter, setDateFilter] = useState(today);
   const [search, setSearch] = useState('');
   const [userFilter, setUserFilter] = useState('all');
   const [timers, setTimers] = useState({ break: 0 });
   const [selectedRec, setSelectedRec] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
 
   const filtered = allAttendance.filter(a => {
     const matchDate = a.date === dateFilter;
@@ -146,6 +147,30 @@ const AttendanceTab = ({ allAttendance, allUsers, today, isHR, canViewAll, curre
     return () => clearInterval(interval);
   }, [activeBreak]);
 
+  const handleAction = async (type) => {
+    setActionLoading(type);
+    try {
+      if (type === 'logout') {
+        // Add a safety timeout to prevent getting stuck if the API hangs
+        await Promise.race([
+          markAttendance(currentUser.id, currentUser.name, type),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Network timeout while marking attendance')), 8000))
+        ]);
+        if (logout) logout();
+      } else {
+        await markAttendance(currentUser.id, currentUser.name, type);
+      }
+    } catch (err) {
+      alert("Failed to update attendance: " + err.message);
+      // Force logout anyway so the user is not permanently stuck
+      if (type === 'logout' && logout) {
+        logout();
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const formatTime = (seconds) => {
     if (!seconds && seconds !== 0) return '—';
     const hours = Math.floor(seconds / 3600);
@@ -167,14 +192,20 @@ const AttendanceTab = ({ allAttendance, allUsers, today, isHR, canViewAll, curre
           <div className="card-header"><div className="card-title">⏰ My Attendance</div></div>
           <div className="card-body">
             {!todayRecord ? (
-              <button className="btn btn-success" onClick={() => markAttendance(currentUser.id, currentUser.name, 'login')}>🟢 Mark Login</button>
+              <button className="btn btn-success" onClick={() => handleAction('login')} disabled={actionLoading === 'login'}>
+                {actionLoading === 'login' ? '⏳ Wait...' : '🟢 Mark Login'}
+              </button>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <span className="badge badge-success">Login: {formatTimestamp(todayRecord.loginTime)}</span>
                   {todayRecord.logoutTime && <span className="badge badge-danger">Logout: {formatTimestamp(todayRecord.logoutTime)}</span>}
                 </div>
-                {!todayRecord.logoutTime && <button className="btn btn-danger btn-sm" onClick={() => markAttendance(currentUser.id, currentUser.name, 'logout')}>🔴 Logout</button>}
+                {!todayRecord.logoutTime && (
+                  <button className="btn btn-danger btn-sm" onClick={() => handleAction('logout')} disabled={actionLoading === 'logout'}>
+                    {actionLoading === 'logout' ? '⏳ Logging out...' : '🔴 Logout'}
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -185,10 +216,10 @@ const AttendanceTab = ({ allAttendance, allUsers, today, isHR, canViewAll, curre
             <div style={{ fontSize: 24, fontWeight: 700, fontFamily: 'monospace' }}>{formatTime(timers.break)}</div>
             <button
               className={`btn ${activeBreak ? 'btn-danger' : 'btn-success'}`}
-              onClick={() => markAttendance(currentUser.id, currentUser.name, activeBreak ? 'break-out' : 'break-in')}
-              disabled={!todayRecord || !!todayRecord.logoutTime || !!activeMeeting}
+              onClick={() => handleAction(activeBreak ? 'break-out' : 'break-in')}
+              disabled={!todayRecord || !!todayRecord.logoutTime || !!activeMeeting || actionLoading === 'break-out' || actionLoading === 'break-in'}
             >
-              {activeBreak ? 'End Break' : 'Start Break'}
+              {actionLoading === 'break-out' || actionLoading === 'break-in' ? '⏳ Please wait...' : (activeBreak ? 'End Break' : 'Start Break')}
             </button>
           </div>
         </div>
@@ -332,7 +363,7 @@ const ApplyLeaveTab = ({ applyLeave, addAuditLog, currentUser }) => {
 const HRPage = ({ defaultTab }) => {
   const {
     currentUser, allUsers, allAttendance, allLeaves,
-    updateLeave, applyLeave, markAttendance, submitDailyReport, updateUser, addAuditLog, deleteLeave
+    updateLeave, applyLeave, markAttendance, submitDailyReport, updateUser, addAuditLog, deleteLeave, logout
   } = useApp();
 
   const isHR = currentUser?.role === ROLES.HR || currentUser?.role === ROLES.ADMIN;
@@ -411,6 +442,7 @@ const HRPage = ({ defaultTab }) => {
           isHR={isHR} canViewAll={isHR}
           currentUser={currentUser}
           markAttendance={markAttendance}
+          logout={logout}
         />
       )}
 

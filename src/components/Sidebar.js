@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ROLES } from '../data/mockData';
-import { getTotalUnreadCount } from '../services/chatService';
+import { getTotalUnreadCount, subscribeToChatUpdates } from '../services/chatService';
 
 const navItems = [
   { id: 'dashboard', icon: '🏠', label: 'Dashboard', roles: ['all'] },
@@ -29,10 +29,15 @@ const Sidebar = () => {
 
   useEffect(() => {
     if (!currentUser) return;
-    const poll = () => setChatUnread(getTotalUnreadCount(currentUser.id));
-    poll();
-    const iv = setInterval(poll, 2000);
-    return () => clearInterval(iv);
+    // Initial count
+    setChatUnread(getTotalUnreadCount(currentUser.id));
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToChatUpdates((event) => {
+      if (event === 'message' || event === 'read' || event === 'sync') {
+        setChatUnread(getTotalUnreadCount(currentUser.id));
+      }
+    });
+    return () => unsubscribe();
   }, [currentUser]);
 
   if (!currentUser) return null;

@@ -45,6 +45,8 @@ import { cleanInsforgeBeforeCRMDelete } from '../services/insforgeDirectoryServi
 import api from '../services/apiService';
 import {
   initializeChatDatabase,
+  initializeChatConnection,
+  disconnectChat,
   registerUser as registerChatUser,
   getTotalUnreadCount as getTotalChatUnread,
   getOrCreateDirectChat as getOrCreateChat,
@@ -145,7 +147,7 @@ export const AppProvider = ({ children }) => {
         // from reappearing when localStorage is cleared or on a new device/browser.
         initializeDatabase(hashedUsers); // initializeDatabase itself also applies tombstones
         dbUsers = getAllUsers(); // re-read to get the tombstone-filtered result
-        setAllUsers(dbUsers.map(u => ({ ...u, employeeId: u.employeeId || '', status: u.status || 'Active' })));
+        setAllUsers(dbUsers.map(u => ({ ...u, id: u.id || u.uuid, employeeId: u.employeeId || '', status: u.status || 'Active' })));
 
         console.log('[AppContext] All users initialized with hashed passwords');
       } else {
@@ -177,6 +179,7 @@ export const AppProvider = ({ children }) => {
         
         setAllUsers(dbUsers.filter(u => u.status !== 'Deleted').map(u => ({
           ...u,
+          id: u.id || u.uuid,
           employeeId: u.employeeId || '',
           status: u.status || 'Active',
         })));
@@ -185,7 +188,7 @@ export const AppProvider = ({ children }) => {
 
       // Initialize chat system and auto-register all users
       initializeChatDatabase();
-      dbUsers.forEach(u => registerChatUser(u));
+      dbUsers.forEach(u => registerChatUser({ ...u, id: u.id || u.uuid }));
 
       // Ensure department chats exist for all departments
       const depts = [...new Set(dbUsers.map(u => u.department).filter(Boolean))];
@@ -400,6 +403,20 @@ export const AppProvider = ({ children }) => {
       }
       setAllAttendance(dbAttendance);
 
+      // ── Restore User Session ────────────────────────────────────────────────
+      const currentEmail = localStorage.getItem('zsm_crm_current_user_email');
+      if (currentEmail) {
+        const restoredUser = dbUsers.find(u => u.email?.toLowerCase() === currentEmail.toLowerCase());
+        if (restoredUser) {
+          console.log('[AppContext] Restoring session for:', restoredUser.email);
+          setCurrentUser({ ...restoredUser, password: '********' });
+          const storedSessionStart = localStorage.getItem('zsm_crm_session_start');
+          setSessionStart(storedSessionStart ? new Date(storedSessionStart) : new Date());
+          // Initialize WebSocket chat connection
+          initializeChatConnection(restoredUser.id || restoredUser.uuid, restoredUser.name).catch(err => console.warn('[Chat] WS init failed on reload:', err.message));
+        }
+      }
+
       setIsInitialized(true);
     };
     if (!isInitialized) {
@@ -545,9 +562,13 @@ export const AppProvider = ({ children }) => {
       if (mustChangePassword) {
         setForcePasswordChange(true);
       }
-      setSessionStart(new Date());
+      const newSessionStart = new Date();
+      setSessionStart(newSessionStart);
+      localStorage.setItem('zsm_crm_session_start', newSessionStart.toISOString());
       localStorage.setItem('zsm_crm_current_user_email', user.email?.toLowerCase() || '');
       registerChatUser(user);
+      // Initialize WebSocket chat connection
+      initializeChatConnection(user.id, user.name).catch(err => console.warn('[Chat] WS init failed:', err.message));
       addAuditLog('User Login', user.name, `Login successful`);
       // Run migration with correct authenticated user ID
       runOneTimeMigration(user.id).catch(() => {});
@@ -560,7 +581,9 @@ export const AppProvider = ({ children }) => {
 
   const logout = () => {
     if (currentUser) addAuditLog('User Logout', currentUser.name, 'User logged out');
+    disconnectChat();
     localStorage.removeItem('zsm_crm_current_user_email');
+    localStorage.removeItem('zsm_crm_session_start');
     setCurrentUser(null);
     setSessionStart(null);
     setForcePasswordChange(false);
@@ -1256,76 +1279,71 @@ export const AppProvider = ({ children }) => {
 
   // ─── Attendance ───────────────────────────────────────────────────────────
 
-  const markAttendance = (userId, userName, type) => {
+  const markAttendance = async (userId, userName, type) => {
     const today = new Date().toISOString().split('T')[0];
     const now = new Date().toISOString();
 
-    setAllAttendance((prev) => {
-      const existing = prev.find((a) => a.userId === userId && a.date === today);
+    let existing = allAttendance.find((a) => String(a.userId) === String(userId) && a.date === today);
+    let updated;
 
-      if (type === 'login') {
-        if (existing) return prev;
-        return [
-          ...prev,
-          {
-            id: Date.now(),
-            userId,
-            userName,
-            date: today,
-            loginTime: now,
-            logoutTime: null,
-            breaks: [],
-            meetings: [],
-            status: 'Present',
-          },
-        ];
-      }
-
-      if (!existing) return prev;
-
-      const updated = { ...existing };
-
+    if (type === 'login') {
+      if (existing) return;
+      updated = {
+        id: Date.now(),
+        userId,
+        userName,
+        date: today,
+        loginTime: now,
+        logoutTime: null,
+        breaks: [],
+        meetings: [],
+        status: 'Present',
+      };
+    } else {
+      if (!existing) return;
+      updated = { ...existing };
+      
       if (type === 'logout') {
         updated.logoutTime = now;
       } else if (type === 'break-in') {
-        if (updated.breaks.some(b => !b.endTime)) return prev; // Already in break
+        if (updated.breaks.some(b => !b.endTime)) return; // Already in break
         updated.breaks = [...updated.breaks, { startTime: now, endTime: null, duration: 0 }];
       } else if (type === 'break-out') {
         const lastBreak = updated.breaks[updated.breaks.length - 1];
-        if (!lastBreak || lastBreak.endTime) return prev; // No active break
+        if (!lastBreak || lastBreak.endTime) return; // No active break
         const endTime = now;
         const duration = (new Date(endTime) - new Date(lastBreak.startTime)) / 1000;
         const newBreaks = [...updated.breaks];
         newBreaks[newBreaks.length - 1] = { ...lastBreak, endTime, duration };
         updated.breaks = newBreaks;
       } else if (type === 'meeting-in') {
-        if (updated.meetings.some(m => !m.endTime)) return prev; // Already in meeting
+        if (updated.meetings.some(m => !m.endTime)) return; // Already in meeting
         updated.meetings = [...updated.meetings, { startTime: now, endTime: null, duration: 0 }];
       } else if (type === 'meeting-out') {
         const lastMeeting = updated.meetings[updated.meetings.length - 1];
-        if (!lastMeeting || lastMeeting.endTime) return prev; // No active meeting
+        if (!lastMeeting || lastMeeting.endTime) return; // No active meeting
         const endTime = now;
         const duration = (new Date(endTime) - new Date(lastMeeting.startTime)) / 1000;
         const newMeetings = [...updated.meetings];
         newMeetings[newMeetings.length - 1] = { ...lastMeeting, endTime, duration };
         updated.meetings = newMeetings;
       }
+    }
 
-      return prev.map((a) => (a.userId === userId && a.date === today ? updated : a));
-    });
-    
-    // Quick timeout to sync to DB after state updates
-    setTimeout(() => {
-      setAllAttendance(current => {
-        const recordToSync = current.find(a => a.userId === userId && a.date === today);
-        if (recordToSync) {
-          upsertAttendanceLogDB(recordToSync);
-        } else {
-          setAllAttendanceLogs(current);
+    try {
+      const finalRecord = await upsertAttendanceLogDB(updated);
+      setAllAttendance((prev) => {
+        const prevExisting = prev.find((a) => String(a.userId) === String(userId) && a.date === today);
+        if (!prevExisting && type === 'login') {
+          return [...prev, finalRecord || updated];
         }
-        return current;
+        return prev.map((a) => (String(a.userId) === String(userId) && a.date === today ? finalRecord || updated : a));
       });
-    }, 100);
+      return finalRecord || updated;
+    } catch (err) {
+      console.error("[markAttendance] Failed:", err);
+      throw err;
+    }
   };
 
   const submitDailyReport = (userId, userName, date, workSummary) => {

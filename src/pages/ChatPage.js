@@ -16,6 +16,8 @@ import {
   searchMessages,
   getAllChatUsers,
   syncChatUsers,
+  subscribeToChatUpdates,
+  getConnectionStatus,
 } from '../services/chatService';
 
 const EMOJIS = ['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','🥰','😘','😗','😙','😚','🙂','🤗','🤩','🤔','🤨','😐','😑','😶','🙄','😏','😣','😥','😮','🤐','😯','😪','😫','😴','😌','😛','😜','😝','🤤','😒','😓','😔','😕','🙃','🤑','😲','☹️','🙁','😖','😞','😟','😤','😢','😭','😦','😧','😨','😩','🤯','😬','😰','😱','🥵','🥶','😳','🤪','😵','😡','😠','🤬','👍','👎','👊','✊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✌️','🤟','🤘','👌','💪','❤️','🧡','💛','💚','💙','💜','🖤','💔','💕','💖','💗','💘','💝','🎉','🎊','🎈','🔥','⭐','✨','💡','📌','📍','✅','❌','❓','❗','💯','🔔'];
@@ -58,23 +60,32 @@ const ChatPage = () => {
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const [userSearch, setUserSearch] = useState('');
   const [selectedDirectUserId, setSelectedDirectUserId] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const msgEndRef = useRef(null);
   const textRef = useRef(null);
   const fileRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const prevMsgCountRef = useRef(0);
+  const selectedChatIdRef = useRef(null);
   const userListRef = useRef(null);
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 50 });
   const userItemHeight = 68;
 
   const chatUsers = getAllChatUsers(allUsers);
 
+  // Keep a ref for selectedChatId so callbacks can read latest value
+  useEffect(() => {
+    selectedChatIdRef.current = selectedChatId;
+  }, [selectedChatId]);
+
   useEffect(() => {
     syncChatUsers(allUsers);
   }, [allUsers]);
 
+  // ─── Real-time subscription (replaces ALL setInterval polling) ────────────
   useEffect(() => {
-    const update = () => {
+    // Initial load
+    const loadConversations = () => {
       const conversations = getConversations();
       const list = Object.values(conversations).sort((a, b) => {
         if (!a.lastMessage) return 1;
@@ -83,44 +94,88 @@ const ChatPage = () => {
       });
       setChatList(list);
     };
-    update();
-    const iv = setInterval(update, 2000);
-    return () => clearInterval(iv);
-  }, []);
+    loadConversations();
 
+    // Set initial connection status
+    setConnectionStatus(getConnectionStatus());
+
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToChatUpdates((event, data) => {
+      if (event === 'connection') {
+        setConnectionStatus(data.status);
+        return;
+      }
+
+      if (event === 'sync' || event === 'conversation') {
+        // Reload conversation list
+        loadConversations();
+      }
+
+      if (event === 'message') {
+        // Reload conversation list (for lastMessage updates)
+        loadConversations();
+
+        const activeChatId = selectedChatIdRef.current;
+
+        // If this message is for the currently open chat, update messages
+        if (data.chatId === activeChatId) {
+          const msgs = getMessages(activeChatId);
+          setMessages([...msgs]);
+        }
+
+        // Play notification sound for new messages from others
+        if (data.message && String(data.message.senderId) !== String(currentUser.id) && data.message.type !== 'system' && !data.edited && !data.deleted) {
+          playNotificationSound();
+          // Browser notification
+          try {
+            if (Notification.permission === 'granted' && document.hidden) {
+              new Notification(`New message from ${data.message.senderName}`, {
+                body: data.message.type === 'file' ? 'Sent a file' : data.message.text,
+                icon: '/logo192.png',
+              });
+            }
+          } catch (_) {}
+        }
+      }
+
+      if (event === 'read') {
+        const activeChatId = selectedChatIdRef.current;
+        if (data.chatId === activeChatId) {
+          const msgs = getMessages(activeChatId);
+          setMessages([...msgs]);
+        }
+        // Reload conversation list for unread badge updates
+        loadConversations();
+      }
+
+      if (event === 'typing') {
+        const activeChatId = selectedChatIdRef.current;
+        if (data.chatId === activeChatId) {
+          const typing = getTypingUsers(activeChatId, currentUser.id);
+          setTypingUsers(typing);
+        }
+      }
+
+      if (event === 'presence') {
+        // Force re-render of user list online status
+        loadConversations();
+      }
+    });
+
+    return () => unsubscribe();
+  }, [currentUser.id]);
+
+  // Auto-clear stale typing indicators (since they come via events, clean up after 5s)
   useEffect(() => {
     const iv = setInterval(() => {
       if (!selectedChatId) return;
-      const msgs = getMessages(selectedChatId);
-      if (msgs.length !== prevMsgCountRef.current) {
-        if (msgs.length > prevMsgCountRef.current && prevMsgCountRef.current > 0) {
-          const newMsgs = msgs.slice(prevMsgCountRef.current);
-          const hasNewFromOther = newMsgs.some(m => m.senderId !== currentUser.id && m.type !== 'system');
-          if (hasNewFromOther) {
-            playNotificationSound();
-            try {
-              if (Notification.permission === 'granted') {
-                const lastMsg = newMsgs.filter(m => m.senderId !== currentUser.id).pop();
-                if (lastMsg) {
-                  new Notification(`New message from ${lastMsg.senderName}`, {
-                    body: lastMsg.type === 'file' ? 'Sent a file' : lastMsg.text,
-                    icon: '/logo192.png',
-                  });
-                }
-              }
-            } catch (_) {}
-          }
-        }
-        prevMsgCountRef.current = msgs.length;
-      }
-      setMessages([...msgs]);
       const typing = getTypingUsers(selectedChatId, currentUser.id);
       setTypingUsers(typing);
-      markMessagesRead(selectedChatId, currentUser.id);
-    }, 1000);
+    }, 3000);
     return () => clearInterval(iv);
   }, [selectedChatId, currentUser.id]);
 
+  // Load messages when a chat is selected
   useEffect(() => {
     if (selectedChatId) {
       const msgs = getMessages(selectedChatId);
@@ -129,16 +184,19 @@ const ChatPage = () => {
     }
   }, [selectedChatId]);
 
+  // Auto-scroll on new messages
   useEffect(() => {
     if (msgEndRef.current) {
       msgEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
+  // Focus input on chat selection
   useEffect(() => {
     if (textRef.current) textRef.current.focus();
   }, [selectedChatId]);
 
+  // Request notification permission
   useEffect(() => {
     if (Notification.permission === 'default') {
       Notification.requestPermission();
@@ -161,7 +219,12 @@ const ChatPage = () => {
 
   const isUserOnline = useCallback((userId) => {
     const presence = getPresence();
-    return presence[userId]?.status === 'online';
+    return presence[String(userId)]?.status === 'online';
+  }, []);
+
+  const getLastSeen = useCallback((userId) => {
+    const presence = getPresence();
+    return presence[String(userId)]?.lastSeen || null;
   }, []);
 
   const formatTime = (ts) => {
@@ -181,6 +244,19 @@ const ChatPage = () => {
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';
     return d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
+  const formatLastSeen = (ts) => {
+    if (!ts) return '';
+    const d = new Date(ts);
+    const now = new Date();
+    const diffMs = now - d;
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHrs = Math.floor(diffMin / 60);
+    if (diffHrs < 24) return `${diffHrs}h ago`;
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
   };
 
   const handleSelectChat = (chat) => {
@@ -372,6 +448,10 @@ const ChatPage = () => {
     setVisibleRange({ start, end });
   };
 
+  // Connection status indicator colors
+  const connStatusColor = connectionStatus === 'connected' ? 'var(--success)' : connectionStatus === 'reconnecting' ? 'var(--warning)' : 'var(--danger, #e74c3c)';
+  const connStatusLabel = connectionStatus === 'connected' ? 'Connected' : connectionStatus === 'reconnecting' ? 'Reconnecting...' : 'Offline';
+
   const renderMessage = (msg, idx) => {
     if (msg.deleted) {
       return (
@@ -392,6 +472,15 @@ const ChatPage = () => {
     const showDateSep = idx === 0 || new Date(msg.timestamp).toDateString() !== new Date(messages[idx - 1]?.timestamp).toDateString();
     const fileAttach = msg.attachments?.[0];
     const isReply = msg.replyTo;
+
+    // Read receipt indicators
+    const readCount = (msg.readBy || []).length;
+    const getReadStatus = () => {
+      if (!isMe) return null;
+      if (readCount > 1) return { icon: '✓✓', color: '#4fc3f7', title: 'Read' };
+      return { icon: '✓', color: 'rgba(255,255,255,0.5)', title: 'Sent' };
+    };
+    const readStatus = getReadStatus();
 
     return (
       <div key={msg.id}>
@@ -445,7 +534,7 @@ const ChatPage = () => {
             {msg.text && <div style={{ fontSize: 13.5, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{msg.text}{msg.edited && <span style={{ fontSize: 10, opacity: 0.6, marginLeft: 4 }}>(edited)</span>}</div>}
             <div className="chat-msg-meta" style={{ fontSize: 10, marginTop: 4, opacity: 0.7, display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
               <span>{formatTime(msg.timestamp)}</span>
-              {isMe && <span>{msg.readBy?.length > 1 ? '✓✓' : '✓'}</span>}
+              {readStatus && <span style={{ color: readStatus.color }} title={readStatus.title}>{readStatus.icon}</span>}
             </div>
           </div>
           <div className="chat-msg-actions">
@@ -453,7 +542,7 @@ const ChatPage = () => {
             {isMe && (
               <>
                 <button className="chat-action-btn" title="Edit" onClick={() => handleEdit(msg)}>✎</button>
-                <button className="chat-action-btn" title="Delete" onClick={() => handleDelete(msg)}>✕</button>
+                <button className="chat-action-btn" title="Delete" onClick={() => handleDelete(msg.id)}>✕</button>
               </>
             )}
           </div>
@@ -472,6 +561,10 @@ const ChatPage = () => {
                 <button className="chat-icon-btn" onClick={() => setMobileChatOpen(false)} style={{ fontSize: 16 }}>✕</button>
               )}
               <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>Chats</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8 }} title={connStatusLabel}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: connStatusColor, transition: 'background 0.3s' }} />
+                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{connStatusLabel}</span>
+              </div>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
               <button className={`chat-icon-btn ${showDeptPanel ? 'active' : ''}`} onClick={() => setShowDeptPanel(!showDeptPanel)} title="Direct Messages">👥</button>
@@ -526,7 +619,7 @@ const ChatPage = () => {
                             <span className="user-list-dept">{user.department || user.role}</span>
                             <span className="user-list-sep">·</span>
                             <span className={`user-list-online-badge ${isUserOnline(user.id) ? 'online' : 'offline'}`}>
-                              {isUserOnline(user.id) ? '🟢 Online' : '⚫ Offline'}
+                              {isUserOnline(user.id) ? '🟢 Online' : `⚫ ${formatLastSeen(getLastSeen(user.id))}`}
                             </span>
                           </div>
                         </div>
@@ -605,7 +698,13 @@ const ChatPage = () => {
                     {selectedChat.type === 'department' ? (
                       <>{selectedChat.participants?.length || 0} members</>
                     ) : (
-                      <>{(() => { const oid = selectedChat.participants?.find(p => String(p) !== String(currentUser?.id)); const user = chatUsers.find(u => String(u.id) === String(oid)); return user ? `${user.role} · ${isUserOnline(oid) ? 'Online' : 'Offline'}` : ''; })()}</>
+                      <>{(() => {
+                        const oid = selectedChat.participants?.find(p => String(p) !== String(currentUser?.id));
+                        const user = chatUsers.find(u => String(u.id) === String(oid));
+                        if (!user) return '';
+                        const online = isUserOnline(oid);
+                        return `${user.role} · ${online ? 'Online' : `Last seen ${formatLastSeen(getLastSeen(oid))}`}`;
+                      })()}</>
                     )}
                   </div>
                 </div>

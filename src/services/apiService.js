@@ -475,11 +475,11 @@ export const api = {
       }
 
       // Insert into crm_leads (TEXT columns — accepts UUID agent IDs)
-      const { data, error } = await db.from('crm_leads').insert([clean]);
+      let { data, error } = await db.from('crm_leads').insert([clean]).select();
+      if (error && (error.code === '42P01' || error.message?.includes('does not exist'))) {
+        ({ data, error } = await db.from('leads').insert([clean]).select());
+      }
       if (error) {
-        if (error.code === '42P01' || error.message?.includes('does not exist')) {
-          throw new Error('ACTION_REQUIRED: Run 20260529_create_crm_leads.sql in InsForge SQL Editor.');
-        }
         throw new Error(error.message || JSON.stringify(error));
       }
       return mapLeadFromDB(data?.[0]) || lead;
@@ -490,9 +490,9 @@ export const api = {
       // id must not be in the SET clause (prevents PK mutation & trigger self-match),
       // created_at/created_by are write-once fields.
       const { id: _id, created_at: _ca, created_by: _cb, created_by_name: _cbn, ...updatePayload } = clean;
-      let { data, error } = await db.from('crm_leads').update(updatePayload).eq('id', id);
+      let { data, error } = await db.from('crm_leads').update(updatePayload).eq('id', id).select();
       if (error && (error.code === '42P01' || error.message?.includes('does not exist'))) {
-        ({ data, error } = await db.from('leads').update(updatePayload).eq('id', id));
+        ({ data, error } = await db.from('leads').update(updatePayload).eq('id', id).select());
       }
       if (error) throw new Error(error.message || JSON.stringify(error));
       return mapLeadFromDB(data?.[0]) || updates;
@@ -531,13 +531,13 @@ export const api = {
     },
     create: async (sale) => {
       const clean = mapSaleToDB(sale);
-      const { data, error } = await db.from('sales').insert([clean]);
+      const { data, error } = await db.from('sales').insert([clean]).select();
       if (error) throw new Error(error.message || JSON.stringify(error));
       return mapSaleFromDB(data?.[0]) || sale;
     },
     update: async (id, updates) => {
       const clean = mapSaleToDB({ ...updates, id });
-      const { data, error } = await db.from('sales').update(clean).eq('id', id);
+      const { data, error } = await db.from('sales').update(clean).eq('id', id).select();
       if (error) throw new Error(error.message || JSON.stringify(error));
       return mapSaleFromDB(data?.[0]) || updates;
     },
@@ -560,13 +560,13 @@ export const api = {
     },
     create: async (invoice) => {
       const clean = mapInvoiceToDB(invoice);
-      const { data, error } = await db.from('invoices').insert([clean]);
+      const { data, error } = await db.from('invoices').insert([clean]).select();
       if (error) throw new Error(error.message || JSON.stringify(error));
       return mapInvoiceFromDB(data?.[0]) || invoice;
     },
     update: async (id, updates) => {
       const clean = mapInvoiceToDB({ ...updates, id });
-      const { data, error } = await db.from('invoices').update(clean).eq('id', id);
+      const { data, error } = await db.from('invoices').update(clean).eq('id', id).select();
       if (error) throw new Error(error.message || JSON.stringify(error));
       return mapInvoiceFromDB(data?.[0]) || updates;
     },
