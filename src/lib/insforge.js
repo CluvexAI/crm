@@ -81,6 +81,39 @@ export async function getCurrentUser() {
   return res.json();
 }
 
+export async function sendResetPasswordEmail(email) {
+  const res = await fetch(`${BASE_URL}/api/auth/email/send-reset-password`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ email }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to send reset email");
+  return data;
+}
+
+export async function exchangeResetPasswordToken(email, code) {
+  const res = await fetch(`${BASE_URL}/api/auth/email/exchange-reset-password-token`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ email, code }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to verify reset code");
+  return data;
+}
+
+export async function resetPassword(token, newPassword) {
+  const res = await fetch(`${BASE_URL}/api/auth/email/reset-password`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ token, newPassword }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to reset password");
+  return data;
+}
+
 // ── Database — Query records ──────────────────────────────────────────────────
 
 /**

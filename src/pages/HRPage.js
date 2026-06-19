@@ -122,7 +122,7 @@ const AttendanceTab = ({ allAttendance, allUsers, today, isHR, canViewAll, curre
   const [dateFilter, setDateFilter] = useState(today);
   const [search, setSearch] = useState('');
   const [userFilter, setUserFilter] = useState('all');
-  const [timers, setTimers] = useState({ break: 0 });
+  const [timers, setTimers] = useState({ break: 0, now: new Date() });
   const [selectedRec, setSelectedRec] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
 
@@ -142,6 +142,7 @@ const AttendanceTab = ({ allAttendance, allUsers, today, isHR, canViewAll, curre
     const interval = setInterval(() => {
       setTimers({
         break: activeBreak ? Math.floor((new Date() - new Date(activeBreak.startTime)) / 1000) : 0,
+        now: new Date()
       });
     }, 1000);
     return () => clearInterval(interval);
@@ -243,13 +244,22 @@ const AttendanceTab = ({ allAttendance, allUsers, today, isHR, canViewAll, curre
         <div className="table-container">
           <table>
             <thead>
-              <tr><th>Employee</th><th>Login</th><th>Logout</th><th>Breaks</th><th>Meetings</th><th>Action</th></tr>
+              <tr><th>Employee</th><th>Emp ID</th><th>Login</th><th>Session</th><th>Logout</th><th>Breaks</th><th>Meetings</th><th>Action</th></tr>
             </thead>
             <tbody>
               {filtered.map(rec => (
                 <tr key={rec.id} style={selectedRec?.id === rec.id ? { background: 'var(--info-light)' } : {}}>
                   <td>{rec.userName}</td>
+                  <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{allUsers.find(u => String(u.id) === String(rec.userId))?.employeeId || '—'}</td>
                   <td>{formatTimestamp(rec.loginTime)}</td>
+                  <td>
+                    {(() => {
+                      if (!rec.loginTime) return '—';
+                      const end = rec.logoutTime ? new Date(rec.logoutTime) : (timers.now || new Date());
+                      const diffSeconds = Math.floor((end - new Date(rec.loginTime)) / 1000);
+                      return formatTime(diffSeconds);
+                    })()}
+                  </td>
                   <td>{rec.logoutTime ? formatTimestamp(rec.logoutTime) : <span className="badge badge-success">Online</span>}</td>
                   <td>{rec.breaks.length} sessions</td>
                   <td>{rec.meetings.length} sessions</td>

@@ -69,7 +69,8 @@ export const verifySpfRecord = async () => {
   };
   
   try {
-    const data = await fetchJson('/api/dns/verify', {
+    const apiUrl = process.env.REACT_APP_API_URL || '';
+    const data = await fetchJson(`${apiUrl}/api/dns/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ domain, type: 'SPF' })
@@ -112,7 +113,8 @@ export const verifyDkimRecord = async (selector = 'mail') => {
   };
   
   try {
-    const data = await fetchJson('/api/dns/verify', {
+    const apiUrl = process.env.REACT_APP_API_URL || '';
+    const data = await fetchJson(`${apiUrl}/api/dns/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ domain, type: 'DKIM' })
@@ -158,7 +160,8 @@ export const verifyDmarcRecord = async () => {
   };
   
   try {
-    const data = await fetchJson('/api/dns/verify', {
+    const apiUrl = process.env.REACT_APP_API_URL || '';
+    const data = await fetchJson(`${apiUrl}/api/dns/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ domain, type: 'DMARC' })
@@ -190,7 +193,8 @@ export const verifyDmarcRecord = async () => {
 export const generateDkimKey = async (selector = 'mail') => {
   try {
     // Request DKIM key generation from backend
-    const data = await fetchJson('/api/dns/generate-dkim', {
+    const apiUrl = process.env.REACT_APP_API_URL || '';
+    const data = await fetchJson(`${apiUrl}/api/dns/generate-dkim`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ selector })

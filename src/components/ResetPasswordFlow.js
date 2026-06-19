@@ -1,8 +1,35 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getAllUsers, updateUserRecord } from '../services/userDatabase';
 import { validatePasswordStrength } from '../services/passwordService';
 
-const PROXY = '';
+// ─── Local backend OTP helpers ────────────────────────────────────────────────
+const API = process.env.REACT_APP_API_URL || '';
+
+async function apiSendOtp(email) {
+  const res = await fetch(`${API}/api/auth/send-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  return res.json();
+}
+
+async function apiVerifyOtp(sessionId, otp) {
+  const res = await fetch(`${API}/api/auth/verify-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId, otp }),
+  });
+  return res.json();
+}
+
+async function apiResetPassword(sessionId, newPassword) {
+  const res = await fetch(`${API}/api/auth/reset-password-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId, newPassword }),
+  });
+  return res.json();
+}
 
 // ─── Strength helpers ─────────────────────────────────────────────────────────
 const getStrength = (pw) => {
@@ -84,28 +111,25 @@ const Screen1 = ({ onNext, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) return;
     setStatus('loading'); setMessage('');
 
+    console.log(`[Forgot Password] Initiating OTP request for: ${cleanEmail}`);
     try {
-      const users = getAllUsers().map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role }));
-      const res = await fetch(`${PROXY}/api/auth/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), users }),
-      });
-      const data = await res.json();
+      const data = await apiSendOtp(cleanEmail);
 
-      if (res.status === 429) {
-        setStatus('error'); setMessage(data.message); return;
-      }
-      if (!data.success || data.found === false) {
-        setStatus('error'); setMessage(data.message || 'Email not found.'); return;
+      if (!data.success) {
+        console.error(`[Forgot Password] OTP request failed for ${cleanEmail}:`, data.message);
+        setStatus('error'); setMessage(data.message || 'Failed to send reset email.'); return;
       }
 
-      onNext({ email: email.trim().toLowerCase(), sessionId: data.sessionId, expiresAt: data.expiresAt });
-    } catch {
-      setStatus('error'); setMessage('Could not connect to server. Please try again.');
+      console.log(`[Forgot Password] OTP sent via AWS SES to ${cleanEmail} (sessionId: ${data.sessionId})`);
+      // Pass email + sessionId to next screen
+      onNext({ email: cleanEmail, sessionId: data.sessionId });
+    } catch (err) {
+      console.error(`[Forgot Password] Network/Server error during OTP generation:`, err);
+      setStatus('error'); setMessage(err.message || 'Could not connect to server. Please try again.');
     }
   };
 
@@ -144,27 +168,24 @@ const Screen1 = ({ onNext, onClose }) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // SCREEN 2 — OTP Verification (6-cell input + countdown)
 // ═══════════════════════════════════════════════════════════════════════════════
-const Screen2 = ({ email, sessionId, expiresAt: initExpiry, onNext, onBack }) => {
+const Screen2 = ({ email, sessionId: initialSessionId, onNext, onBack }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
   const [shake, setShake] = useState(false);
-  const [remaining, setRemaining] = useState(0);
-  const [expiresAt, setExpiresAt] = useState(initExpiry);
-  const [sid, setSid] = useState(sessionId);
+  const [remaining, setRemaining] = useState(3600);
   const [resending, setResending] = useState(false);
+  const [sessionId, setSessionId] = useState(initialSessionId);
   const refs = useRef([]);
 
   // Countdown timer
   useEffect(() => {
     const tick = () => {
-      const left = Math.max(0, Math.floor((new Date(expiresAt) - Date.now()) / 1000));
-      setRemaining(left);
+      setRemaining(r => Math.max(0, r - 1));
     };
-    tick();
     const iv = setInterval(tick, 1000);
     return () => clearInterval(iv);
-  }, [expiresAt]);
+  }, []);
 
   const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
   const ss = String(remaining % 60).padStart(2, '0');
@@ -192,50 +213,54 @@ const Screen2 = ({ email, sessionId, expiresAt: initExpiry, onNext, onBack }) =>
     }
   };
 
+  const isVerifying = useRef(false);
+  
   const handleVerify = async () => {
+    if (isVerifying.current) return;
     const code = otp.join('');
     if (code.length !== 6) return;
+    isVerifying.current = true;
     setStatus('loading'); setMessage('');
 
+    console.log(`[OTP Verification] Verifying OTP for ${email}, sessionId: ${sessionId}`);
     try {
-      const res = await fetch(`${PROXY}/api/auth/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: sid, otp: code }),
-      });
-      const data = await res.json();
+      const data = await apiVerifyOtp(sessionId, code);
 
       if (data.success) {
-        onNext({ sessionId: sid, userId: data.userId, email: data.email });
+        console.log(`[OTP Verification] OTP verified successfully for ${email}`);
+        onNext({ email, sessionId }); // Pass sessionId for password reset step
       } else {
-        setStatus('error'); setMessage(data.message);
+        console.error(`[OTP Verification] Verification failed:`, data.message);
+        setStatus('error'); setMessage(data.message || 'Invalid OTP.');
         setShake(true); setTimeout(() => setShake(false), 500);
         setOtp(['', '', '', '', '', '']);
         refs.current[0]?.focus();
       }
-    } catch {
-      setStatus('error'); setMessage('Connection error.');
+    } catch (err) {
+      console.error(`[OTP Verification] Error:`, err);
+      setStatus('error'); setMessage(err.message || 'Connection error.');
+      setShake(true); setTimeout(() => setShake(false), 500);
+      setOtp(['', '', '', '', '', '']);
+      refs.current[0]?.focus();
+    } finally {
+      isVerifying.current = false;
     }
   };
 
   const handleResend = async () => {
     setResending(true);
     try {
-      const users = getAllUsers().map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role }));
-      const res = await fetch(`${PROXY}/api/auth/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, users }),
-      });
-      const data = await res.json();
+      const data = await apiSendOtp(email);
       if (data.success) {
-        setSid(data.sessionId);
-        setExpiresAt(data.expiresAt);
+        setSessionId(data.sessionId);
+        setRemaining(3600);
         setOtp(['', '', '', '', '', '']);
         setMessage(''); setStatus('idle');
         refs.current[0]?.focus();
       }
-    } catch { /* silent */ }
+    } catch (err) {
+      setStatus('error'); setMessage(err.message);
+    }
     setResending(false);
   };
 
@@ -299,7 +324,7 @@ const Screen2 = ({ email, sessionId, expiresAt: initExpiry, onNext, onBack }) =>
 // ═══════════════════════════════════════════════════════════════════════════════
 // SCREEN 3 — Reset Password (new + confirm + strength meter)
 // ═══════════════════════════════════════════════════════════════════════════════
-const Screen3 = ({ sessionId, userId, onNext }) => {
+const Screen3 = ({ sessionId, email, onNext }) => {
   const [pw, setPw] = useState('');
   const [confirm, setConfirm] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -315,24 +340,19 @@ const Screen3 = ({ sessionId, userId, onNext }) => {
     if (!v.isValid) { setError(v.errors[0]); return; }
 
     setLoading(true);
+    console.log(`[Password Reset] Resetting password for ${email} via sessionId...`);
     try {
-      const res = await fetch(`${PROXY}/api/auth/reset-password-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, newPassword: pw }),
-      });
-      const data = await res.json();
+      const data = await apiResetPassword(sessionId, pw);
       if (data.success) {
-        // Update localStorage
-        const allUsers = getAllUsers();
-        const user = allUsers.find(u => String(u.id) === String(data.userId || userId));
-        if (user) updateUserRecord(user.uuid, { password: data.hashedPassword });
+        console.log(`[Password Reset] Password reset completed successfully for ${email}.`);
         onNext();
       } else {
+        console.error(`[Password Reset] Failed:`, data.message);
         setError(data.message || 'Reset failed.');
       }
-    } catch {
-      setError('Connection error.');
+    } catch (err) {
+      console.error(`[Password Reset] Error:`, err);
+      setError(err.message || 'Connection error.');
     }
     setLoading(false);
   };
@@ -482,7 +502,6 @@ export const ForgotPasswordModal = ({ onClose }) => {
           <Screen2
             email={ctx.email}
             sessionId={ctx.sessionId}
-            expiresAt={ctx.expiresAt}
             onNext={(data) => { setCtx(prev => ({ ...prev, ...data })); setScreen(3); }}
             onBack={() => setScreen(1)}
           />
@@ -490,7 +509,7 @@ export const ForgotPasswordModal = ({ onClose }) => {
         {screen === 3 && (
           <Screen3
             sessionId={ctx.sessionId}
-            userId={ctx.userId}
+            email={ctx.email}
             onNext={() => setScreen(4)}
           />
         )}

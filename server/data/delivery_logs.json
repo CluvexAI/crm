@@ -742,5 +742,37 @@
     "status": "delivered",
     "messageId": "<4499decc-a7ef-719a-3311-214ec049494d@zsmeservices.com>",
     "timestamp": "2026-06-18T10:52:13.379Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<d4b270d3-e00d-bf69-bb2f-00fda647c3f2@zsmeservices.com>",
+    "timestamp": "2026-06-19T11:27:27.128Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<aebea90b-307f-1244-a452-bdb935e18568@zsmeservices.com>",
+    "attempt": 1,
+    "smtpSource": "env_smtp",
+    "timestamp": "2026-06-19T11:52:19.516Z"
+  },
+  {
+    "type": "password_reset",
+    "email": "tanmoy.mondal@zsmeservices.com",
+    "status": "completed",
+    "timestamp": "2026-06-19T11:55:13.817Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<5f57692e-e444-c567-f102-443abbb4c8dc@zsmeservices.com>",
+    "attempt": 1,
+    "smtpSource": "env_smtp",
+    "timestamp": "2026-06-19T12:45:32.910Z"
   }
 ]

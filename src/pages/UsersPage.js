@@ -4,7 +4,6 @@ import { ROLES, DEPARTMENTS, DEPARTMENT_ROLES } from '../data/mockData';
 import ProfileImageUpload from '../components/ProfileImageUpload';
 import { can } from '../services/rbacService';
 import { getRoleConfig, getVisibleUsers } from '../config/rolePermissions';
-import { changePasswordOnServer } from '../services/passwordSyncService';
 
 // Quick alert for user feedback
 const showFeedback = (message, type = 'success') => {
@@ -328,28 +327,37 @@ export const UserFormModal = ({ user, onClose, onSave, isHR = false }) => {
                   {isHR && <div className="form-hint">🔒 Name can only be modified by an Admin</div>}
                 </div>
                 <FormInput label="Email (Login)" value={form.basic.email} onChange={v => updateField('basic', 'email', v)} type="email" required error={errors.email} readOnly={user?.email === 'admin@zsmeservices.com'} />
-                <div className="form-group">
-                  <label className="form-label">Password{!user && <span className="required"> *</span>}</label>
-                  <input className="form-control" type="password" value={form.basic.password || ''}
-                    onChange={e => updateField('basic', 'password', e.target.value)}
-                    placeholder={user ? 'Leave blank to keep current' : 'Enter new password'} />
-                  {form.basic.password && (
-                    <div style={{ marginTop: 6 }}>
-                      <div style={{ height: 3, background: '#eee', borderRadius: 2, overflow: 'hidden' }}>
-                        <div style={{ 
-                          height: '100%', 
-                          width: `${Math.min(100, (form.basic.password.length / 8) * 100)}%`,
-                          background: form.basic.password.length < 8 ? '#ef4444' : '#10b981',
-                          transition: 'width 0.3s'
-                        }} />
+                {!user ? (
+                  <div className="form-group">
+                    <label className="form-label">Password <span className="required">*</span></label>
+                    <input className="form-control" type="password" value={form.basic.password || ''}
+                      onChange={e => updateField('basic', 'password', e.target.value)}
+                      placeholder="Enter initial password" />
+                    {form.basic.password && (
+                      <div style={{ marginTop: 6 }}>
+                        <div style={{ height: 3, background: '#eee', borderRadius: 2, overflow: 'hidden' }}>
+                          <div style={{ 
+                            height: '100%', 
+                            width: `${Math.min(100, (form.basic.password.length / 8) * 100)}%`,
+                            background: form.basic.password.length < 8 ? '#ef4444' : '#10b981',
+                            transition: 'width 0.3s'
+                          }} />
+                        </div>
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                          {form.basic.password.length < 8 ? '❌ Min 8 characters' : '✅ Password length OK'}
+                        </div>
                       </div>
-                      <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
-                        {form.basic.password.length < 8 ? '❌ Min 8 characters' : '✅ Password length OK'}
-                      </div>
+                    )}
+                    {errors.password && <div className="form-error">{errors.password}</div>}
+                  </div>
+                ) : (
+                  <div className="form-group">
+                    <label className="form-label">Password</label>
+                    <div style={{ background: 'var(--bg-secondary)', padding: '10px 14px', borderRadius: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
+                      🔒 Password changes are managed by Insforge. Instruct the user to use the <strong>Forgot Password</strong> flow on the login screen.
                     </div>
-                  )}
-                  {errors.password && <div className="form-error">{errors.password}</div>}
-                </div>
+                  </div>
+                )}
                 <FormInput label="Phone" value={form.basic.phone} onChange={v => updateField('basic', 'phone', v)} required error={errors.phone} />
                 <FormInput label="WhatsApp" value={form.basic.whatsapp} onChange={v => updateField('basic', 'whatsapp', v)} />
                 <div className="form-group" style={{ gridColumn: '1/-1' }}>
@@ -525,15 +533,9 @@ const UsersPage = () => {
         }
         
         if (password) {
-          const res = await changePasswordOnServer(
-            editUser.uuid, 
-            password, 
-            currentUser.uuid, 
-            currentUser.email, 
-            true
-          );
-          safe.password = res.hashedPassword;
-          safe.must_change_password = false;
+          // Editing password for an existing user is no longer permitted here
+          // as Insforge handles auth.
+          delete safe.password;
         }
         
         await updateUser(editUser.uuid, safe);

@@ -15,7 +15,10 @@ const bcrypt = require('bcryptjs');
 const stripe = require('stripe');
 const { resolveTxtWithRetry } = require('./utils/dnsResolver');
 
-dotenv.config();
+// Load .env — try server/.env first, then fall back to project root .env
+dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config({ path: path.join(__dirname, '..', '.env') }); // root .env fallback (won't override existing vars)
+
 
 const postmarkClient = new postmark.ServerClient(process.env.POSTMARK_API_TOKEN || '7f34db3b-5094-4a8f-a162-16888266d45b');
 
@@ -153,7 +156,7 @@ const createImapClient = (config) => {
 
 const createTransport = (config) => {
   const smtpConfig = config.smtp || {};
-  const port = parseInt(smtpConfig.port || config.port) || 587;
+  const port = parseInt(process.env.SMTP_PORT || smtpConfig.port || config.port) || 587;
   
   // DKIM Configuration
   const dkimConfig = {
@@ -189,12 +192,12 @@ kP2TZdg75NQZEFd/Gf30Gu79dAsRMFtlQ/2YoumtN+Rgq7HoUjAt7vhDrHIbTPkN
   };
 
   return nodemailer.createTransport({
-    host: smtpConfig.host || config.host || 'mail.zsmeservices.com',
+    host: process.env.SMTP_HOST || smtpConfig.host || config.host || 'mail.zsmeservices.com',
     port: port,
     secure: port === 465,
     auth: { 
-      user: config.email || config.user, 
-      pass: decrypt(config.password || config.pass) 
+      user: process.env.SMTP_USER || smtpConfig.auth?.user || config.email || config.user, 
+      pass: process.env.SMTP_PASS || smtpConfig.auth?.pass || decrypt(config.password || config.pass) 
     },
     tls: { rejectUnauthorized: false },
     pool: true,
@@ -273,11 +276,13 @@ const generateOTP = () => {
 // POST /api/auth/send-otp — Generate & email a 6-digit OTP
 app.post('/api/auth/send-otp', async (req, res) => {
   try {
-    const { email, users } = req.body;
+    const { email } = req.body;
     if (!email) return res.json({ success: false, message: 'Email is required.' });
 
     const normalizedEmail = email.toLowerCase().trim();
-    const user = (users || []).find(u => u.email && u.email.toLowerCase() === normalizedEmail);
+    // Always look up from server-side users.json — never trust client-sent user list
+    const serverUsers = readUsers() || [];
+    const user = serverUsers.find(u => u.email && u.email.toLowerCase() === normalizedEmail);
     if (!user) return res.json({ success: false, found: false, message: 'No account found with this email address.' });
 
     // Rate limiting

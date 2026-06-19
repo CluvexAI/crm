@@ -1,89 +1,43 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useToast } from '../components/Toast';
 
 const ReportsPage = () => {
-  const { currentUser, allAttendance, allUsers, allProjects, submitDailyReport } = useApp();
+  const { currentUser } = useApp();
   const toast = useToast();
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [reportText, setReportText] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [apiReports, setApiReports] = useState([]);
   const [activeTab, setActiveTab] = useState(currentUser.role === 'Admin' ? 'team' : 'daily');
   
   const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
-  
-  const isAdmin = currentUser.role === 'Admin';
-
-  useEffect(() => {
-    const fetchApiReports = async () => {
-      try {
-        const endpoint = isAdmin ? '/api/reports/all' : `/api/reports/${currentUser.id}`;
-        const res = await fetch((process.env.REACT_APP_API_URL || '') + endpoint);
-        const json = await res.json();
-        if (json.success) {
-          setApiReports(json.data || []);
-        }
-      } catch (err) {
-        console.error('Failed to fetch API reports', err);
-      }
-    };
-    fetchApiReports();
-  }, [activeTab, isAdmin, currentUser.id]);
-
-  const attendanceReports = allAttendance
-    .filter(a => a.workSummary)
-    .map(a => ({
-      id: `att-${a.id}`,
-      userId: a.userId,
-      userName: a.userName,
-      department: allUsers.find(u => String(u.id) === String(a.userId))?.department || 'Unknown',
-      reportText: a.workSummary,
-      reportDate: a.date,
-      createdAt: a.loginTime || new Date(a.date).toISOString()
-    }));
-
-  const projectReports = (allProjects || []).flatMap(p => 
-    (p.reports || []).map((r, index) => {
-      const user = allUsers.find(u => u.name === r.by);
-      return {
-        id: `proj-${p.id}-${index}`,
-        userId: user?.id || 'unknown',
-        userName: r.by,
-        department: user?.department || 'Unknown',
-        reportText: `[Project: ${p.projectName}] ${r.summary}`,
-        reportDate: r.date || (r.timestamp ? new Date(r.timestamp).toISOString().split('T')[0] : todayStr),
-        createdAt: r.timestamp || new Date(r.date || new Date()).toISOString()
-      };
-    })
-  );
-
-  // Combine and deduplicate by mapping by a unique key if needed, but array concat is fine here.
-  const allCombined = [...attendanceReports, ...projectReports, ...apiReports];
-  const uniqueReportsMap = new Map();
-  allCombined.forEach(r => {
-    // Prefer attendance ID if exists, otherwise create unique hash
-    const uniqueKey = `${r.userId}-${r.reportDate}-${r.reportText}`;
-    if (!uniqueReportsMap.has(uniqueKey)) {
-      uniqueReportsMap.set(uniqueKey, r);
-    }
-  });
-
-  const reports = Array.from(uniqueReportsMap.values())
-    .map(r => {
-      const u = allUsers.find(user => String(user.id) === String(r.userId));
-      return {
-        ...r,
-        employeeId: u?.employeeId || 'N/A'
-      };
-    })
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-  const alreadySubmitted = attendanceReports.find(r => r.reportDate === todayStr && String(r.userId) === String(currentUser.id)) || 
-                           apiReports.find(r => r.reportDate === todayStr && String(r.userId) === String(currentUser.id));
+  const alreadySubmitted = reports.find(r => r.reportDate === todayStr && r.userId === currentUser.id);
   
   const allowedDepts = ['Backend', 'Support', 'Quality', 'Graphics', 'Account', 'Accounts', 'HR'];
+  const isAdmin = currentUser.role === 'Admin';
   const isAllowed = allowedDepts.includes(currentUser.department) || isAdmin;
   const isTimeWindowOk = new Date().getHours() >= 9;
+
+  useEffect(() => {
+    fetchReports();
+  }, [currentUser.id, activeTab]);
+
+  const fetchReports = async () => {
+    try {
+      const endpoint = activeTab === 'team' && isAdmin ? '/api/reports/all' : `/api/reports/${currentUser.id}`;
+      const res = await fetch(endpoint);
+      const json = await res.json();
+      if (json.success) {
+        const sorted = json.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setReports(sorted);
+      }
+    } catch (e) {
+      console.error('[REPORT] Fetch error:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,8 +49,7 @@ const ReportsPage = () => {
     console.log('[REPORT] Initiating submission for:', todayStr);
     setSubmitting(true);
     try {
-      // Post to backend for Activity Calendar
-      await fetch((process.env.REACT_APP_API_URL || '') + '/api/reports/daily', {
+      const res = await fetch((process.env.REACT_APP_API_URL || '') + '/api/reports/daily', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -106,28 +59,21 @@ const ReportsPage = () => {
           reportText,
           date: todayStr
         })
-      }).catch(err => console.warn('Backend /api/reports/daily sync failed', err));
-
-      // Save to frontend app context
-      submitDailyReport(currentUser.id, currentUser.name, todayStr, reportText);
-      console.log('[REPORT] Submission success via AppContext');
+      });
       
-      // Update local API reports state immediately
-      setApiReports(prev => [...prev, {
-        id: `api-temp-${Date.now()}`,
-        userId: currentUser.id,
-        userName: currentUser.name,
-        department: currentUser.department,
-        reportText,
-        reportDate: todayStr,
-        createdAt: new Date().toISOString()
-      }]);
-
-      setReportText('');
-      toast.success('Report submitted and locked! ✅');
+      const json = await res.json();
+      if (res.ok && json.success) {
+        console.log('[REPORT] Submission success');
+        setReportText('');
+        await fetchReports(); // Force re-fetch to lock the UI
+        toast.success('Report submitted and locked! Γ£à');
+      } else {
+        console.error('[REPORT] Submission rejected:', json.message);
+        toast.error(json.message);
+      }
     } catch (e) {
       console.error('[REPORT] Pipeline error:', e);
-      toast.error('Error submitting report.');
+      toast.error('Network error: Could not reach reporting server.');
     } finally {
       setSubmitting(false);
     }
@@ -136,7 +82,7 @@ const ReportsPage = () => {
   if (!isAllowed) {
     return (
       <div className="empty-state">
-        <div className="empty-state-icon">🔒</div>
+        <div className="empty-state-icon">≡ƒöÆ</div>
         <div className="empty-state-title">Not Authorized</div>
         <div className="empty-state-text">Activity reporting is only enabled for technical, accounts and creative departments.</div>
       </div>
@@ -164,22 +110,22 @@ const ReportsPage = () => {
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
       <div className="tabs" style={{ marginBottom: 24 }}>
-        {isAdmin && <button className={`tab-btn ${activeTab === 'team' ? 'active' : ''}`} onClick={() => setActiveTab('team')}>👥 Team Overview</button>}
-        <button className={`tab-btn ${activeTab === 'daily' ? 'active' : ''}`} onClick={() => setActiveTab('daily')}>📅 Daily Report</button>
-        <button className={`tab-btn ${activeTab === 'weekly' ? 'active' : ''}`} onClick={() => setActiveTab('weekly')}>📊 Weekly View</button>
-        <button className={`tab-btn ${activeTab === 'monthly' ? 'active' : ''}`} onClick={() => setActiveTab('monthly')}>📈 Monthly View</button>
+        {isAdmin && <button className={`tab-btn ${activeTab === 'team' ? 'active' : ''}`} onClick={() => setActiveTab('team')}>≡ƒæÑ Team Overview</button>}
+        <button className={`tab-btn ${activeTab === 'daily' ? 'active' : ''}`} onClick={() => setActiveTab('daily')}>≡ƒôà Daily Report</button>
+        <button className={`tab-btn ${activeTab === 'weekly' ? 'active' : ''}`} onClick={() => setActiveTab('weekly')}>≡ƒôè Weekly View</button>
+        <button className={`tab-btn ${activeTab === 'monthly' ? 'active' : ''}`} onClick={() => setActiveTab('monthly')}>≡ƒôê Monthly View</button>
       </div>
 
       {activeTab === 'daily' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 24 }}>
           <div className="card">
             <div className="card-header">
-              <div className="card-title">📝 Today's Report ({new Date().toLocaleDateString()})</div>
+              <div className="card-title">≡ƒô¥ Today's Report ({new Date().toLocaleDateString()})</div>
             </div>
             <div className="card-body">
               {alreadySubmitted ? (
                 <div style={{ background: 'var(--success-light)', border: '1px solid var(--success)', borderRadius: 12, padding: 24, textAlign: 'center' }}>
-                  <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>Γ£à</div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--success-dark)' }}>Report Locked</div>
                   <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>Today's report has been submitted and cannot be modified.</p>
                   <div style={{ marginTop: 24, padding: 16, background: 'white', borderRadius: 8, textAlign: 'left', border: '1px solid var(--border-light)', whiteSpace: 'pre-wrap' }}>
@@ -188,7 +134,7 @@ const ReportsPage = () => {
                 </div>
               ) : !isTimeWindowOk ? (
                 <div style={{ background: 'var(--warning-light)', border: '1px solid var(--warning)', borderRadius: 12, padding: 24, textAlign: 'center' }}>
-                  <div style={{ fontSize: 40, marginBottom: 12 }}>🕒</div>
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>≡ƒòÆ</div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: '#92400e' }}>Window Not Open</div>
                   <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>Reporting window opens daily at 9:00 AM.</p>
                 </div>
@@ -204,11 +150,11 @@ const ReportsPage = () => {
                       onChange={e => setReportText(e.target.value)}
                       required
                     />
-                    <div className="form-hint">🔒 This report will be locked permanently once submitted.</div>
+                    <div className="form-hint">≡ƒöÆ This report will be locked permanently once submitted.</div>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
                     <button type="submit" className="btn btn-primary" disabled={submitting}>
-                      {submitting ? 'Locking & Saving...' : '🚀 Submit Today\'s Report'}
+                      {submitting ? 'Locking & Saving...' : '≡ƒÜÇ Submit Today\'s Report'}
                     </button>
                   </div>
                 </form>
@@ -218,7 +164,7 @@ const ReportsPage = () => {
           
           <div className="card">
             <div className="card-header">
-              <div className="card-title">🛡️ Reporting Rules</div>
+              <div className="card-title">≡ƒ¢í∩╕Å Reporting Rules</div>
             </div>
             <div className="card-body" style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
               <ul style={{ paddingLeft: 16 }}>
@@ -236,7 +182,7 @@ const ReportsPage = () => {
         <div className="card">
           <div className="card-header">
             <div className="card-title">
-              {activeTab === 'weekly' ? '📅 Last 7 Days Activity' : activeTab === 'monthly' ? '🗓️ Last 30 Days Activity' : '👥 Team Activity Logs'}
+              {activeTab === 'weekly' ? '≡ƒôà Last 7 Days Activity' : activeTab === 'monthly' ? '≡ƒùô∩╕Å Last 30 Days Activity' : '≡ƒæÑ Team Activity Logs'}
             </div>
           </div>
           <div className="table-container">
@@ -244,9 +190,8 @@ const ReportsPage = () => {
               <thead>
                 <tr>
                   <th>Date & Time</th>
-                  {(activeTab === 'team' || activeTab === 'monthly') && <th>Emp ID</th>}
-                  {(activeTab === 'team' || activeTab === 'monthly') && <th>Employee</th>}
-                  {(activeTab === 'team' || activeTab === 'monthly') && <th>Dept</th>}
+                  {activeTab === 'team' && <th>Employee</th>}
+                  {activeTab === 'team' && <th>Dept</th>}
                   <th>Work Description</th>
                   <th>Status</th>
                 </tr>
@@ -257,16 +202,13 @@ const ReportsPage = () => {
                     <td style={{ width: 180 }}>
                       <div style={{ fontWeight: 600 }}>{r.reportDate}</div>
                       <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        🕒 {new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        ≡ƒòÆ {new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </td>
-                    {(activeTab === 'team' || activeTab === 'monthly') && (
-                      <td style={{ fontFamily: 'monospace', fontSize: 13, color: 'var(--text-secondary)' }}>{r.employeeId}</td>
-                    )}
-                    {(activeTab === 'team' || activeTab === 'monthly') && (
+                    {activeTab === 'team' && (
                       <td style={{ fontWeight: 600 }}>{r.userName}</td>
                     )}
-                    {(activeTab === 'team' || activeTab === 'monthly') && (
+                    {activeTab === 'team' && (
                       <td><span className="badge badge-neutral">{r.department}</span></td>
                     )}
                     <td style={{ whiteSpace: 'pre-wrap', fontSize: 12, lineHeight: 1.5 }}>{r.reportText}</td>
@@ -275,7 +217,7 @@ const ReportsPage = () => {
                 ))}
                 {(activeTab === 'weekly' ? getWeeklySummary() : activeTab === 'monthly' ? getMonthlySummary() : reports).length === 0 && (
                   <tr>
-                    <td colSpan={(activeTab === 'team' || activeTab === 'monthly') ? 6 : 3} style={{ textAlign: 'center', padding: 48, color: 'var(--text-muted)' }}>
+                    <td colSpan={activeTab === 'team' ? 5 : 3} style={{ textAlign: 'center', padding: 48, color: 'var(--text-muted)' }}>
                       No reports found for this period.
                     </td>
                   </tr>

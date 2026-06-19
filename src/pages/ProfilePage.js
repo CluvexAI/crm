@@ -4,8 +4,6 @@ import ProfileImageUpload from '../components/ProfileImageUpload';
 import { can } from '../services/rbacService';
 import { formatFileSize } from '../services/uploadService';
 import { encrypt, maskPassword } from '../services/cryptoService';
-import { changePasswordOnServer } from '../services/passwordSyncService';
-import { validatePasswordStrength } from '../services/passwordService';
 
 const InfoRow = ({ label, value, editing, field, type = 'text', readOnly = false, form, setForm }) => (
   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid var(--border-light)', gap: 16 }}>
@@ -25,9 +23,6 @@ const ProfilePage = () => {
   const [isEditing, setIsEditing]   = useState(false);
   const [form, setForm]             = useState({ ...currentUser });
   const [tab, setTab]               = useState('profile');
-  const [changePass, setChangePass] = useState({ current: '', newPass: '', confirm: '' });
-  const [passError, setPassError]   = useState('');
-  const [passSuccess, setPassSuccess] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   if (!currentUser) return null;
@@ -43,51 +38,6 @@ const ProfilePage = () => {
     setTimeout(() => setSaveSuccess(false), 3000);
   };
 
-  const handlePassChange = async (e) => {
-    e.preventDefault();
-    setPassError('');
-    
-    const { current, newPass, confirm } = changePass;
-    
-    if (!current) { setPassError('Please enter current password.'); return; }
-    if (!newPass) { setPassError('Please enter new password.'); return; }
-    if (!confirm) { setPassError('Please confirm new password.'); return; }
-    
-    // Use full password policy validation
-    const validation = validatePasswordStrength(newPass);
-    if (!validation.isValid) {
-      setPassError(validation.errors.join('; '));
-      return;
-    }
-    
-    if (newPass !== confirm) { setPassError('Passwords do not match.'); return; }
-    if (current === newPass) { setPassError('New password must be different from current password.'); return; }
-    
-    try {
-      const response = await changePasswordOnServer(
-        currentUser.uuid, 
-        newPass, 
-        currentUser.uuid, 
-        currentUser.email, 
-        false, 
-        current
-      );
-      
-      // DO NOT STORE HASHED PASSWORD IN CONTEXT/LOCALSTORAGE
-      // Password is now updated on backend only
-      // User will need to login again with new password
-      
-      setPassSuccess(true);
-      setChangePass({ current: '', newPass: '', confirm: '' });
-      setTimeout(() => setPassSuccess(false), 3500);
-    } catch (err) {
-      if (err.message.toLowerCase().includes('current password')) {
-        setPassError(err.message);
-      } else {
-        setPassError('Failed to update password: ' + err.message);
-      }
-    }
-  };
 
   const getInitials = (name) =>
     name ? name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : 'U';
@@ -257,37 +207,16 @@ const ProfilePage = () => {
       {/* ── Security Tab ── */}
       {tab === 'security' && (
         <div className="card" style={{ maxWidth: 480 }}>
-          <div className="card-header"><div className="card-title">🔒 Change Password</div></div>
+          <div className="card-header"><div className="card-title">🔒 Password Management</div></div>
           <div className="card-body">
-            {passSuccess && (
-              <div style={{ background: 'var(--success-light)', border: '1px solid var(--success)', borderRadius: 8, padding: '10px 14px', marginBottom: 16, color: '#065f46', fontWeight: 600, fontSize: 13 }}>
-                ✅ Password updated successfully!
+            <div style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: 16, fontSize: 13, color: 'var(--text-secondary)' }}>
+              <div style={{ fontWeight: 600, color: 'var(--primary)', marginBottom: 8, fontSize: 14 }}>
+                Password changes are securely managed by Insforge.
               </div>
-            )}
-            {passError && (
-              <div style={{ background: 'var(--danger-light)', border: '1px solid var(--danger)', borderRadius: 8, padding: '10px 14px', marginBottom: 16, color: 'var(--danger)', fontWeight: 600, fontSize: 13 }}>
-                ⚠️ {passError}
-              </div>
-            )}
-            <form onSubmit={handlePassChange}>
-              <div className="form-group">
-                <label className="form-label">Current Password</label>
-                <input className="form-control" type="password" value={changePass.current}
-                  onChange={e => setChangePass(p => ({ ...p, current: e.target.value }))} required />
-              </div>
-              <div className="form-group">
-                <label className="form-label">New Password</label>
-                <input className="form-control" type="password" value={changePass.newPass}
-                  onChange={e => setChangePass(p => ({ ...p, newPass: e.target.value }))} required />
-                <div className="form-hint">Minimum 8 characters with uppercase, lowercase, number, and special character</div>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Confirm New Password</label>
-                <input className="form-control" type="password" value={changePass.confirm}
-                  onChange={e => setChangePass(p => ({ ...p, confirm: e.target.value }))} required />
-              </div>
-              <button type="submit" className="btn btn-primary">🔒 Update Password</button>
-            </form>
+              <p style={{ margin: 0 }}>
+                To change your password, please <strong>log out</strong> and click the <strong>"Forgot Password"</strong> link on the login screen. You will receive an email verification code to securely update your credentials.
+              </p>
+            </div>
           </div>
         </div>
       )}
