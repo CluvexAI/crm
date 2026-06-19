@@ -1088,7 +1088,7 @@ app.get('/api/activity-reports/calendar', (req, res) => {
   
   // Filter by userId if provided (for individual user's calendar)
   if (userId) {
-    filteredReports = filteredReports.filter(r => r.userId === parseInt(userId));
+    filteredReports = filteredReports.filter(r => String(r.userId) === String(userId));
   }
   
   // Group by date
@@ -1118,7 +1118,7 @@ app.get('/api/activity-reports/date/:date', (req, res) => {
   
   // Filter by userId if provided (for individual user's calendar)
   if (userId) {
-    reports = reports.filter(r => r.userId === parseInt(userId));
+    reports = reports.filter(r => String(r.userId) === String(userId));
   }
   
   if (reports.length === 0) {

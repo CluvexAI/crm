@@ -774,5 +774,14 @@
     "attempt": 1,
     "smtpSource": "env_smtp",
     "timestamp": "2026-06-19T12:45:32.910Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<6a56dff8-f22f-3ed1-113d-5cbd0a262c5e@zsmeservices.com>",
+    "attempt": 1,
+    "smtpSource": "env_smtp",
+    "timestamp": "2026-06-19T13:50:26.129Z"
   }
 ]
