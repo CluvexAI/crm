@@ -192,12 +192,12 @@ kP2TZdg75NQZEFd/Gf30Gu79dAsRMFtlQ/2YoumtN+Rgq7HoUjAt7vhDrHIbTPkN
   };
 
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || smtpConfig.host || config.host || 'mail.zsmeservices.com',
+    host: process.env.SMTP_HOST || smtpConfig.host || config.host || 'email-smtp.us-east-1.amazonaws.com',
     port: port,
     secure: port === 465,
     auth: { 
-      user: process.env.SMTP_USER || smtpConfig.auth?.user || config.email || config.user, 
-      pass: process.env.SMTP_PASS || smtpConfig.auth?.pass || decrypt(config.password || config.pass) 
+      user: process.env.SMTP_USER || smtpConfig.auth?.user || config.email || config.user || 'AKIAZS4KXICMRDCBUKW4', 
+      pass: process.env.SMTP_PASS || smtpConfig.auth?.pass || (config.password ? decrypt(config.password) : null) || (config.pass ? decrypt(config.pass) : null) || 'BJQzaBD98bf2GhOT2CxT2Bo5yPy4RnuixXj6N2hgkrF1' 
     },
     tls: { rejectUnauthorized: false },
     pool: true,
@@ -333,9 +333,9 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
     // 2. Fall back to system .env SMTP
     if (!smtpConfig) {
-      const envHost = process.env.SMTP_HOST;
-      const envUser = process.env.SMTP_USER;
-      const envPass = process.env.SMTP_PASS;
+      const envHost = process.env.SMTP_HOST || 'email-smtp.us-east-1.amazonaws.com';
+      const envUser = process.env.SMTP_USER || 'AKIAZS4KXICMRDCBUKW4';
+      const envPass = process.env.SMTP_PASS || 'BJQzaBD98bf2GhOT2CxT2Bo5yPy4RnuixXj6N2hgkrF1';
       if (envHost && envUser && envPass) {
         smtpConfig = {
           host: envHost,
