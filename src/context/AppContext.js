@@ -667,8 +667,9 @@ export const AppProvider = ({ children }) => {
    * uuid and id fields are stripped so they can never be overwritten.
    */
    const updateUser = async (uuid, userData) => {
-     const targetUser = allUsers.find(u => u.uuid === uuid);
+     const targetUser = allUsers.find(u => String(u.uuid) === String(uuid) || String(u.id) === String(uuid));
      if (!targetUser) throw new Error("User not found");
+     const identifier = targetUser.uuid || targetUser.id;
 
     // 🔐 RBAC: HR CANNOT modify Admin users
     if (currentUser.role === ROLES.HR && targetUser.role === ROLES.ADMIN) {
@@ -709,17 +710,17 @@ export const AppProvider = ({ children }) => {
     const { uuid: _u, id: _i, ...safeData } = processedData;
     
     // Persist to database FIRST, then update UI
-    const updatedUser = updateUserRecord(uuid, safeData);
+    const updatedUser = updateUserRecord(identifier, safeData);
     
     // Update React state with data from database
     setAllUsers((prev) =>
-      prev.map((u) => (u.uuid === uuid ? { ...u, ...updatedUser } : u))
+      prev.map((u) => ((String(u.uuid) === String(identifier) || String(u.id) === String(identifier)) ? { ...u, ...updatedUser } : u))
     );
     
-    addAuditLog('User Updated', currentUser.name, `Updated employee UUID: ${uuid}`);
+    addAuditLog('User Updated', currentUser.name, `Updated employee identifier: ${identifier}`);
     
     // Keep currentUser in sync if user updated themselves
-    if (currentUser && currentUser.uuid === uuid) {
+    if (currentUser && (String(currentUser.uuid) === String(identifier) || String(currentUser.id) === String(identifier))) {
       setCurrentUser((prev) => ({ ...prev, ...updatedUser }));
     }
     

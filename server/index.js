@@ -14,6 +14,25 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const stripe = require('stripe');
 const { resolveTxtWithRetry } = require('./utils/dnsResolver');
+const { startSession, logoutSession, initializeExistingSessions, sendMessage } = require('./services/whatsappService');
+const { logAudit } = require('./services/auditLogger');
+const multer = require('multer');
+const rateLimit = require('express-rate-limit');
+
+// Rate limiter for WhatsApp sends (20 msgs / min)
+const whatsappSendLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20,
+  message: { success: false, message: 'Too many messages sent. Please slow down.' }
+});
+
+// Configure multer for memory storage
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100MB limit
+  }
+});
 
 // Load .env — try server/.env first, then fall back to project root .env
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -1082,8 +1101,10 @@ app.get('/api/activity-reports/calendar', (req, res) => {
   
   // Filter reports by userId (if provided) and specified month/year
   let filteredReports = dailyReports.filter(report => {
-    const reportDate = new Date(report.reportDate);
-    return reportDate.getMonth() + 1 === monthNum && reportDate.getFullYear() === yearNum;
+    if (!report.reportDate) return false;
+    const parts = report.reportDate.split('-');
+    if (parts.length !== 3) return false;
+    return parseInt(parts[1], 10) === monthNum && parseInt(parts[0], 10) === yearNum;
   });
   
   // Filter by userId if provided (for individual user's calendar)
@@ -1140,7 +1161,7 @@ app.get('/api/activity-reports/date/:date', (req, res) => {
 app.post('/api/reports/daily', (req, res) => {
   const { userId, userName, department, reportText, date } = req.body;
   console.log(`[REPORT] Submission attempt from ${userName} (${userId}) for date ${date}`);
-  const allowedDepts = ['Backend', 'Support', 'Quality', 'Graphics', 'Account', 'Accounts', 'HR'];
+  const allowedDepts = ['Backend', 'Support', 'Quality', 'Graphics', 'Account', 'Accounts', 'HR', 'Management'];
   
   // 1. Dept check
   if (!allowedDepts.includes(department)) {
@@ -1155,7 +1176,7 @@ app.post('/api/reports/daily', (req, res) => {
   }
 
   // 3. Duplicate check
-  const existing = dailyReports.find(r => r.userId === userId && r.reportDate === date);
+  const existing = dailyReports.find(r => String(r.userId) === String(userId) && r.reportDate === date);
   if (existing) {
     return res.status(400).json({ success: false, message: 'Today\'s report already submitted and locked' });
   }
@@ -2043,6 +2064,193 @@ app.post('/api/attendance', (req, res) => {
   res.json({ success: true, data: logData });
 });
 
+// ─── WhatsApp API ────────────────────────────────────────────────────────────
+app.post('/api/whatsapp/init', (req, res) => {
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ success: false, message: 'userId is required' });
+  
+  startSession(userId, io).catch(err => {
+    console.error(`[WhatsApp] Init Error:`, err);
+  });
+  res.json({ success: true, message: 'WhatsApp session initialization started' });
+});
+
+app.post('/api/whatsapp/logout', (req, res) => {
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ success: false, message: 'userId is required' });
+  
+  logoutSession(userId);
+  res.json({ success: true, message: 'WhatsApp session logged out' });
+});
+
+app.get('/api/whatsapp/chats', (req, res) => {
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ success: false });
+  const chatsFile = path.join(DATA_DIR, `whatsapp-chats-${userId}.json`);
+  const contactsFile = path.join(DATA_DIR, `whatsapp-contacts-${userId}.json`);
+  
+  const chats = fs.existsSync(chatsFile) ? JSON.parse(fs.readFileSync(chatsFile, 'utf8')) : [];
+  const contacts = fs.existsSync(contactsFile) ? JSON.parse(fs.readFileSync(contactsFile, 'utf8')) : {};
+  
+  // Attach contact names
+  const enrichedChats = chats.map(c => {
+    let resolvedName = c.name;
+    const isLid = c.id.endsWith('@lid');
+    
+    // First try direct lookup
+    const contact = contacts[c.id];
+    if (contact && (contact.name || contact.notify)) {
+      resolvedName = contact.name || contact.notify;
+    } else if (isLid) {
+      // If it's a LID and not directly found, search contacts for matching LID
+      const matchingContact = Object.values(contacts).find(cnt => cnt.lid === c.id);
+      if (matchingContact && (matchingContact.name || matchingContact.notify)) {
+        resolvedName = matchingContact.name || matchingContact.notify;
+      }
+    }
+    
+    // Fallback if still no name
+    if (!resolvedName) {
+      resolvedName = isLid ? 'Unknown contact' : c.id.split('@')[0];
+    }
+    
+    return {
+      ...c,
+      name: resolvedName
+    };
+  });
+  
+  res.json({ success: true, chats: enrichedChats });
+});
+
+app.get('/api/whatsapp/chats/:chatId/messages', (req, res) => {
+  const { userId } = req.query;
+  const { chatId } = req.params;
+  if (!userId || !chatId) return res.status(400).json({ success: false });
+  const messagesFile = path.join(DATA_DIR, `whatsapp-messages-${userId}.json`);
+  const messages = fs.existsSync(messagesFile) ? JSON.parse(fs.readFileSync(messagesFile, 'utf8')) : {};
+  
+  res.json({ success: true, messages: messages[chatId] || [] });
+});
+
+app.post('/api/whatsapp/messages/send', whatsappSendLimiter, upload.single('file'), async (req, res) => {
+  const { userId, chatId, type, text, replyToMessageId, forwardMessageId } = req.body;
+  if (!userId || !chatId || !type) {
+    return res.status(400).json({ success: false, message: 'Missing required fields' });
+  }
+
+  try {
+    let messagePayload;
+    if (type === 'text') {
+      messagePayload = { text: text || '' };
+    } else {
+      if (!req.file) {
+        return res.status(400).json({ success: false, message: 'Media file is required' });
+      }
+      
+      const fileBuffer = req.file.buffer;
+      const mimetype = req.file.mimetype;
+      const originalname = req.file.originalname;
+      const fileSize = req.file.size;
+
+      // Enforce media constraints
+      if (type === 'image' || type === 'video' || type === 'audio') {
+        if (fileSize > 16 * 1024 * 1024) {
+          return res.status(400).json({ success: false, message: 'Media files must be under 16MB' });
+        }
+      }
+
+      if (type === 'image') {
+        if (!mimetype.startsWith('image/')) return res.status(400).json({ success: false, message: 'Invalid image type' });
+        messagePayload = { image: fileBuffer, caption: text || '', mimetype };
+      } else if (type === 'video') {
+        if (!mimetype.startsWith('video/')) return res.status(400).json({ success: false, message: 'Invalid video type' });
+        messagePayload = { video: fileBuffer, caption: text || '', mimetype };
+      } else if (type === 'audio' || type === 'voice_note') {
+        if (!mimetype.startsWith('audio/') && !mimetype.startsWith('video/')) return res.status(400).json({ success: false, message: 'Invalid audio type' });
+        messagePayload = { audio: fileBuffer, mimetype, ptt: type === 'voice_note' };
+      } else if (type === 'document') {
+        messagePayload = { document: fileBuffer, fileName: originalname, mimetype, caption: text || '' };
+      } else {
+        return res.status(400).json({ success: false, message: 'Unsupported media type' });
+      }
+    }
+
+    const options = { replyToMessageId, forwardMessageId };
+    const result = await sendMessage(userId, chatId, messagePayload, options);
+    
+    // Audit logging
+    logAudit(userId, 'SEND_MESSAGE', chatId, { type, replyToMessageId, forwardMessageId, status: 'success' });
+    
+    res.json({ success: true, message: result });
+  } catch (error) {
+    console.error(`[WhatsApp] Send message error:`, error);
+    
+    // Check if the error is our JSON serialized dummy result
+    try {
+      const dummyResult = JSON.parse(error.message);
+      if (dummyResult && dummyResult.status === -1) {
+        // Emit to frontend so it shows up instantly as failed
+        io.emit(`whatsapp:message_new:${userId}`, { jid: chatId, message: dummyResult });
+        logAudit(userId, 'SEND_MESSAGE', chatId, { type, replyToMessageId, forwardMessageId, status: 'failed' });
+        return res.status(500).json({ success: false, message: 'Failed to send message', result: dummyResult });
+      }
+    } catch (parseErr) {
+      // Not JSON, fall through
+    }
+    
+    logAudit(userId, 'SEND_MESSAGE', chatId, { type, replyToMessageId, forwardMessageId, status: 'failed', error: error.message });
+    res.status(500).json({ success: false, message: error.message || 'Failed to send message' });
+  }
+});
+
+app.post('/api/whatsapp/messages/edit', async (req, res) => {
+  const { userId, chatId, messageId, newText } = req.body;
+  if (!userId || !chatId || !messageId || !newText) {
+    return res.status(400).json({ success: false, message: 'Missing required fields' });
+  }
+  try {
+    const { editMessage } = require('./services/whatsappService');
+    const result = await editMessage(userId, chatId, messageId, newText);
+    logAudit(userId, 'EDIT_MESSAGE', chatId, { messageId });
+    res.json({ success: true, message: result });
+  } catch (error) {
+    console.error(`[WhatsApp] Edit message error:`, error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to edit message' });
+  }
+});
+
+app.post('/api/whatsapp/messages/delete', async (req, res) => {
+  const { userId, chatId, messageId } = req.body;
+  if (!userId || !chatId || !messageId) {
+    return res.status(400).json({ success: false, message: 'Missing required fields' });
+  }
+  try {
+    const { deleteMessage } = require('./services/whatsappService');
+    const result = await deleteMessage(userId, chatId, messageId);
+    logAudit(userId, 'DELETE_MESSAGE', chatId, { messageId });
+    res.json({ success: true, message: result });
+  } catch (error) {
+    console.error(`[WhatsApp] Delete message error:`, error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to delete message' });
+  }
+});
+
+app.post('/api/whatsapp/presence', async (req, res) => {
+  const { userId, chatId, presence } = req.body;
+  if (!userId || !chatId || !presence) {
+    return res.status(400).json({ success: false });
+  }
+  try {
+    const { sendPresenceUpdate } = require('./services/whatsappService');
+    await sendPresenceUpdate(userId, chatId, presence);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false });
+  }
+});
+
 server.listen(PORT, () => {
   console.log(`Mail Proxy REPAIRED on port ${PORT}`);
+  initializeExistingSessions(io);
 });

@@ -147,18 +147,18 @@ const ReportsPage = () => {
     const last7Days = [...Array(7)].map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      return d.toISOString().split('T')[0];
+      return d.toLocaleDateString('en-CA');
     });
-    return reports.filter(r => last7Days.includes(r.reportDate) && (isAdmin || r.userId === currentUser.id));
+    return reports.filter(r => last7Days.includes(r.reportDate) && (isAdmin || String(r.userId) === String(currentUser.id)));
   };
 
   const getMonthlySummary = () => {
     const last30Days = [...Array(30)].map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      return d.toISOString().split('T')[0];
+      return d.toLocaleDateString('en-CA');
     });
-    return reports.filter(r => last30Days.includes(r.reportDate) && (isAdmin || r.userId === currentUser.id));
+    return reports.filter(r => last30Days.includes(r.reportDate) && (isAdmin || String(r.userId) === String(currentUser.id)));
   };
 
   return (

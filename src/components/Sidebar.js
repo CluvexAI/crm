@@ -13,11 +13,12 @@ const navItems = [
   { id: 'users', icon: '👥', label: 'User Management', roles: [ROLES.ADMIN] },
   { id: 'hr', icon: '🧑‍💼', label: 'HR Module', roles: [ROLES.ADMIN, ROLES.HR] },
   { id: 'attendance', icon: '📋', label: 'Attendance', roles: ['all'] },
+  { id: 'whatsapp', icon: '📱', label: 'WhatsApp', roles: [ROLES.ADMIN] },
   { id: 'chat', icon: '💬', label: 'Internal Chat', roles: ['all'] },
   { id: 'email', icon: '📧', label: 'Email', roles: ['all'] },
   { id: 'email_config', icon: '⚙️', label: 'Email Configuration', roles: [ROLES.ADMIN] },
   { id: 'audit', icon: '🔒', label: 'Audit Logs', roles: [ROLES.ADMIN] },
-  { id: 'reports', icon: '📊', label: 'Activity Reports', roles: ['all'], includeDepts: ['Backend', 'Support', 'Quality', 'Graphics', 'Account', 'Accounts', 'HR'] },
+  { id: 'reports', icon: '📊', label: 'Activity Reports', roles: ['all'], includeDepts: ['Backend', 'Support', 'Quality', 'Graphics', 'Account', 'Accounts', 'HR', 'Management'] },
   { id: 'activity_calendar', icon: '📅', label: 'Activity Calendar', roles: ['all'], excludeRoles: [ROLES.SALES] },
   { id: 'settings', icon: '⚙️', label: 'Settings', roles: [ROLES.ADMIN] },
   { id: 'profile', icon: '👤', label: 'My Profile', roles: ['all'] },
@@ -79,8 +80,8 @@ const Sidebar = () => {
     return null;
   };
 
-  const mainNav = navItems.filter(i => !['profile', 'attendance'].includes(i.id));
-  const profileNav = navItems.filter(i => ['profile', 'attendance'].includes(i.id));
+  const mainNav = navItems.filter(i => !['profile', 'attendance', 'whatsapp'].includes(i.id));
+  const profileNav = navItems.filter(i => ['profile', 'attendance', 'whatsapp'].includes(i.id));
 
   return (
     <aside className="sidebar">

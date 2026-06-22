@@ -4,7 +4,7 @@ import { ROLES } from '../data/mockData';
 const ActivityReports = ({ allAttendance, allUsers, allLeaves, currentUser, isHR, submitDailyReport }) => {
   const [view, setView] = useState('daily'); // 'daily', 'weekly', 'monthly'
   const [selectedUser, setSelectedUser] = useState(isHR ? 'all' : currentUser.id);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('en-CA'));
   const [newWorkSummary, setNewWorkSummary] = useState('');
 
   const handleSubmitReport = () => {
@@ -22,24 +22,24 @@ const ActivityReports = ({ allAttendance, allUsers, allLeaves, currentUser, isHR
     const d = new Date(date);
     const day = d.getDay();
     const diff = d.getDate() - day;
-    return new Date(d.setDate(diff)).toISOString().split('T')[0];
+    return new Date(d.setDate(diff)).toLocaleDateString('en-CA');
   };
 
   const getWeekEnd = (date) => {
     const d = new Date(date);
     const day = d.getDay();
     const diff = d.getDate() - day + 6;
-    return new Date(d.setDate(diff)).toISOString().split('T')[0];
+    return new Date(d.setDate(diff)).toLocaleDateString('en-CA');
   };
 
   const getMonthStart = (date) => {
     const d = new Date(date);
-    return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+    return new Date(d.getFullYear(), d.getMonth(), 1).toLocaleDateString('en-CA');
   };
 
   const getMonthEnd = (date) => {
     const d = new Date(date);
-    return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
+    return new Date(d.getFullYear(), d.getMonth() + 1, 0).toLocaleDateString('en-CA');
   };
 
   // Filter records based on selected user
@@ -157,7 +157,7 @@ const ActivityReports = ({ allAttendance, allUsers, allLeaves, currentUser, isHR
           </div>
         </div>
 
-        {currentUser.role === ROLES.HR && selectedDate === new Date().toISOString().split('T')[0] && (
+        {currentUser.role === ROLES.HR && selectedDate === new Date().toLocaleDateString('en-CA') && (
           <div className="card" style={{ marginBottom: 20, borderLeft: '4px solid var(--primary)' }}>
             <div className="card-header">
               <div className="card-title">📝 Submit Today's Report</div>

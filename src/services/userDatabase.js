@@ -175,7 +175,7 @@ export const updateUserRecord = (uuid, userData) => {
   }
 
   const users = getStorage() || [];
-  const index = users.findIndex(u => u.uuid === uuid);
+  const index = users.findIndex(u => String(u.uuid) === String(uuid) || String(u.id) === String(uuid));
 
   if (index === -1) {
     // UUID not in localStorage AND not tombstoned — this is a legitimate new user

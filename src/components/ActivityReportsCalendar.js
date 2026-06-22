@@ -9,21 +9,26 @@ const ActivityReportsCalendar = () => {
   const [selectedReports, setSelectedReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [viewMode, setViewMode] = useState(currentUser?.role === 'Admin' ? 'team' : 'personal');
 
   const month = currentDate.getMonth() + 1;
   const year = currentDate.getFullYear();
   const userId = currentUser?.id;
+  const isAdmin = currentUser?.role === 'Admin';
 
   useEffect(() => {
     if (userId) {
       fetchCalendarData();
     }
-  }, [month, year, userId]);
+  }, [month, year, userId, viewMode]);
 
   const fetchCalendarData = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/activity-reports/calendar?month=${month}&year=${year}&userId=${userId}`);
+      // Admin in team mode: fetch all reports (no userId filter)
+      // Everyone else (or Admin in personal mode): filter by their userId
+      const userIdParam = (isAdmin && viewMode === 'team') ? '' : `&userId=${userId}`;
+      const res = await fetch(`/api/activity-reports/calendar?month=${month}&year=${year}${userIdParam}`);
       const json = await res.json();
       if (json.success) {
         setReportsByDate(json.data);
@@ -38,7 +43,9 @@ const ActivityReportsCalendar = () => {
   const fetchDateDetails = async (date) => {
     setDetailLoading(true);
     try {
-      const res = await fetch(`/api/activity-reports/date/${date}?userId=${userId}`);
+      // Admin in team mode: fetch all reports for that date (no userId filter)
+      const userIdParam = (isAdmin && viewMode === 'team') ? '' : `?userId=${userId}`;
+      const res = await fetch(`/api/activity-reports/date/${date}${userIdParam}`);
       const json = await res.json();
       if (json.success) {
         setSelectedReports(json.data);
@@ -134,8 +141,32 @@ const ActivityReportsCalendar = () => {
   return (
     <div className="activity-calendar-container">
       <div className="calendar-header">
-        <h3>📅 My Activity Reports</h3>
+        <h3>📅 {isAdmin && viewMode === 'team' ? 'Team Activity Reports' : 'My Activity Reports'}</h3>
         <div className="calendar-nav">
+          {isAdmin && (
+            <div style={{ display: 'flex', gap: 4, marginRight: 12, background: 'var(--bg-secondary)', borderRadius: 6, padding: 2 }}>
+              <button
+                className={`btn btn-sm`}
+                style={{ 
+                  padding: '4px 10px', fontSize: 12, borderRadius: 4,
+                  background: viewMode === 'team' ? 'var(--primary)' : 'transparent',
+                  color: viewMode === 'team' ? '#fff' : 'var(--text-secondary)',
+                  border: 'none'
+                }}
+                onClick={() => setViewMode('team')}
+              >👥 Team</button>
+              <button
+                className={`btn btn-sm`}
+                style={{ 
+                  padding: '4px 10px', fontSize: 12, borderRadius: 4,
+                  background: viewMode === 'personal' ? 'var(--primary)' : 'transparent',
+                  color: viewMode === 'personal' ? '#fff' : 'var(--text-secondary)',
+                  border: 'none'
+                }}
+                onClick={() => setViewMode('personal')}
+              >👤 Mine</button>
+            </div>
+          )}
           <button className="btn btn-sm" onClick={prevMonth}>‹ Prev</button>
           <span className="current-month">{getMonthName(month - 1)} {year}</span>
           <button className="btn btn-sm" onClick={nextMonth}>Next ›</button>

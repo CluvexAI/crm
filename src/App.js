@@ -11,6 +11,7 @@ import HRPage from './pages/HRPage';
 import ChatPage from './pages/ChatPage';
 import OutlookEmailPage from './components/email/OutlookEmailPage';
 import ProfilePage from './pages/ProfilePage';
+import WhatsAppPage from './pages/WhatsAppPage';
 import AuditLogsPage from './pages/AuditLogsPage';
 import MyCustomersPage from './pages/MyCustomersPage';
 import EmailConfigurationPage from './pages/EmailConfigurationPage';
@@ -32,6 +33,7 @@ const pageConfig = {
   users: { title: 'User Management', subtitle: 'Manage employees and permissions', component: UsersPage },
   hr: { title: 'HR Module', subtitle: 'Attendance, leaves, and employee management', component: HRPage },
   attendance: { title: 'My Attendance', subtitle: 'Track your daily attendance', component: () => <HRPage defaultTab="attendance" /> },
+  whatsapp: { title: 'WhatsApp Connection', subtitle: 'Manage your WhatsApp Web session', component: WhatsAppPage },
   chat: { title: 'Internal Chat', subtitle: 'Message your colleagues', component: ChatPage },
   email: { title: 'Email', subtitle: 'Send and receive emails', component: OutlookEmailPage, fullscreen: true },
   email_config: { title: 'Email Configuration', subtitle: 'Global mail server & DNS settings', component: EmailConfigurationPage },
