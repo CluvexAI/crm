@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import LlmIntegrationTab from '../components/LlmIntegrationTab';
 
 const SettingsPage = () => {
   const { currentUser } = useApp();
@@ -86,6 +87,7 @@ const SettingsPage = () => {
 
       <div className="tabs" style={{ marginBottom: 20 }}>
         <button className={`tab-btn ${activeTab === 'payment_gateway' ? 'active' : ''}`} onClick={() => setActiveTab('payment_gateway')}>Payment Gateway</button>
+        <button className={`tab-btn ${activeTab === 'llm_integration' ? 'active' : ''}`} onClick={() => setActiveTab('llm_integration')}>LLM Integration</button>
       </div>
 
       <div className="card">
@@ -136,6 +138,10 @@ const SettingsPage = () => {
               <button className="btn btn-outline" onClick={handleTestConnection} disabled={loading}>{loading ? 'Testing...' : '🔄 Verify Stripe Keys'}</button>
             </div>
           </div>
+        )}
+        
+        {activeTab === 'llm_integration' && (
+          <LlmIntegrationTab showMsg={showMsg} />
         )}
       </div>
     </div>

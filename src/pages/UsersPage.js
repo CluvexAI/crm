@@ -327,12 +327,11 @@ export const UserFormModal = ({ user, onClose, onSave, isHR = false }) => {
                   {isHR && <div className="form-hint">🔒 Name can only be modified by an Admin</div>}
                 </div>
                 <FormInput label="Email (Login)" value={form.basic.email} onChange={v => updateField('basic', 'email', v)} type="email" required error={errors.email} readOnly={user?.email === 'admin@zsmeservices.com'} />
-                {!user ? (
                   <div className="form-group">
-                    <label className="form-label">Password <span className="required">*</span></label>
+                    <label className="form-label">Password {!user && <span className="required">*</span>}</label>
                     <input className="form-control" type="password" value={form.basic.password || ''}
                       onChange={e => updateField('basic', 'password', e.target.value)}
-                      placeholder="Enter initial password" />
+                      placeholder={user ? "Enter new password to reset" : "Enter initial password"} />
                     {form.basic.password && (
                       <div style={{ marginTop: 6 }}>
                         <div style={{ height: 3, background: '#eee', borderRadius: 2, overflow: 'hidden' }}>
@@ -350,14 +349,6 @@ export const UserFormModal = ({ user, onClose, onSave, isHR = false }) => {
                     )}
                     {errors.password && <div className="form-error">{errors.password}</div>}
                   </div>
-                ) : (
-                  <div className="form-group">
-                    <label className="form-label">Password</label>
-                    <div style={{ background: 'var(--bg-secondary)', padding: '10px 14px', borderRadius: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
-                      🔒 Password changes are managed by Insforge. Instruct the user to use the <strong>Forgot Password</strong> flow on the login screen.
-                    </div>
-                  </div>
-                )}
                 <FormInput label="Phone" value={form.basic.phone} onChange={v => updateField('basic', 'phone', v)} required error={errors.phone} />
                 <FormInput label="WhatsApp" value={form.basic.whatsapp} onChange={v => updateField('basic', 'whatsapp', v)} />
                 <div className="form-group" style={{ gridColumn: '1/-1' }}>
@@ -533,8 +524,26 @@ const UsersPage = () => {
         }
         
         if (password) {
-          // Editing password for an existing user is no longer permitted here
-          // as Insforge handles auth.
+          try {
+            const BACKEND_BASE = process.env.REACT_APP_API_URL || '';
+            const res = await fetch(`${BACKEND_BASE}/api/users/${editUser.uuid}/password`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                newPassword: password,
+                isAdminReset: true,
+                changedBy: currentUser?.uuid,
+                changedByEmail: currentUser?.email
+              })
+            });
+            if (!res.ok) {
+              const errData = await res.json();
+              throw new Error(errData.message || 'Failed to reset password');
+            }
+          } catch (pwdErr) {
+            console.error('[Password Reset]', pwdErr);
+            throw new Error(`Password reset failed: ${pwdErr.message}`);
+          }
           delete safe.password;
         }
         
@@ -555,9 +564,15 @@ const UsersPage = () => {
     }
   };
 
-  const handleDelete = (uuid) => {
-    deleteUser(uuid);
-    setDeleteConfirm(null);
+  const handleDelete = async (uuid) => {
+    try {
+      await deleteUser(uuid);
+      showFeedback('✅ Employee deleted successfully!');
+    } catch (err) {
+      showFeedback('❌ Error: ' + err.message, 'error');
+    } finally {
+      setDeleteConfirm(null);
+    }
   };
 
   return (

@@ -16,6 +16,7 @@ const stripe = require('stripe');
 const { resolveTxtWithRetry } = require('./utils/dnsResolver');
 const { startSession, logoutSession, initializeExistingSessions, sendMessage } = require('./services/whatsappService');
 const { logAudit } = require('./services/auditLogger');
+const llmManager = require('./services/llm');
 const multer = require('multer');
 const rateLimit = require('express-rate-limit');
 
@@ -1078,6 +1079,145 @@ app.post('/api/webhooks/stripe', async (req, res) => {
   }
 });
 
+
+// ─── LLM Integration ───────────────────────────────────────────────────────
+
+const requireAdmin = (req, res, next) => {
+  const role = req.headers['x-user-role'];
+  if (role !== 'Admin' && role !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Forbidden: Admins only' });
+  }
+  next();
+};
+
+app.get('/api/settings/llm', requireAdmin, (req, res) => {
+  const settings = llmManager.getSettings();
+  const safeSettings = ['anthropic', 'openai', 'xai'].map(provider => {
+    const s = settings.find(x => x.provider === provider) || {};
+    return {
+      provider,
+      is_configured: !!s.api_key_encrypted,
+      is_active: !!s.is_active,
+      model_id: s.model_id || null,
+      maskedKey: s.api_key_encrypted ? "sk-****" + s.api_key_encrypted.slice(-4) : "",
+      updated_by: s.updated_by || null,
+      updated_at: s.updated_at || null
+    };
+  });
+  res.json({ success: true, providers: safeSettings });
+});
+
+app.get('/api/settings/llm/:provider/models', requireAdmin, async (req, res) => {
+  try {
+    const { provider } = req.params;
+    let apiKey = req.headers['x-api-key'] || req.query.apiKey;
+    
+    // If not provided in header/query, try to find the saved one
+    if (!apiKey) {
+      const settings = llmManager.getSettings();
+      const s = settings.find(x => x.provider === provider);
+      if (s && s.api_key_encrypted) {
+        apiKey = llmManager.decryptKey(s.api_key_encrypted);
+      }
+    }
+    
+    if (!apiKey) return res.status(400).json({ success: false, message: 'API key required' });
+    
+    const adapter = llmManager.adapters[provider];
+    if (!adapter) return res.status(400).json({ success: false, message: 'Invalid provider' });
+    
+    const models = await adapter.listModels(apiKey);
+    res.json({ success: true, models });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/settings/llm/:provider/test', requireAdmin, async (req, res) => {
+  try {
+    const { provider } = req.params;
+    const { apiKey, model_id } = req.body;
+    let finalKey = apiKey;
+    
+    if (!finalKey) {
+      const settings = llmManager.getSettings();
+      const s = settings.find(x => x.provider === provider);
+      if (s && s.api_key_encrypted) {
+        finalKey = llmManager.decryptKey(s.api_key_encrypted);
+      }
+    }
+    
+    if (!finalKey) return res.status(400).json({ success: false, message: 'API key required' });
+    
+    const adapter = llmManager.adapters[provider];
+    if (!adapter) return res.status(400).json({ success: false, message: 'Invalid provider' });
+    
+    const result = await adapter.testConnection(finalKey, model_id);
+    if (result.success) {
+      res.json({ success: true });
+    } else {
+      res.status(400).json({ success: false, message: result.error });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.put('/api/settings/llm/:provider', requireAdmin, (req, res) => {
+  try {
+    const { provider } = req.params;
+    const { model_id, apiKey } = req.body;
+    const updated_by = req.headers['x-user-id'] || 'admin';
+    
+    if (!['anthropic', 'openai', 'xai'].includes(provider)) {
+      return res.status(400).json({ success: false, message: 'Invalid provider' });
+    }
+    
+    const settings = llmManager.getSettings();
+    let s = settings.find(x => x.provider === provider);
+    
+    if (!s) {
+      s = { provider, is_active: false, is_configured: false };
+      settings.push(s);
+    }
+    
+    if (model_id) s.model_id = model_id;
+    if (apiKey) {
+      s.api_key_encrypted = llmManager.encryptKey(apiKey);
+      s.is_configured = true;
+    }
+    s.updated_by = updated_by;
+    s.updated_at = new Date().toISOString();
+    
+    llmManager.updateSettings(settings);
+    logAudit('LLM Setting Updated', updated_by, `Updated configuration for ${provider}`);
+    res.json({ success: true, data: { provider, is_configured: s.is_configured, model_id: s.model_id } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/settings/llm/:provider/activate', requireAdmin, (req, res) => {
+  try {
+    const { provider } = req.params;
+    const updated_by = req.headers['x-user-id'] || 'admin';
+    
+    const settings = llmManager.getSettings();
+    const s = settings.find(x => x.provider === provider);
+    
+    if (!s || !s.is_configured) {
+      return res.status(400).json({ success: false, message: `Provider ${provider} is not configured yet. Save a key first.` });
+    }
+    
+    settings.forEach(x => { x.is_active = (x.provider === provider); });
+    
+    llmManager.updateSettings(settings);
+    logAudit('LLM Provider Activated', updated_by, `Set active LLM provider to ${provider}`);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 // ─── Activity Reporting System (New) ─────────────────────────────────────────
 app.get('/api/reports/:userId', (req, res) => {
