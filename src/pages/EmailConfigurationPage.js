@@ -150,6 +150,14 @@ const ServerConfigTab = ({ mailConfig, setMailConfig, handleSave, handleTest, lo
         <input className="form-control" value={mailConfig.smtpHost} onChange={e => setMailConfig({...mailConfig, smtpHost: e.target.value})} />
       </div>
       <div className="form-group">
+        <label className="form-label">System Notification Email (for OTP/Welcome)</label>
+        <input className="form-control" value={mailConfig.systemSmtpUser || ''} onChange={e => setMailConfig({...mailConfig, systemSmtpUser: e.target.value})} placeholder="noreply@zsmeservices.com" />
+      </div>
+      <div className="form-group">
+        <label className="form-label">System Notification Password</label>
+        <input className="form-control" type="password" value={mailConfig.systemSmtpPass || ''} onChange={e => setMailConfig({...mailConfig, systemSmtpPass: e.target.value})} placeholder="SMTP Password" />
+      </div>
+      <div className="form-group">
         <label className="form-label">SMTP Port</label>
         <input className="form-control" type="number" value={mailConfig.smtpPort} onChange={e => setMailConfig({...mailConfig, smtpPort: parseInt(e.target.value)})} />
       </div>

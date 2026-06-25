@@ -1,5 +1,1325 @@
 [
   {
+    "id": "integ_1782393996402",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T13:26:36.402Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782393978178",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T13:26:18.178Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782393964044",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T13:26:04.044Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782393944924",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T13:25:44.924Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782393357402",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T13:15:57.402Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782392598305",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T13:03:18.305Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782390797987",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T12:33:17.987Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782388997909",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T12:03:17.909Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782388768537",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:59:28.537Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782388757903",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:59:17.903Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782388744266",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:59:04.266Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782388413583",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:53:33.583Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782388392448",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:53:12.448Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782388345155",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:52:25.155Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782388143757",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:49:03.757Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782388114536",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:48:34.536Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782388088733",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:48:08.733Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782388078958",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:47:58.958Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782388067223",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:47:47.223Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782388059087",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:47:39.087Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782388032445",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:47:12.445Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782387997183",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:46:37.183Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782387984135",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:46:24.135Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782387559940",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:39:19.940Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782385760131",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:09:20.131Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782385736704",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T11:08:56.704Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782385083337",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:58:03.337Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782385068246",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:57:48.246Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782384588426",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:49:48.426Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782384530463",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:48:50.463Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782384515128",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:48:35.128Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782384464080",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:47:44.080Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782383359546",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:29:19.546Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782383337975",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:28:57.975Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782382845884",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:20:45.884Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782382642712",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:17:22.712Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782382622313",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:17:02.313Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782382510136",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:15:10.136Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782382360149",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:12:40.149Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782382197364",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:09:57.364Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782382185833",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:09:45.833Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782382099175",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:08:19.175Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782382036445",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:07:16.445Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782381985531",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:06:25.531Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782381932009",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:05:32.009Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782381891855",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:04:51.855Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782381759666",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:02:39.666Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782381751151",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T10:02:31.151Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782380087467",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T09:34:47.467Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782379331494",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T09:22:11.494Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782378745039",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T09:12:25.039Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782376944985",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T08:42:24.985Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782375146287",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T08:12:26.287Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782373342597",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T07:42:22.597Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782371542255",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-25T07:12:22.255Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782223370716",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T14:02:50.716Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782221571681",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T13:32:51.681Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782221554586",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T13:32:34.586Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782221278001",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T13:27:58.001Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782221130897",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T13:25:30.906Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782220682759",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T13:18:02.759Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782220663060",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T13:17:43.060Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782220633297",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T13:17:13.297Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782220596573",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T13:16:36.573Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782220583824",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T13:16:23.824Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782220542661",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T13:15:42.661Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782220530217",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T13:15:30.217Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782219083752",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T12:51:23.752Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782217911409",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T12:31:51.409Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782217761207",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T12:29:21.207Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782217400598",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T12:23:20.598Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782215924818",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T11:58:44.818Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782215390289",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T11:49:50.289Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782213590217",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T11:19:50.217Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782211790598",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T10:49:50.598Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782209231869",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T10:07:11.869Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782207431848",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T09:37:11.848Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782205631922",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T09:07:11.922Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782203832331",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T08:37:12.331Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782202032945",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T08:07:12.945Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782200401236",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T07:40:01.236Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782199868620",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T07:31:08.620Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782199527286",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T07:25:27.286Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782199397266",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T07:23:17.266Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782199026285",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-23T07:17:06.285Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782138048380",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T14:20:48.380Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782137895050",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T14:18:15.050Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782137836404",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T14:17:16.404Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782137144004",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T14:05:44.004Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782136653679",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T13:57:33.679Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782135434897",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T13:37:14.897Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782134880620",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T13:28:00.620Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782134336097",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T13:18:56.097Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782133756559",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T13:09:16.559Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782133347693",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T13:02:27.693Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782133250613",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T13:00:50.613Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782133110917",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T12:58:30.917Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782132437149",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T12:47:17.149Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782132231612",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T12:43:51.612Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782132132090",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T12:42:12.090Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782132051318",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T12:40:51.318Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782132019978",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T12:40:19.979Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782131542490",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T12:32:22.490Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782131459360",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T12:30:59.360Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782130945896",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T12:22:25.897Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782130409168",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T12:13:29.168Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782130383151",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T12:13:03.151Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782130273659",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T12:11:13.659Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782129246695",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T11:54:06.695Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782127527747",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T11:25:27.747Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782126989546",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T11:16:29.546Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782125854826",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T10:57:34.826Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782125837052",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T10:57:17.052Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782125638108",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T10:53:58.108Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782125292455",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T10:48:12.455Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782125205646",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T10:46:45.646Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782124645487",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T10:37:25.487Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782124617829",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T10:36:57.829Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782124598449",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T10:36:38.450Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782120629450",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T09:30:29.450Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782120589619",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T09:29:49.619Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782120462269",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T09:27:42.269Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782120109731",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T09:21:49.731Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782119688173",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T09:14:48.173Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782118691785",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T08:58:11.785Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782116892267",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T08:28:12.267Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782116854919",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T08:27:34.919Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782116835382",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T08:27:15.382Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782116799514",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T08:26:39.514Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782116712673",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T08:25:12.673Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782116612369",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T08:23:32.369Z",
+    "status": "completed"
+  },
+  {
+    "id": "integ_1782115743750",
+    "check_type": "ghost_user_check",
+    "ghosts_found": 2,
+    "ghosts_removed": 2,
+    "mock_users_found": 0,
+    "mock_users_removed": 0,
+    "checked_at": "2026-06-22T08:09:03.752Z",
+    "status": "completed"
+  },
+  {
     "id": "integ_1781879005795",
     "check_type": "ghost_user_check",
     "ghosts_found": 2,
@@ -3677,1326 +4997,6 @@
     "mock_users_found": 0,
     "mock_users_removed": 0,
     "checked_at": "2026-06-03T10:54:17.726Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780483980695",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T10:53:00.698Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780483924238",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T10:52:04.239Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780483787046",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T10:49:47.046Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780483638314",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T10:47:18.314Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780483571258",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T10:46:11.258Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780483543112",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T10:45:43.112Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780483483766",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T10:44:43.766Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780483441968",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T10:44:01.968Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780482210013",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T10:23:30.013Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780480409489",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T09:53:29.489Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780478609349",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T09:23:29.349Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780478490837",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T09:21:30.837Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780478447486",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T09:20:47.486Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780478426941",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T09:20:26.941Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780478406733",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T09:20:06.733Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780478377035",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T09:19:37.035Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780478187362",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T09:16:27.362Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780478159323",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T09:15:59.323Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780478107775",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T09:15:07.775Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780478103774",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T09:15:03.774Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780476542010",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T08:49:02.010Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780476388254",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T08:46:28.254Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780476333050",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T08:45:33.050Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780476323204",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T08:45:23.204Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780476303431",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T08:45:03.431Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780475603362",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T08:33:23.362Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780473805103",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T08:03:25.103Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780471999089",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T07:33:19.089Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780471854748",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T07:30:54.748Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780471825956",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T07:30:25.956Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780471800819",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T07:30:00.819Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780470671775",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T07:11:11.775Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780470550141",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T07:09:10.141Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780470498875",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T07:08:18.875Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780470487310",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T07:08:07.310Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780469406626",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T06:50:06.626Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780467606343",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T06:20:06.343Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780467483024",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T06:18:03.024Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780467417574",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T06:16:57.574Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780467220337",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T06:13:40.337Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780467123720",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T06:12:03.720Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780467094518",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T06:11:34.518Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780467054827",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T06:10:54.827Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780467016712",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T06:10:16.712Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780466987688",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T06:09:47.688Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780466978937",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T06:09:38.937Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780466221732",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T05:57:01.732Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780465324365",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-03T05:42:04.365Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780316160369",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T12:16:00.369Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780314360456",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T11:46:00.456Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780312560405",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T11:16:00.405Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780310760321",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T10:46:00.321Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780308960371",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T10:16:00.371Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780308875026",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T10:14:35.026Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780308602695",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T10:10:02.695Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780308584871",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T10:09:44.871Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780308567604",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T10:09:27.604Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780308550803",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T10:09:10.803Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780308532964",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T10:08:52.964Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780308512307",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T10:08:32.307Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780308465902",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T10:07:45.902Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780308324892",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T10:05:24.892Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780308116048",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T10:01:56.048Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780306316115",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T09:31:56.115Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780306221675",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T09:30:21.675Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780306166733",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T09:29:26.733Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780306126967",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T09:28:46.967Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780306094454",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T09:28:14.454Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780306077923",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T09:27:57.923Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780305267783",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T09:14:27.783Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780304757796",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T09:05:57.796Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780304723291",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T09:05:23.291Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780304693612",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T09:04:53.612Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780303278482",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T08:41:18.482Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780303159141",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T08:39:19.141Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780303141542",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T08:39:01.542Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780303113257",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T08:38:33.257Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780303071144",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T08:37:51.144Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780302912637",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T08:35:12.637Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780301112723",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T08:05:12.723Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780300771195",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T07:59:31.195Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780298964820",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T07:29:24.820Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780298946097",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T07:29:06.097Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780298655434",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T07:24:15.434Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780298466495",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T07:21:06.495Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780298452897",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T07:20:52.897Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780297861570",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T07:11:01.570Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780297379659",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T07:02:59.659Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780297118597",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T06:58:38.597Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780295453984",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T06:30:53.984Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780295435587",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T06:30:35.587Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780295416213",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T06:30:16.213Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780295355884",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T06:29:15.884Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780295325424",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T06:28:45.424Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780295294380",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T06:28:14.380Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780295270326",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T06:27:50.326Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780295261520",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T06:27:41.520Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780295231750",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T06:27:11.750Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780295209875",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T06:26:49.875Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780293617906",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T06:00:17.906Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780293408693",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-06-01T05:56:48.693Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780063121913",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T13:58:41.913Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780062924026",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T13:55:24.026Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780062646746",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T13:50:46.746Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780062239480",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T13:43:59.480Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780061848299",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T13:37:28.299Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780061831470",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T13:37:11.470Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780061441037",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T13:30:41.037Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780060233392",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T13:10:33.392Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780060165871",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T13:09:25.871Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780059955929",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T13:05:55.929Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780053177406",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T11:12:57.406Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780053176348",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T11:12:56.348Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780053137016",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T11:12:17.016Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780053136775",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T11:12:16.775Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780052920435",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T11:08:40.436Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780052919968",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T11:08:39.968Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780052892729",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T11:08:12.729Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780052892532",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T11:08:12.532Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780052410801",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T11:00:10.802Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780052410053",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T11:00:10.053Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780052363208",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T10:59:23.208Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780052362685",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T10:59:22.685Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780052311913",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T10:58:31.913Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780052311869",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T10:58:31.869Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780051337399",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T10:42:17.399Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780051336784",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T10:42:16.784Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780051001059",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T10:36:41.059Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780050657000",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T10:30:57.000Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780050656114",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T10:30:56.114Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780050619003",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T10:30:19.003Z",
-    "status": "completed"
-  },
-  {
-    "id": "integ_1780050617345",
-    "check_type": "ghost_user_check",
-    "ghosts_found": 2,
-    "ghosts_removed": 2,
-    "mock_users_found": 0,
-    "mock_users_removed": 0,
-    "checked_at": "2026-05-29T10:30:17.345Z",
     "status": "completed"
   }
 ]

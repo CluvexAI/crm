@@ -26,6 +26,7 @@
     "postmark": "^4.0.7",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-markdown": "^8.0.7",
     "react-scripts": "5.0.1",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
@@ -34,13 +35,13 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "concurrently \"react-scripts start\" \"nodemon server/index.js\"",
+    "start": "concurrently \"node ./node_modules/react-scripts/bin/react-scripts.js start\" \"nodemon server/index.js\"",
     "server": "nodemon server/index.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "proxy": "http://localhost:5001",
+  "proxy": "http://127.0.0.1:5001",
   "eslintConfig": {
     "extends": [
       "react-app",

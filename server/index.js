@@ -65,6 +65,7 @@ const RATE_FILE = path.join(DATA_DIR, 'rate_limits.json');
 const CUSTOM_DNS_FILE = path.join(DATA_DIR, 'custom_dns.json');
 const DAILY_REPORTS_FILE = path.join(DATA_DIR, 'daily_reports.json');
 const STRIPE_CONFIG_FILE = path.join(DATA_DIR, 'stripe_config.json');
+const MAIL_CONFIG_FILE = path.join(DATA_DIR, 'mail_config.json');
 const USERS_STORE_FILE = path.join(DATA_DIR, 'users.json');
 const ATTENDANCE_FILE = path.join(DATA_DIR, 'attendance.json');
 const DELETED_UUIDS_FILE = path.join(DATA_DIR, 'deleted_uuids.json');
@@ -212,12 +213,12 @@ kP2TZdg75NQZEFd/Gf30Gu79dAsRMFtlQ/2YoumtN+Rgq7HoUjAt7vhDrHIbTPkN
   };
 
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || smtpConfig.host || config.host || 'email-smtp.us-east-1.amazonaws.com',
+    host: config.host || smtpConfig.host || process.env.SMTP_HOST || 'email-smtp.us-east-1.amazonaws.com',
     port: port,
     secure: port === 465,
     auth: { 
-      user: process.env.SMTP_USER || smtpConfig.auth?.user || config.email || config.user || 'AKIAZS4KXICMRDCBUKW4', 
-      pass: process.env.SMTP_PASS || smtpConfig.auth?.pass || (config.password ? decrypt(config.password) : null) || (config.pass ? decrypt(config.pass) : null) || 'BJQzaBD98bf2GhOT2CxT2Bo5yPy4RnuixXj6N2hgkrF1' 
+      user: config.email || config.user || smtpConfig.auth?.user || process.env.SMTP_USER || 'AKIAZS4KXICMRDCBUKW4', 
+      pass: (config.password ? decrypt(config.password) : null) || (config.pass ? decrypt(config.pass) : null) || smtpConfig.auth?.pass || process.env.SMTP_PASS || 'BJQzaBD98bf2GhOT2CxT2Bo5yPy4RnuixXj6N2hgkrF1' 
     },
     tls: { rejectUnauthorized: false },
     pool: true,
@@ -340,8 +341,20 @@ app.post('/api/auth/send-otp', async (req, res) => {
     let smtpConfig = null;
     let emailConfigSource = 'none';
 
+    // 0. Check Admin Dashboard Email Config
+    const mailConfig = readJSON(MAIL_CONFIG_FILE, {});
+    if (mailConfig && mailConfig.systemSmtpUser && mailConfig.systemSmtpPass) {
+      smtpConfig = {
+        host: mailConfig.smtpHost || mailConfig.host || 'mail.zsmeservices.com',
+        port: parseInt(mailConfig.smtpPort) || 465,
+        auth: { user: mailConfig.systemSmtpUser, pass: mailConfig.systemSmtpPass }
+      };
+      emailConfigSource = 'admin_dashboard_smtp';
+      console.log(`[OTP] Using admin dashboard SMTP: ${smtpConfig.host}`);
+    }
+
     // 1. Check user's custom SMTP from stripe_config.json (same as CRM email settings)
-    if (stripeConfig && stripeConfig.smtp && stripeConfig.smtp.host) {
+    if (!smtpConfig && stripeConfig && stripeConfig.smtp && stripeConfig.smtp.host) {
       smtpConfig = {
         host: stripeConfig.smtp.host,
         port: parseInt(stripeConfig.smtp.port) || 587,
@@ -1004,6 +1017,15 @@ app.post('/api/custom-dns-records/:id/verify', async (req, res) => {
 // ─── Stripe Integration ───────────────────────────────────────────────────────
 app.get('/api/settings/stripe', (req, res) => {
   res.json({ success: true, config: stripeConfig });
+});
+
+app.get('/api/settings/mail', (req, res) => {
+  res.json({ success: true, config: readJSON(MAIL_CONFIG_FILE, {}) });
+});
+
+app.post('/api/settings/mail', (req, res) => {
+  writeJSON(MAIL_CONFIG_FILE, req.body);
+  res.json({ success: true });
 });
 
 app.post('/api/settings/stripe', (req, res) => {
@@ -2388,6 +2410,230 @@ app.post('/api/whatsapp/presence', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false });
   }
+});
+
+// ─── LLM Integration API ──────────────────────────────────────────────────────
+const { encrypt: encryptLlm, decrypt: decryptLlm } = require('./utils/crypto');
+const LLMFactory = require('./services/LLMFactory');
+const reqInsforge = async (table, method, body = null, query = '') => {
+  const url = `${process.env.REACT_APP_INSFORGE_URL}/rest/v1/${table}${query}`;
+  const headers = { 
+    'apikey': process.env.INSFORGE_API_KEY || process.env.REACT_APP_INSFORGE_ANON_KEY, 
+    'Authorization': `Bearer ${process.env.INSFORGE_API_KEY || process.env.REACT_APP_INSFORGE_ANON_KEY}`, 
+    'Content-Type': 'application/json', 
+    'Prefer': 'return=representation' 
+  };
+  const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  if (!res.ok) {
+    const e = await res.json().catch(()=>({}));
+    throw new Error(e.message || res.statusText);
+  }
+  return res.json();
+};
+const insforgeClient = { 
+  from: (table) => ({ 
+    select: (cols) => ({ 
+      limit: (n) => ({ 
+        maybeSingle: async () => { 
+          try { 
+            const data = await reqInsforge(table, 'GET', null, `?select=${cols}&limit=${n}`); 
+            return { data: data[0] || null, error: null }; 
+          } catch (error) { return { data: null, error }; } 
+        } 
+      }) 
+    }), 
+    insert: async (payloads) => { 
+      try { 
+        const data = await reqInsforge(table, 'POST', payloads); 
+        return { data, error: null }; 
+      } catch (error) { return { data: null, error }; } 
+    }, 
+    update: (payload) => ({ 
+      eq: async (col, val) => { 
+        try { 
+          const data = await reqInsforge(table, 'PATCH', payload, `?${col}=eq.${val}`); 
+          return { data, error: null }; 
+        } catch (error) { return { data: null, error }; } 
+      } 
+    }) 
+  }) 
+};
+
+app.get('/api/admin/llm/settings', async (req, res) => {
+  try {
+    const dataList = readJSON(path.join(DATA_DIR, 'llm_settings.json'), []);
+    const data = dataList[0] || {};
+    if (data.api_key) {
+      const maskedKey = `sk-or-v1***${data.api_key.slice(-4)}`;
+      return res.json({ ...data, api_key: maskedKey });
+    }
+    return res.json({});
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/admin/llm/settings', async (req, res) => {
+  try {
+    const { provider, api_key, base_url, gateway_url, fallback_provider, default_model, enabled } = req.body;
+    const settingsFile = path.join(DATA_DIR, 'llm_settings.json');
+    const dataList = readJSON(settingsFile, []);
+    const existing = dataList[0] || {};
+    
+    let keyToSave = existing.api_key;
+    if (api_key && !api_key.includes('***')) {
+      keyToSave = encryptLlm(api_key);
+    }
+    
+    const payload = {
+      provider,
+      api_key: keyToSave,
+      base_url: base_url || 'https://openrouter.ai/api/v1',
+      gateway_url,
+      fallback_provider,
+      default_model,
+      enabled: enabled !== false,
+      updated_at: new Date().toISOString()
+    };
+    
+    writeJSON(settingsFile, [payload]);
+    res.json({ success: true, message: 'Settings saved successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message || JSON.stringify(err) });
+  }
+});
+
+app.post('/api/admin/llm/test', async (req, res) => {
+  try {
+    const { api_key, base_url, gateway_url, provider } = req.body;
+    let actualKey = api_key;
+    
+    if (api_key && api_key.includes('***')) {
+      const dataList = readJSON(path.join(DATA_DIR, 'llm_settings.json'), []);
+      const data = dataList[0] || {};
+      if (data && data.api_key) actualKey = decryptLlm(data.api_key);
+    }
+    
+    const targetUrl = provider === 'Insforge Model Gateway' ? (gateway_url || base_url) : base_url;
+    const llmProvider = LLMFactory.create(provider, actualKey, targetUrl, null);
+    const result = await llmProvider.testConnection();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/admin/llm/models', async (req, res) => {
+  try {
+    const dataList = readJSON(path.join(DATA_DIR, 'llm_settings.json'), []);
+    const data = dataList[0] || {};
+    if (!data.provider) return res.json({ success: false, message: 'No configuration found' });
+    
+    let actualKey = '';
+    if (data.api_key) actualKey = decryptLlm(data.api_key);
+    
+    const targetUrl = data.provider === 'Insforge Model Gateway' ? (data.gateway_url || data.base_url) : data.base_url;
+    const llmProvider = LLMFactory.create(data.provider, actualKey, targetUrl, data.default_model);
+    const result = await llmProvider.getModels();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/llm/research', async (req, res) => {
+  try {
+    const { type, targetUrl, leadId, customerId, createdBy } = req.body;
+    
+    const dataList = readJSON(path.join(DATA_DIR, 'llm_settings.json'), []);
+    const data = dataList[0] || {};
+    
+    if (!data || !data.enabled || !data.api_key) {
+      throw new Error('LLM integration is not configured or disabled');
+    }
+    
+    const result = await LLMFactory.generateWithFallback(
+      data.provider, 
+      data.fallback_provider,
+      data,
+      decryptLlm,
+      type,
+      targetUrl
+    );
+    
+    if (result.success && result.usage) {
+      // Log usage locally
+      const logsFile = path.join(DATA_DIR, 'llm_usage_logs.json');
+      const logs = readJSON(logsFile, []);
+      logs.push({
+        id: require('crypto').randomUUID(),
+        user_id: createdBy || null,
+        model: result.usage.model || data.default_model,
+        operation: `analyze_${type}`,
+        prompt_tokens: result.usage.prompt_tokens,
+        completion_tokens: result.usage.completion_tokens,
+        total_tokens: result.usage.total_tokens,
+        estimated_cost: (result.usage.total_tokens / 1000) * 0.002,
+        created_at: new Date().toISOString()
+      });
+      writeJSON(logsFile, logs);
+      
+      // Save report locally
+      const reportsFile = path.join(DATA_DIR, 'ai_research_reports.json');
+      const reports = readJSON(reportsFile, []);
+      reports.push({
+        id: require('crypto').randomUUID(),
+        lead_id: leadId || null,
+        customer_id: customerId || null,
+        website_url: type === 'website' ? targetUrl : null,
+        gmb_url: type === 'gmb' ? targetUrl : null,
+        model_used: result.usage.model || data.default_model,
+        report: { content: result.report },
+        created_by: createdBy || null,
+        created_at: new Date().toISOString()
+      });
+      writeJSON(reportsFile, reports);
+    }
+    
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+
+// ─── Audit & Analysis API ───────────────────────────────────────────────────
+const auditService = require('./services/auditService');
+
+app.post('/api/audit/gmb', async (req, res) => {
+  try {
+    const { url, userId } = req.body;
+    const jobId = auditService.startAudit('gmb', url, userId);
+    res.json({ success: true, jobId });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/audit/website', async (req, res) => {
+  try {
+    const { url, userId } = req.body;
+    const jobId = auditService.startAudit('website', url, userId);
+    res.json({ success: true, jobId });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/audit/status/:jobId', (req, res) => {
+  const status = auditService.getAuditStatus(req.params.jobId);
+  res.json(status);
+});
+
+app.get('/api/audit/history', (req, res) => {
+  const { type, userId } = req.query;
+  const history = auditService.getAuditHistory(type, userId);
+  res.json({ success: true, history });
 });
 
 server.listen(PORT, () => {

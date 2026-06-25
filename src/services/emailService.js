@@ -18,6 +18,8 @@ export const DEFAULT_MAIL_CONFIG = {
   webmailLabel: 'Roundcube Webmail',
   timeout: 30000,
   authMethod: 'normal',
+  systemSmtpUser: '',
+  systemSmtpPass: ''
 };
 
 const warn = (msg, extra = {}) => console.warn('[emailService]', msg, extra);
@@ -37,6 +39,14 @@ export const getMailConfig = () => {
 
 export const saveMailConfig = (config) => {
   localStorage.setItem(MAIL_CONFIG_KEY, JSON.stringify({ ...DEFAULT_MAIL_CONFIG, ...config }));
+  
+  // Sync to backend so OTP/system emails can use it
+  fetch((process.env.REACT_APP_API_URL || '') + '/api/settings/mail', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(config)
+  }).catch(e => console.error('Failed to sync mail config to server', e));
+  
   return true;
 };
 

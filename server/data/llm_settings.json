@@ -1,0 +1,12 @@
+[
+  {
+    "provider": "OpenRouter",
+    "api_key": "f3a9f006b5766ab3bad63c988933fd89:e1f3148fe580dae5609b86f256a6e5c9b7ec83c633f777e92ff62a661cfb39227e3b690b6eed870138b15e9f32ace52e8ebb096821847be7cbb15c98927c9055ccf4d4445fa9ed8032:71dc7bb7ecbbc3551393704d9a9d51f1",
+    "base_url": "https://openrouter.ai/api/v1",
+    "gateway_url": "",
+    "fallback_provider": "None",
+    "default_model": "openai/gpt-5",
+    "enabled": true,
+    "updated_at": "2026-06-25T11:09:28.445Z"
+  }
+]

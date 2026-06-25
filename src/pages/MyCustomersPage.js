@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { BASE_CURRENCY, formatCurrencyAmount } from '../services/currencyService';
 import CreateProposal from '../components/CreateProposal';
+import AIResearchPanel from '../components/AIResearchPanel';
 
 const MyCustomersPage = () => {
-  const { myCustomers, currentUser, myInvoices, myLeads, updateLead, deleteCustomer, sendEmail } = useApp();
+  const { myCustomers, currentUser, myInvoices, myLeads, updateLead, deleteCustomer, sendEmail, updateSale } = useApp();
   const [alertModal, setAlertModal] = useState(null);
   const [search, setSearch] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [activeTab, setActiveTab] = useState('customers');
   const [buildingProposal, setBuildingProposal] = useState(null);
+  const [showAIResearch, setShowAIResearch] = useState(null);
 
   const isAdmin = currentUser.role === 'Admin';
   
@@ -264,6 +266,16 @@ const MyCustomersPage = () => {
                             >
                               {selectedCustomer === customer.id ? '👁 View' : '📋 Details'}
                             </button>
+                            <button 
+                              className="btn btn-sm btn-ghost"
+                              title="Research with AI"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowAIResearch(customer);
+                              }}
+                            >
+                              🤖
+                            </button>
                             {isAdmin && (
                               <button 
                                 className="btn btn-sm btn-danger"
@@ -372,6 +384,14 @@ const MyCustomersPage = () => {
           formatCurrency={formatCurrency}
           onClose={() => setSelectedCustomer(null)}
           onSendProposalEmail={handleSendProposalEmail}
+          onUpdateCustomer={(id, data) => updateSale(id, data)}
+        />
+      )}
+
+      {showAIResearch && (
+        <AIResearchPanel 
+          customer={showAIResearch} 
+          onClose={() => setShowAIResearch(null)} 
         />
       )}
 
@@ -411,7 +431,194 @@ const MyCustomersPage = () => {
   );
 };
 
-const CustomerDetailModal = ({ customer, invoices, formatCurrency, onClose, onSendProposalEmail }) => {
+const SalesRecordEditor = ({ customer, onUpdateCustomer, formatCurrency }) => {
+  const [records, setRecords] = useState(customer.salesRecords || []);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const planOptions = ['SEO', 'GMB', 'Website', 'Local Search', 'Advertising', 'SMM', 'Meta Ads', 'Graphic Design', 'Web Development'];
+
+  const getStatus = (r) => {
+    if (!r.taken) return 'Not Taken';
+    if (!r.startDate || !r.expiryDate) return 'Active';
+    const now = new Date();
+    const expiry = new Date(r.expiryDate);
+    if (now > expiry) return 'Expired';
+    return 'Active';
+  };
+
+  const isExpiringSoon = (r) => {
+    if (!r.taken || !r.expiryDate) return false;
+    const now = new Date();
+    const expiry = new Date(r.expiryDate);
+    if (now > expiry) return false;
+    const diffTime = Math.abs(expiry - now);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    return diffDays <= 15;
+  };
+
+  const handleAdd = () => {
+    setRecords([...records, { 
+      id: Date.now().toString(),
+      planName: '', 
+      taken: false, 
+      amountPaid: 0, 
+      amountDue: 0, 
+      startDate: '', 
+      expiryDate: '' 
+    }]);
+    setIsEditing(true);
+  };
+
+  const handleChange = (index, field, value) => {
+    const newRecords = [...records];
+    newRecords[index][field] = value;
+    if (field === 'taken' && !value) {
+      newRecords[index].amountPaid = 0;
+      newRecords[index].amountDue = 0;
+      newRecords[index].startDate = '';
+      newRecords[index].expiryDate = '';
+    }
+    setRecords(newRecords);
+  };
+
+  const handleRemove = (index) => {
+    const newRecords = [...records];
+    newRecords.splice(index, 1);
+    setRecords(newRecords);
+  };
+
+  const handleSave = () => {
+    onUpdateCustomer(customer.id, { salesRecords: records });
+    setIsEditing(false);
+  };
+
+  const totalPaid = records.reduce((sum, r) => sum + (r.taken ? Number(r.amountPaid || 0) : 0), 0);
+  const totalDue = records.reduce((sum, r) => sum + (r.taken ? Number(r.amountDue || 0) : 0), 0);
+
+  return (
+    <div style={{ marginTop: 24, marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <h4 style={{ margin: 0 }}>📊 Sales Records</h4>
+        <div>
+          {isEditing ? (
+            <button className="btn btn-sm btn-success" onClick={handleSave}>💾 Save</button>
+          ) : (
+            <button className="btn btn-sm btn-outline" onClick={() => setIsEditing(true)}>✏️ Edit Records</button>
+          )}
+        </div>
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Plan Name</th>
+            <th>Taken</th>
+            <th>Paid</th>
+            <th>Due</th>
+            <th>Start Date</th>
+            <th>Expiry Date</th>
+            <th>Status</th>
+            {isEditing && <th>Actions</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {records.length === 0 && !isEditing ? (
+            <tr><td colSpan={isEditing ? "8" : "7"} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No sales records found.</td></tr>
+          ) : (
+            records.map((r, idx) => {
+              const status = getStatus(r);
+              const expiring = isExpiringSoon(r);
+              let statusClass = 'badge-neutral';
+              if (status === 'Active') statusClass = 'badge-success';
+              if (status === 'Expired') statusClass = 'badge-danger';
+              
+              let rowStyle = {};
+              if (status === 'Expired') rowStyle.background = 'rgba(239, 68, 68, 0.05)';
+              else if (expiring) rowStyle.background = 'rgba(245, 158, 11, 0.05)';
+              else if (!r.taken) rowStyle.background = 'rgba(0,0,0,0.02)';
+
+              return (
+                <tr key={r.id || idx} style={rowStyle}>
+                  <td>
+                    {isEditing ? (
+                      <select className="form-control" style={{ width: 140, padding: 4 }} value={r.planName} onChange={e => handleChange(idx, 'planName', e.target.value)}>
+                        <option value="">Select Plan...</option>
+                        {planOptions.map(p => <option key={p} value={p}>{p}</option>)}
+                      </select>
+                    ) : (
+                      <span style={{ fontWeight: 600 }}>{r.planName || '—'}</span>
+                    )}
+                  </td>
+                  <td>
+                    {isEditing ? (
+                      <input type="checkbox" checked={r.taken} onChange={e => handleChange(idx, 'taken', e.target.checked)} />
+                    ) : (
+                      <span className={`badge ${r.taken ? 'badge-success' : 'badge-neutral'}`}>{r.taken ? 'Yes' : 'No'}</span>
+                    )}
+                  </td>
+                  <td>
+                    {isEditing ? (
+                      <input type="number" className="form-control" style={{ width: 80, padding: 4 }} disabled={!r.taken} value={r.amountPaid} onChange={e => handleChange(idx, 'amountPaid', e.target.value)} />
+                    ) : (
+                      formatCurrency(r.amountPaid || 0)
+                    )}
+                  </td>
+                  <td>
+                    {isEditing ? (
+                      <input type="number" className="form-control" style={{ width: 80, padding: 4 }} disabled={!r.taken} value={r.amountDue} onChange={e => handleChange(idx, 'amountDue', e.target.value)} />
+                    ) : (
+                      formatCurrency(r.amountDue || 0)
+                    )}
+                  </td>
+                  <td>
+                    {isEditing ? (
+                      <input type="date" className="form-control" style={{ width: 120, padding: 4 }} disabled={!r.taken} value={r.startDate} onChange={e => handleChange(idx, 'startDate', e.target.value)} />
+                    ) : (
+                      <span style={{ fontSize: 12 }}>{r.startDate || '—'}</span>
+                    )}
+                  </td>
+                  <td>
+                    {isEditing ? (
+                      <input type="date" className="form-control" style={{ width: 120, padding: 4 }} disabled={!r.taken} value={r.expiryDate} onChange={e => handleChange(idx, 'expiryDate', e.target.value)} />
+                    ) : (
+                      <span style={{ fontSize: 12 }}>{r.expiryDate || '—'}</span>
+                    )}
+                  </td>
+                  <td>
+                    <span className={`badge ${statusClass}`}>{status}</span>
+                    {!isEditing && expiring && <div style={{ fontSize: 10, color: 'var(--warning)', marginTop: 4, fontWeight: 'bold' }}>⏰ Expiring Soon</div>}
+                  </td>
+                  {isEditing && (
+                    <td>
+                      <button className="btn btn-sm btn-ghost" style={{ color: 'var(--danger)' }} onClick={() => handleRemove(idx)}>🗑</button>
+                    </td>
+                  )}
+                </tr>
+              )
+            })
+          )}
+        </tbody>
+        {!isEditing && records.length > 0 && (
+          <tfoot>
+            <tr style={{ background: 'var(--bg-secondary)', fontWeight: 'bold' }}>
+              <td colSpan="2" style={{ textAlign: 'right' }}>Rollup Total:</td>
+              <td style={{ color: 'var(--success)' }}>{formatCurrency(totalPaid)}</td>
+              <td style={{ color: 'var(--danger)' }}>{formatCurrency(totalDue)}</td>
+              <td colSpan={isEditing ? "4" : "3"}></td>
+            </tr>
+          </tfoot>
+        )}
+      </table>
+      {isEditing && (
+        <div style={{ marginTop: 8 }}>
+          <button className="btn btn-sm btn-outline" onClick={handleAdd}>+ Add Plan Record</button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const CustomerDetailModal = ({ customer, invoices, formatCurrency, onClose, onSendProposalEmail, onUpdateCustomer }) => {
   if (!customer) return null;
 
   const getPaymentBadge = (sale) => {
@@ -511,6 +718,8 @@ const CustomerDetailModal = ({ customer, invoices, formatCurrency, onClose, onSe
               </table>
             </>
           )}
+
+          <SalesRecordEditor customer={customer} onUpdateCustomer={onUpdateCustomer} formatCurrency={formatCurrency} />
 
           {invoices.length > 0 && (
             <>

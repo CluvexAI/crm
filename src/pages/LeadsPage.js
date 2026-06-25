@@ -8,6 +8,7 @@ import { isValidE164, isSamePhone } from '../services/phoneService';
 import { DEFAULT_COUNTRY, getCountryByCode, getCountryByName } from '../services/countryService';
 import { BASE_CURRENCY, convertCurrency, formatCurrencyAmount } from '../services/currencyService';
 import api from '../services/apiService';
+import AIResearchPanel from '../components/AIResearchPanel';
 
 const DuplicateWarningBanner = ({ warning }) => {
   if (!warning || !warning.isDuplicate) return null;
@@ -319,6 +320,7 @@ const LeadsPage = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [showConvertModal, setShowConvertModal] = useState(null);
+  const [showAIResearch, setShowAIResearch] = useState(null);
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [alertModal, setAlertModal] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -513,6 +515,7 @@ const LeadsPage = () => {
                         <div style={{ display: 'flex', gap: 4 }}>
                           <button className="btn btn-sm btn-outline" title="Edit" onClick={() => { setEditLead(lead); setShowForm(true); }}>✏️</button>
                           <button className="btn btn-sm btn-ghost" title="Remarks" onClick={() => setRemarkLead(lead)}>💬</button>
+                          <button className="btn btn-sm btn-ghost" title="Research with AI" onClick={() => setShowAIResearch(lead)}>🤖</button>
                           {lead.status !== 'Closed (Won)' && (
                             <button className="btn btn-sm btn-success" title="Convert to Sale" onClick={() => setShowConvertModal(lead)} style={{ fontSize: 11 }}>Convert</button>
                           )}
@@ -536,11 +539,17 @@ const LeadsPage = () => {
         <ConvertToSaleModal
           lead={showConvertModal}
           onClose={() => setShowConvertModal(null)}
-          onConvert={(saleData) => {
-            createSale(saleData);
+          onConvert={async (conversionData) => {
             updateLead(showConvertModal.id, { status: 'Closed (Won)' });
             setShowConvertModal(null);
           }}
+        />
+      )}
+
+      {showAIResearch && (
+        <AIResearchPanel 
+          lead={showAIResearch} 
+          onClose={() => setShowAIResearch(null)} 
         />
       )}
 
@@ -569,7 +578,7 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
   const [alertModal, setAlertModal] = useState(null);
   const [currency, setCurrency] = useState({ code: 'EUR', symbol: '€', name: 'Euro' });
   const [proposals, setProposals] = useState([
-    { type: lead?.proposalType || '', package: '', description: '', amount: '', additionalNotes: '' }
+    { type: lead?.proposalType || '', package: '', description: '', amount: '', paidAmount: '', durationMonths: '12', additionalNotes: '' }
   ]);
 
   const getLeadCountry = () => {
@@ -591,6 +600,7 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
     leadName: lead?.contactName || '',
     businessName: lead?.businessName || '',
     email: lead?.email || '',
+    website: lead?.website || '',
     ownerPhone: lead?.ownerPhone || lead?.phone || '',
     addressLine1: lead?.address || '',
     city: lead?.city || lead?.targetArea || '',
@@ -622,7 +632,7 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
   };
 
   const addProposal = () => {
-    setProposals([...proposals, { type: '', package: '', description: '', amount: '', additionalNotes: '' }]);
+    setProposals([...proposals, { type: '', package: '', description: '', amount: '', paidAmount: '', durationMonths: '12', additionalNotes: '' }]);
   };
 
   const removeProposal = (index) => {
@@ -719,6 +729,27 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
       amount: Number(p.amount || 0),
     }));
 
+    const mappedSalesRecords = proposals.map(p => {
+      const planAmount = Number(p.amount || 0);
+      const paidAmt = Number(p.paidAmount || 0);
+      const dueAmt = Math.max(0, planAmount - paidAmt);
+      const start = new Date();
+      
+      const expiry = new Date(start);
+      const duration = Number(p.durationMonths || 12);
+      expiry.setMonth(expiry.getMonth() + duration);
+
+      return {
+        id: Date.now().toString() + Math.random().toString().substring(2),
+        planName: p.type || 'Unnamed Plan',
+        taken: true,
+        amountPaid: paidAmt,
+        amountDue: dueAmt,
+        startDate: start.toISOString().split('T')[0],
+        expiryDate: expiry.toISOString().split('T')[0]
+      };
+    });
+
     onConvert({
       ...form,
       proposalType: proposals[0].type,
@@ -727,6 +758,7 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
       currency: 'EUR',
       proposals: finalProposals,
       installmentPlan: form.paymentStatus === 'Installments' ? installmentPlan : [],
+      salesRecords: mappedSalesRecords,
     });
   };
 
@@ -810,14 +842,22 @@ const ConvertToSaleModal = ({ lead, onClose, onConvert }) => {
                       <input className="form-control" placeholder="e.g. Premium" value={p.package} onChange={(e) => updateProposal(index, "package", e.target.value)} />
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
                     <div>
-                      <label style={{ fontSize: 11, fontWeight: 600 }}>Description</label>
-                      <input className="form-control" placeholder="Short description" value={p.description} onChange={(e) => updateProposal(index, "description", e.target.value)} />
+                      <label style={{ fontSize: 11, fontWeight: 600 }}>Total Amount *</label>
+                      <input className="form-control" type="number" min="0" placeholder="0" value={p.amount} onChange={(e) => updateProposal(index, "amount", e.target.value)} required />
                     </div>
                     <div>
-                      <label style={{ fontSize: 11, fontWeight: 600 }}>Amount *</label>
-                      <input className="form-control" type="number" min="0" placeholder="0" value={p.amount} onChange={(e) => updateProposal(index, "amount", e.target.value)} required />
+                      <label style={{ fontSize: 11, fontWeight: 600 }}>Amount Paid</label>
+                      <input className="form-control" type="number" min="0" placeholder="0" value={p.paidAmount} onChange={(e) => updateProposal(index, "paidAmount", e.target.value)} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 600 }}>Duration (Mos)</label>
+                      <input className="form-control" type="number" min="1" placeholder="12" value={p.durationMonths} onChange={(e) => updateProposal(index, "durationMonths", e.target.value)} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 600 }}>Description</label>
+                      <input className="form-control" placeholder="Short desc" value={p.description} onChange={(e) => updateProposal(index, "description", e.target.value)} />
                     </div>
                   </div>
                   <div style={{ marginTop: 8 }}>

@@ -15,8 +15,8 @@
     "localStation": "",
     "localPostOffice": "",
     "referredBy": "",
-    "role": "Admin",
-    "department": "Management",
+    "role": "Backend User",
+    "department": "Backend",
     "designation": "Director",
     "dateOfJoining": "2020-01-01",
     "shift": "9:00 AM - 6:00 PM",
@@ -44,8 +44,8 @@
     "profileImageName": null,
     "profileImageUploadedAt": null,
     "createdAt": "2026-05-27T05:58:51.614Z",
-    "updatedAt": "2026-06-03T05:47:05.737Z",
-    "version": 27,
+    "updatedAt": "2026-06-22T08:31:46.628Z",
+    "version": 28,
     "passwordChangedAt": "2026-06-01T07:26:04.404Z",
     "passwordChangedBy": "a1b2c3d4-0001-4e5f-8a9b-000000000001",
     "must_change_password": false
@@ -110,9 +110,9 @@
     "uuid": "8102000e-bec4-4924-8553-157b47c0c149",
     "id": 1779867142556,
     "createdAt": "2026-05-27T07:32:22.720Z",
-    "updatedAt": "2026-06-19T11:55:13.754Z",
+    "updatedAt": "2026-06-25T13:34:06.213Z",
     "version": 11,
-    "password": "$2b$12$vHhKD6ikragkX8nB7rHJxe1fswJrcWdh3ozWtvYTedbZC7eVNjtY6",
+    "password": "$2a$12$QtrSjOuDlncciW6MOqOeE.EiOlLpVybS2fGXjM5ouH52Z8/GBGccO",
     "phone": "+91",
     "foodPref": "Veg",
     "role": "Admin",
@@ -126,7 +126,7 @@
       "smtpHost": "mail.zsmeservices.com",
       "smtpPort": 465
     },
-    "passwordChangedAt": "2026-06-19T11:55:13.754Z",
+    "passwordChangedAt": "2026-06-25T13:34:06.213Z",
     "must_change_password": false
   },
   {
@@ -143,7 +143,7 @@
     "shift": "9:00 AM - 6:00 PM",
     "dateOfJoining": "2020-01-01",
     "createdAt": "2026-05-27T08:24:17.086Z",
-    "updatedAt": "2026-06-01T11:04:21.608Z",
+    "updatedAt": "2026-06-22T14:22:01.288Z",
     "phone": "+91",
     "foodPref": "Veg",
     "mailConfig": {
@@ -154,7 +154,12 @@
       "smtpHost": "mail.zsmeservices.com",
       "smtpPort": 465
     },
-    "version": 14
+    "version": 24,
+    "whatsappSession": {
+      "status": "connected",
+      "connectedAt": "2026-06-22T14:21:57.503Z",
+      "deviceId": "device-1779860000000"
+    }
   },
   {
     "name": "Shazia Parveen",
@@ -543,8 +548,11 @@
     "profileImageName": null,
     "profileImageUploadedAt": null,
     "createdAt": "2026-05-27T09:18:30.731Z",
-    "updatedAt": "2026-05-27T09:36:41.662Z",
-    "version": 3
+    "updatedAt": "2026-06-23T13:03:58.211Z",
+    "version": 4,
+    "passwordChangedAt": "2026-06-23T13:03:58.017Z",
+    "passwordChangedBy": "8102000e-bec4-4924-8553-157b47c0c149",
+    "must_change_password": false
   },
   {
     "name": "Arindam Samanta",
@@ -1038,8 +1046,8 @@
     "department": "Operations",
     "status": "active",
     "employeeId": "EMP-OPS-001",
-    "createdAt": "2026-06-19T14:23:25.781Z",
-    "updatedAt": "2026-06-19T14:23:25.781Z"
+    "createdAt": "2026-06-25T13:26:36.386Z",
+    "updatedAt": "2026-06-25T13:26:36.386Z"
   },
   {
     "uuid": "3fc54ade-f756-46ee-a571-43191703de19",
@@ -1050,7 +1058,7 @@
     "department": "Billing",
     "status": "active",
     "employeeId": "EMP-BIL-001",
-    "createdAt": "2026-06-19T14:23:25.793Z",
-    "updatedAt": "2026-06-19T14:23:25.793Z"
+    "createdAt": "2026-06-25T13:26:36.394Z",
+    "updatedAt": "2026-06-25T13:26:36.394Z"
   }
 ]

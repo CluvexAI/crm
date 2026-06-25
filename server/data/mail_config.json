@@ -1,0 +1,16 @@
+{
+  "host": "mail.zsmeservices.com",
+  "imapHost": "mail.zsmeservices.com",
+  "smtpHost": "mail.zsmeservices.com",
+  "imapPort": 993,
+  "smtpPort": 465,
+  "encryption": "SSL",
+  "defaultFromEmail": "",
+  "defaultFromName": "ZSM Services",
+  "webmailUrl": "https://mail.zsmeservices.com/webmail",
+  "webmailLabel": "Roundcube Webmail",
+  "timeout": 30000,
+  "authMethod": "normal",
+  "systemSmtpUser": "tanmoy.mondal@zsmeservices.com",
+  "systemSmtpPass": "Tanmoy@9831012129"
+}

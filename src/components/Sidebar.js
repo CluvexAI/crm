@@ -20,6 +20,10 @@ const navItems = [
   { id: 'audit', icon: '🔒', label: 'Audit Logs', roles: [ROLES.ADMIN] },
   { id: 'reports', icon: '📊', label: 'Activity Reports', roles: ['all'], includeDepts: ['Backend', 'Support', 'Quality', 'Graphics', 'Account', 'Accounts', 'HR', 'Management'] },
   { id: 'activity_calendar', icon: '📅', label: 'Activity Calendar', roles: ['all'], excludeRoles: [ROLES.SALES] },
+  { id: 'audit_analysis', icon: '🔍', label: 'Audit & Analysis', roles: [ROLES.ADMIN, ROLES.SALES], excludeDepts: ['Backend', 'HR', 'Support', 'Quality', 'Graphics'], subItems: [
+    { id: 'gmb_audit', icon: '📍', label: 'GMB Audit' },
+    { id: 'website_audit', icon: '🌐', label: 'Website Analysis' }
+  ]},
   { id: 'settings', icon: '⚙️', label: 'Settings', roles: [ROLES.ADMIN] },
   { id: 'profile', icon: '👤', label: 'My Profile', roles: ['all'] },
 ];
@@ -27,6 +31,7 @@ const navItems = [
 const Sidebar = () => {
   const { currentUser, activePage, setActivePage, unreadMessages, allLeads, allSales, myLeads, myCustomers } = useApp();
   const [chatUnread, setChatUnread] = useState(0);
+  const [expandedSection, setExpandedSection] = useState(null);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -97,15 +102,43 @@ const Sidebar = () => {
         <div className="sidebar-section-label">Main Menu</div>
         {mainNav.filter(canAccess).map(item => {
           const badge = getBadge(item.id);
+          const isActive = activePage === item.id || (item.subItems && item.subItems.find(sub => sub.id === activePage));
+          const isExpanded = expandedSection === item.id;
+          
           return (
-            <div
-              key={item.id}
-              className={`sidebar-item ${activePage === item.id ? 'active' : ''}`}
-              onClick={() => setActivePage(item.id)}
-            >
-              <span className="sidebar-item-icon">{item.icon}</span>
-              <span>{item.label}</span>
-              {badge && <span className="sidebar-badge">{badge}</span>}
+            <div key={item.id}>
+              <div
+                className={`sidebar-item ${isActive && !item.subItems ? 'active' : ''}`}
+                onClick={() => {
+                  if (item.subItems) {
+                    setExpandedSection(isExpanded ? null : item.id);
+                  } else {
+                    setActivePage(item.id);
+                  }
+                }}
+              >
+                <span className="sidebar-item-icon">{item.icon}</span>
+                <span style={{ flex: 1 }}>{item.label}</span>
+                {badge && <span className="sidebar-badge">{badge}</span>}
+                {item.subItems && (
+                  <span style={{ fontSize: 10 }}>{isExpanded ? '▼' : '▶'}</span>
+                )}
+              </div>
+              {item.subItems && isExpanded && (
+                <div style={{ paddingLeft: 30, marginTop: 4, marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {item.subItems.map(subItem => (
+                    <div
+                      key={subItem.id}
+                      className={`sidebar-item ${activePage === subItem.id ? 'active' : ''}`}
+                      style={{ padding: '6px 12px', minHeight: 32, fontSize: 13 }}
+                      onClick={() => setActivePage(subItem.id)}
+                    >
+                      <span className="sidebar-item-icon" style={{ width: 20 }}>{subItem.icon}</span>
+                      <span>{subItem.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}

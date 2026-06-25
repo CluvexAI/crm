@@ -18,6 +18,8 @@ import EmailConfigurationPage from './pages/EmailConfigurationPage';
 import ReportsPage from './pages/ReportsPage';
 import ActivityReportsCalendar from './components/ActivityReportsCalendar';
 import SettingsPage from './pages/SettingsPage';
+import GmbAuditPage from './pages/GmbAuditPage';
+import WebsiteAuditPage from './pages/WebsiteAuditPage';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import ChangePassword from './components/ChangePassword';
@@ -42,6 +44,8 @@ const pageConfig = {
   reports: { title: 'Activity Reports', subtitle: 'Daily, weekly and monthly work logs', component: ReportsPage },
   activity_calendar: { title: 'Activity Calendar', subtitle: 'View daily activity reports in calendar view', component: ActivityReportsCalendar },
   settings: { title: 'System Settings', subtitle: 'Configure application settings', component: SettingsPage },
+  gmb_audit: { title: 'GMB Audit', subtitle: 'Analyze Google Business Profile listings', component: GmbAuditPage },
+  website_audit: { title: 'Website Analysis', subtitle: 'Analyze Website Technical SEO and Rankings', component: WebsiteAuditPage },
 };
 
 const AppInner = () => {
