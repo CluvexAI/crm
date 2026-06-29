@@ -27,19 +27,98 @@ const Divider = () => (
 );
 
 /* ─── Tag Input for To / CC / BCC ──────────────────── */
-const TagInput = ({ label, tags, onAdd, onRemove, placeholder, labelColor }) => {
+const TagInput = ({ label, tags, onAdd, onRemove, placeholder, labelColor, userId }) => {
   const [val, setVal] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(-1);
+  const wrapperRef = useRef(null);
 
-  const commit = () => {
-    const trimmed = val.trim();
+  // Debounced fetch
+  useEffect(() => {
+    const query = val.trim();
+    if (!query || !userId) {
+      setSuggestions([]);
+      setDropdownOpen(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/emails/autocomplete?userId=${userId}&q=${encodeURIComponent(query)}`);
+        const json = await res.json();
+        if (json.success) {
+          // Exclude already added tags
+          const filtered = json.data.filter(s => !tags.includes(s.email));
+          setSuggestions(filtered);
+          setDropdownOpen(filtered.length > 0);
+          setHighlightIndex(-1);
+        }
+      } catch (err) {
+        console.error('Autocomplete fetch failed:', err);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [val, userId, tags]);
+
+  // Click outside to close
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const commit = (email) => {
+    const trimmed = (typeof email === 'string' ? email : val).trim();
     if (trimmed && !tags.includes(trimmed)) onAdd(trimmed);
     setVal('');
+    setDropdownOpen(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (dropdownOpen && suggestions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setHighlightIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : prev));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setHighlightIndex(prev => (prev > 0 ? prev - 1 : -1));
+      } else if (e.key === 'Enter' || e.key === 'Tab') {
+        if (highlightIndex >= 0) {
+          e.preventDefault();
+          commit(suggestions[highlightIndex].email);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          commit();
+        }
+      } else if (e.key === 'Escape') {
+        setDropdownOpen(false);
+      }
+    } else {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        commit();
+      }
+    }
+  };
+
+  const highlightMatch = (text, query) => {
+    if (!query) return text;
+    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+    return parts.map((part, i) => 
+      part.toLowerCase() === query.toLowerCase() ? <strong key={i} style={{ color: colors.primary }}>{part}</strong> : part
+    );
   };
 
   return (
-    <div style={{
+    <div ref={wrapperRef} style={{
       minHeight: 44, padding: '6px 16px', borderBottom: `1px solid ${colors.borderLight}`,
-      display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6,
+      display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, position: 'relative'
     }}>
       <span style={{
         width: 48, fontSize: 11, fontWeight: 700,
@@ -56,24 +135,63 @@ const TagInput = ({ label, tags, onAdd, onRemove, placeholder, labelColor }) => 
           <span onClick={() => onRemove(t)} style={{ cursor: 'pointer', opacity: 0.7 }}>×</span>
         </span>
       ))}
-      <input
-        value={val}
-        onChange={e => setVal(e.target.value)}
-        onKeyDown={e => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); commit(); } }}
-        onBlur={commit}
-        placeholder={tags.length === 0 ? placeholder : ''}
-        style={{
-          flex: 1, minWidth: 120, border: 'none', outline: 'none',
-          fontSize: 14, fontFamily: 'DM Sans, sans-serif', color: colors.text,
-          background: 'transparent',
-        }}
-      />
+      <div style={{ flex: 1, minWidth: 120, position: 'relative' }}>
+        <input
+          value={val}
+          onChange={e => setVal(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={() => {
+            // Delay closing slightly so click events on dropdown can fire
+            setTimeout(() => { if (!dropdownOpen) commit(); }, 150);
+          }}
+          placeholder={tags.length === 0 ? placeholder : ''}
+          style={{
+            width: '100%', border: 'none', outline: 'none',
+            fontSize: 14, fontFamily: 'DM Sans, sans-serif', color: colors.text,
+            background: 'transparent',
+          }}
+          role="combobox"
+          aria-expanded={dropdownOpen}
+          aria-autocomplete="list"
+          aria-controls="autocomplete-listbox"
+        />
+        {dropdownOpen && suggestions.length > 0 && (
+          <ul id="autocomplete-listbox" style={{
+            position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4,
+            background: colors.surface, border: `1px solid ${colors.border}`,
+            borderRadius: 8, boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+            listStyle: 'none', margin: 0, padding: '4px 0', zIndex: 1000,
+            maxHeight: 240, overflowY: 'auto'
+          }} role="listbox">
+            {suggestions.map((s, i) => (
+              <li
+                key={s.email}
+                role="option"
+                aria-selected={i === highlightIndex}
+                onMouseDown={(e) => { e.preventDefault(); commit(s.email); }}
+                onMouseEnter={() => setHighlightIndex(i)}
+                style={{
+                  padding: '8px 12px', cursor: 'pointer', display: 'flex', flexDirection: 'column',
+                  background: i === highlightIndex ? colors.bg : 'transparent',
+                }}
+              >
+                <div style={{ fontSize: 14, color: colors.text, fontWeight: 500 }}>
+                  {highlightMatch(s.name, val.trim())}
+                </div>
+                <div style={{ fontSize: 12, color: colors.textSecondary }}>
+                  {highlightMatch(s.email, val.trim())}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };
 
 /* ─── Main ComposeModal ─────────────────────────────── */
-const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
+const ComposeModal = ({ initialData, onSend, onSaveDraft, onDiscardDraft, onClose }) => {
   const [mode, setMode] = useState('normal'); // normal | minimized | maximized
   const [to, setTo]           = useState([]);
   const [cc, setCc]           = useState([]);
@@ -85,6 +203,7 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
   const [sending, setSending] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
   const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [showConfirmDiscard, setShowConfirmDiscard] = useState(false);
   const fileRef = useRef();
   const editorRef = useRef();
 
@@ -350,6 +469,22 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
 
   const removeAttachment = (id) => setAttachments(prev => prev.filter(a => a.id !== id));
 
+  const handleDiscardClick = () => {
+    if (!body && !subject) {
+      onClose();
+      return;
+    }
+    setShowConfirmDiscard(true);
+  };
+
+  const performDiscard = () => {
+    if (onDiscardDraft && draftIdRef.current) {
+      onDiscardDraft(draftIdRef.current);
+    }
+    onClose();
+    setShowConfirmDiscard(false);
+  };
+
   // Dimensions per mode
   const dims = {
     normal:    { width: 960, height: 680, borderRadius: 12, position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' },
@@ -401,10 +536,7 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
               style={headerBtn}>─</button>
             <button onClick={() => setMode(m => m === 'maximized' ? 'normal' : 'maximized')}
               style={headerBtn}>⤢</button>
-            <button onClick={() => {
-              if (!body && !subject) { onClose(); return; }
-              if (window.confirm('Discard this email?')) onClose();
-            }} style={headerBtn}>✕</button>
+            <button onClick={handleDiscardClick} style={headerBtn}>✕</button>
           </div>
         </div>
 
@@ -412,6 +544,7 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
           {/* TO field */}
           <TagInput
             label="TO"
+            userId={currentUser?.id}
             tags={to} onAdd={t => setTo(p => [...p, t])} onRemove={t => setTo(p => p.filter(x => x !== t))}
             placeholder="Recipient email..."
           />
@@ -429,10 +562,10 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
             </div>
           )}
           {showCC && (
-            <TagInput label="CC" tags={cc} onAdd={t => setCc(p => [...p, t])} onRemove={t => setCc(p => p.filter(x => x !== t))} placeholder="CC..." />
+            <TagInput label="CC" userId={currentUser?.id} tags={cc} onAdd={t => setCc(p => [...p, t])} onRemove={t => setCc(p => p.filter(x => x !== t))} placeholder="CC..." />
           )}
           {showCC && (
-            <TagInput label="BCC" tags={bcc} onAdd={t => setBcc(p => [...p, t])} onRemove={t => setBcc(p => p.filter(x => x !== t))} placeholder="BCC..." labelColor={colors.danger} />
+            <TagInput label="BCC" userId={currentUser?.id} tags={bcc} onAdd={t => setBcc(p => [...p, t])} onRemove={t => setBcc(p => p.filter(x => x !== t))} placeholder="BCC..." labelColor={colors.danger} />
           )}
           {/* Subject */}
           <div style={{
@@ -763,6 +896,7 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
                       draftIdRef.current = savedDraft.id;
                     }
                     setLastSaved(new Date());
+                    if (onClose) onClose();
                   } catch (err) {
                     console.error('[ComposeModal] Manual save failed:', err);
                   }
@@ -778,10 +912,7 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <button onClick={() => fileRef.current?.click()} style={iconBtn}>📎</button>
-              <button onClick={() => {
-                if (!body && !subject) { onClose(); return; }
-                if (window.confirm('Discard this draft?')) onClose();
-              }} style={{ ...iconBtn, color: colors.danger }}>🗑 Discard</button>
+              <button onClick={handleDiscardClick} style={{ ...iconBtn, color: colors.danger }}>🗑 Discard</button>
             </div>
           </div>
         </>}
@@ -789,7 +920,62 @@ const ComposeModal = ({ initialData, onSend, onSaveDraft, onClose }) => {
 
       <input ref={fileRef} type="file" multiple onChange={handleAttach} style={{ display: 'none' }} />
 
+      {/* Discard Confirmation Modal */}
+      {showConfirmDiscard && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fadeIn 0.15s ease-out'
+        }}>
+          <div style={{
+            background: colors.surface, width: 400, borderRadius: 12, overflow: 'hidden',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+            animation: 'scaleIn 0.15s ease-out', fontFamily: 'DM Sans, sans-serif'
+          }}>
+            <div style={{ padding: '20px 24px' }}>
+              <h3 style={{ margin: '0 0 12px 0', fontSize: 18, color: colors.text }}>Discard this draft?</h3>
+              <p style={{ margin: 0, color: colors.textSecondary, fontSize: 14, lineHeight: 1.5 }}>
+                Are you sure you want to discard this draft? This action cannot be undone.
+              </p>
+            </div>
+            <div style={{
+              background: '#f8fafc', padding: '16px 24px', display: 'flex', justifyContent: 'flex-end', gap: 12,
+              borderTop: `1px solid ${colors.borderLight}`
+            }}>
+              <button
+                onClick={() => setShowConfirmDiscard(false)}
+                style={{
+                  padding: '8px 16px', border: `1px solid ${colors.border}`, borderRadius: 6,
+                  background: 'white', color: colors.textSecondary, fontWeight: 600, fontSize: 14,
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={performDiscard}
+                style={{
+                  padding: '8px 16px', border: 'none', borderRadius: 6,
+                  background: colors.danger, color: 'white', fontWeight: 600, fontSize: 14,
+                  cursor: 'pointer'
+                }}
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+          from { transform: scale(0.95); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
         @keyframes composeIn {
           from { transform: ${mode === 'normal' ? 'translate(-50%, calc(-50% + 20px))' : 'translateY(20px)'} scale(0.97); opacity: 0; }
           to   { transform: ${mode === 'normal' ? 'translate(-50%, -50%)' : 'translateY(0)'} scale(1); opacity: 1; }

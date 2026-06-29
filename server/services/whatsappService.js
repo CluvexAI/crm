@@ -15,32 +15,32 @@ function writeJSON(file, data) {
 }
 
 // Data store paths for a specific user
-function getPaths(userId) {
+function getPaths(connectionId) {
   const base = path.join(__dirname, '..', 'data');
   return {
-    chats: path.join(base, `whatsapp-chats-${userId}.json`),
-    messages: path.join(base, `whatsapp-messages-${userId}.json`),
-    contacts: path.join(base, `whatsapp-contacts-${userId}.json`)
+    chats: path.join(base, `whatsapp-chats-${connectionId}.json`),
+    messages: path.join(base, `whatsapp-messages-${connectionId}.json`),
+    contacts: path.join(base, `whatsapp-contacts-${connectionId}.json`)
   };
 }
 
 /**
- * Start a WhatsApp session for a given userId.
+ * Start a WhatsApp session for a given connectionId.
  * Emits 'whatsapp:qr' and 'whatsapp:status' via the provided socket.io instance.
  */
-async function startSession(userId, io) {
-  const existingSock = sessions.get(userId);
+async function startSession(connectionId, io) {
+  const existingSock = sessions.get(connectionId);
   if (existingSock) {
     try {
       existingSock.ev.removeAllListeners();
-      existingSock.logout().catch(e => console.log(`[WhatsApp] Logout error for ${userId}:`, e.message));
+      existingSock.logout().catch(e => console.log(`[WhatsApp] Logout error for ${connectionId}:`, e.message));
     } catch (e) {
-      console.log(`[WhatsApp] Error cleaning up old socket for ${userId}`, e);
+      console.log(`[WhatsApp] Error cleaning up old socket for ${connectionId}`, e);
     }
-    sessions.delete(userId);
+    sessions.delete(connectionId);
   }
 
-  const sessionDir = path.join(__dirname, '..', 'data', `whatsapp-auth-${userId}`);
+  const sessionDir = path.join(__dirname, '..', 'data', `whatsapp-auth-${connectionId}`);
   
   if (!fs.existsSync(sessionDir)) {
     fs.mkdirSync(sessionDir, { recursive: true });
@@ -61,7 +61,7 @@ async function startSession(userId, io) {
     syncFullHistory: true, // Request full chat history on connect
   });
 
-  sessions.set(userId, sock);
+  sessions.set(connectionId, sock);
 
   sock.ev.on('creds.update', saveCreds);
 
@@ -69,38 +69,48 @@ async function startSession(userId, io) {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr) {
-      console.log(`[WhatsApp] New QR for user ${userId}`);
-      io.emit(`whatsapp:qr:${userId}`, qr);
+      console.log(`[WhatsApp] New QR for user ${connectionId}`);
+      io.emit(`whatsapp:qr:${connectionId}`, qr);
     }
 
     if (connection === 'close') {
       const statusCode = (lastDisconnect?.error)?.output?.statusCode;
       const loggedOut = statusCode === DisconnectReason.loggedOut || statusCode === 401;
-      console.log(`[WhatsApp] Connection closed for user ${userId}. Reconnect: ${!loggedOut}, statusCode: ${statusCode}`);
+      console.log(`[WhatsApp] Connection closed for user ${connectionId}. Reconnect: ${!loggedOut}, statusCode: ${statusCode}`);
       
       if (loggedOut) {
-        console.log(`[WhatsApp] User ${userId} logged out. Clearing session.`);
-        io.emit(`whatsapp:status:${userId}`, { status: 'disconnected', reason: 'logged_out' });
-        fs.rmSync(sessionDir, { recursive: true, force: true });
-        sessions.delete(userId);
-        updateUserSessionStatus(userId, 'disconnected');
+        console.log(`[WhatsApp] User ${connectionId} logged out. Clearing session.`);
+        io.emit(`whatsapp:status:${connectionId}`, { status: 'disconnected', reason: 'logged_out' });
+        // Defer deletion slightly on Windows to allow file handles to release, and wrap in try-catch to prevent crashes
+        setTimeout(() => {
+          try {
+            if (fs.existsSync(sessionDir)) {
+              fs.rmSync(sessionDir, { recursive: true, force: true });
+              console.log(`[WhatsApp] Successfully cleared session directory: ${sessionDir}`);
+            }
+          } catch (err) {
+            console.warn(`[WhatsApp] Warning: could not clear session directory ${sessionDir} (locked or already removed):`, err.message);
+          }
+        }, 1000);
+        sessions.delete(connectionId);
+        updateConnectionStatus(connectionId, 'disconnected');
       } else {
-        io.emit(`whatsapp:status:${userId}`, { status: 'connecting', reason: 'reconnecting' });
+        io.emit(`whatsapp:status:${connectionId}`, { status: 'connecting', reason: 'reconnecting' });
         // Prevent immediate aggressive reconnects that can race and corrupt auth state
         setTimeout(() => {
-          startSession(userId, io);
+          startSession(connectionId, io);
         }, 2000);
       }
     } else if (connection === 'open') {
-      console.log(`[WhatsApp] Connection opened for user ${userId}`);
-      io.emit(`whatsapp:status:${userId}`, { status: 'connected' });
+      console.log(`[WhatsApp] Connection opened for user ${connectionId}`);
+      io.emit(`whatsapp:status:${connectionId}`, { status: 'connected' });
       
       // Update users.json
-      updateUserSessionStatus(userId, 'connected');
+      updateConnectionStatus(connectionId, 'connected');
     }
   });
 
-  const paths = getPaths(userId);
+  const paths = getPaths(connectionId);
 
   // Initial Sync (Historical Data)
   sock.ev.on('messaging-history.set', ({ chats, contacts, messages, isLatest }) => {
@@ -150,7 +160,7 @@ async function startSession(userId, io) {
       }
       writeJSON(paths.messages, storeMessages);
 
-      io.emit(`whatsapp:sync_complete:${userId}`);
+      io.emit(`whatsapp:sync_complete:${connectionId}`);
     } catch (err) {
       console.error('[WhatsApp] Error in messaging-history.set:', err);
     }
@@ -196,16 +206,7 @@ async function startSession(userId, io) {
     }
   });
 
-  // Contacts update
-  sock.ev.on('contacts.update', (updates) => {
-    const storeContacts = readJSON(paths.contacts, {});
-    updates.forEach(update => {
-      if (update.id && (update.name || update.notify)) {
-        storeContacts[update.id] = update.name || update.notify || storeContacts[update.id];
-      }
-    });
-    writeJSON(paths.contacts, storeContacts);
-  });
+
 
   // Chats upsert/update
   sock.ev.on('chats.upsert', (newChats) => {
@@ -219,7 +220,7 @@ async function startSession(userId, io) {
       });
       storeChats.sort((a, b) => (b.conversationTimestamp || 0) - (a.conversationTimestamp || 0));
       writeJSON(paths.chats, storeChats);
-      io.emit(`whatsapp:chats_update:${userId}`);
+      io.emit(`whatsapp:chats_update:${connectionId}`);
     } catch (err) {
       console.error('[WhatsApp] Error in chats.upsert:', err);
     }
@@ -240,7 +241,7 @@ async function startSession(userId, io) {
       if (changed) {
         storeChats.sort((a, b) => (b.conversationTimestamp || 0) - (a.conversationTimestamp || 0));
         writeJSON(paths.chats, storeChats);
-        io.emit(`whatsapp:chats_update:${userId}`);
+        io.emit(`whatsapp:chats_update:${connectionId}`);
       }
     } catch (err) {
       console.error('[WhatsApp] Error in chats.update:', err);
@@ -270,7 +271,7 @@ async function startSession(userId, io) {
             chat.conversationTimestamp = m.messageTimestamp;
           }
           chatsChanged = true;
-          io.emit(`whatsapp:message_new:${userId}`, { jid, message: m });
+          io.emit(`whatsapp:message_new:${connectionId}`, { jid, message: m });
         }
       });
 
@@ -279,10 +280,72 @@ async function startSession(userId, io) {
       if (chatsChanged) {
         storeChats.sort((a, b) => (b.conversationTimestamp || 0) - (a.conversationTimestamp || 0));
         writeJSON(paths.chats, storeChats);
-        io.emit(`whatsapp:chats_update:${userId}`);
+        io.emit(`whatsapp:chats_update:${connectionId}`);
       }
     } catch (err) {
       console.error('[WhatsApp] Error in messages.upsert:', err);
+    }
+  });
+  // Handle incoming calls (reject and log)
+  sock.ev.on('call', async (calls) => {
+    try {
+      const storeMessages = readJSON(paths.messages, {});
+      const storeChats = readJSON(paths.chats, []);
+      let chatsChanged = false;
+
+      for (const call of calls) {
+        if (call.status === 'offer') {
+          console.log(`[WhatsApp] Incoming call from ${call.from}, rejecting...`);
+          
+          // Reject the call
+          try {
+            await sock.rejectCall(call.id, call.from);
+            await sock.sendMessage(call.from, { 
+              text: "We cannot accept WhatsApp calls. Please send a text message instead." 
+            });
+          } catch (e) {
+            console.error('[WhatsApp] Failed to reject call/send message:', e);
+          }
+
+          // Create a synthetic call log message
+          const jid = call.from;
+          const syntheticMessage = {
+            key: {
+              remoteJid: jid,
+              fromMe: false,
+              id: call.id
+            },
+            messageTimestamp: Math.floor(Date.now() / 1000),
+            message: {
+              conversation: `[Missed Call / Rejected]`
+            },
+            isCallLog: true
+          };
+
+          if (!storeMessages[jid]) storeMessages[jid] = [];
+          storeMessages[jid].push(syntheticMessage);
+          
+          let chat = storeChats.find(c => c.id === jid);
+          if (!chat) {
+            chat = { id: jid, conversationTimestamp: syntheticMessage.messageTimestamp };
+            storeChats.push(chat);
+          } else {
+            chat.conversationTimestamp = syntheticMessage.messageTimestamp;
+          }
+          chatsChanged = true;
+          io.emit(`whatsapp:message_new:${connectionId}`, { jid, message: syntheticMessage });
+        }
+      }
+
+      writeJSON(paths.messages, storeMessages);
+      
+      if (chatsChanged) {
+        storeChats.sort((a, b) => (b.conversationTimestamp || 0) - (a.conversationTimestamp || 0));
+        writeJSON(paths.chats, storeChats);
+        io.emit(`whatsapp:chats_update:${connectionId}`);
+      }
+    } catch (err) {
+      console.error('[WhatsApp] Error handling call event:', err);
     }
   });
 
@@ -302,7 +365,7 @@ async function startSession(userId, io) {
           if (msg && msgUpdate.status) {
             msg.status = msgUpdate.status;
             changed = true;
-            io.emit(`whatsapp:message_update:${userId}`, { jid, message: msg });
+            io.emit(`whatsapp:message_update:${connectionId}`, { jid, message: msg });
           }
         }
       });
@@ -319,13 +382,13 @@ async function startSession(userId, io) {
 /**
  * Helper to securely proxy outgoing messages through the active Baileys socket
  */
-async function sendMessage(userId, chatId, content, options = {}) {
-  const sock = sessions.get(userId);
+async function sendMessage(connectionId, chatId, content, options = {}) {
+  const sock = sessions.get(connectionId);
   if (!sock) {
     throw new Error('WhatsApp session is not connected.');
   }
 
-  const paths = getPaths(userId);
+  const paths = getPaths(connectionId);
   let baileysOptions = {};
 
   // Handle Replies
@@ -407,11 +470,11 @@ async function sendMessage(userId, chatId, content, options = {}) {
   return result;
 }
 
-async function editMessage(userId, chatId, messageId, newText) {
-  const sock = sessions.get(userId);
+async function editMessage(connectionId, chatId, messageId, newText) {
+  const sock = sessions.get(connectionId);
   if (!sock) throw new Error('WhatsApp session is not connected.');
 
-  const paths = getPaths(userId);
+  const paths = getPaths(connectionId);
   const storeMessages = readJSON(paths.messages, {});
   const chatMessages = storeMessages[chatId] || [];
   const originalMsg = chatMessages.find(m => m.key.id === messageId);
@@ -422,11 +485,11 @@ async function editMessage(userId, chatId, messageId, newText) {
   return result;
 }
 
-async function deleteMessage(userId, chatId, messageId) {
-  const sock = sessions.get(userId);
+async function deleteMessage(connectionId, chatId, messageId) {
+  const sock = sessions.get(connectionId);
   if (!sock) throw new Error('WhatsApp session is not connected.');
 
-  const paths = getPaths(userId);
+  const paths = getPaths(connectionId);
   const storeMessages = readJSON(paths.messages, {});
   const chatMessages = storeMessages[chatId] || [];
   const originalMsg = chatMessages.find(m => m.key.id === messageId);
@@ -437,49 +500,64 @@ async function deleteMessage(userId, chatId, messageId) {
   return result;
 }
 
-async function sendPresenceUpdate(userId, chatId, presence) {
-  const sock = sessions.get(userId);
+async function sendPresenceUpdate(connectionId, chatId, presence) {
+  const sock = sessions.get(connectionId);
   if (!sock) return;
   await sock.sendPresenceUpdate(presence, chatId);
 }
 
-function logoutSession(userId) {
-  const sock = sessions.get(userId);
+function logoutSession(connectionId) {
+  const sock = sessions.get(connectionId);
   if (sock) {
-    sock.logout().catch(e => console.log(`[WhatsApp] Logout error for ${userId}:`, e.message));
-    sessions.delete(userId);
+    sock.logout().catch(e => console.log(`[WhatsApp] Logout error for ${connectionId}:`, e.message));
+    sessions.delete(connectionId);
   }
   
-  const sessionDir = path.join(__dirname, '..', 'data', `whatsapp-auth-${userId}`);
-  if (fs.existsSync(sessionDir)) {
-    fs.rmSync(sessionDir, { recursive: true, force: true });
-  }
+  const sessionDir = path.join(__dirname, '..', 'data', `whatsapp-auth-${connectionId}`);
+  // Defer deletion slightly on Windows to allow file handles to release, and wrap in try-catch to prevent crashes
+  setTimeout(() => {
+    try {
+      if (fs.existsSync(sessionDir)) {
+        fs.rmSync(sessionDir, { recursive: true, force: true });
+        console.log(`[WhatsApp] Successfully cleared session directory on logout: ${sessionDir}`);
+      }
+    } catch (err) {
+      console.warn(`[WhatsApp] Warning: could not clear session directory ${sessionDir} on logout:`, err.message);
+    }
+  }, 1000);
   
-  updateUserSessionStatus(userId, 'disconnected');
+  updateConnectionStatus(connectionId, 'disconnected');
 }
 
-function updateUserSessionStatus(userId, status) {
+function updateConnectionStatus(connectionId, status) {
   try {
-    const usersFile = path.join(__dirname, '..', 'data', 'users.json');
-    if (!fs.existsSync(usersFile)) return;
+    const connFile = path.join(__dirname, '..', 'data', 'whatsapp-connections.json');
+    if (!fs.existsSync(connFile)) {
+      fs.writeFileSync(connFile, JSON.stringify([]));
+    }
     
-    const users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
-    const userIndex = users.findIndex(u => u.uuid === userId || u.id === userId);
+    const connections = JSON.parse(fs.readFileSync(connFile, 'utf8'));
+    const connIndex = connections.findIndex(c => c.id === connectionId);
     
-    if (userIndex !== -1) {
+    if (connIndex !== -1) {
       if (status === 'connected') {
-        users[userIndex].whatsappSession = {
-          status: 'connected',
-          connectedAt: new Date().toISOString(),
-          deviceId: `device-${userId}`,
-        };
+        connections[connIndex].status = 'connected';
+        connections[connIndex].connectedAt = new Date().toISOString();
       } else {
-        users[userIndex].whatsappSession = null;
+        connections[connIndex].status = 'disconnected';
       }
-      fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+      fs.writeFileSync(connFile, JSON.stringify(connections, null, 2));
+    } else if (status === 'connected') {
+      connections.push({
+        id: connectionId,
+        name: connectionId,
+        status: 'connected',
+        connectedAt: new Date().toISOString()
+      });
+      fs.writeFileSync(connFile, JSON.stringify(connections, null, 2));
     }
   } catch (error) {
-    console.error(`[WhatsApp] Failed to update user session status:`, error);
+    console.error(`[WhatsApp] Failed to update connection status:`, error);
   }
 }
 
@@ -492,13 +570,28 @@ function initializeExistingSessions(io) {
   const sessionDirs = files.filter(f => f.startsWith('whatsapp-auth-'));
   
   sessionDirs.forEach(dir => {
-    const userId = dir.replace('whatsapp-auth-', '');
-    console.log(`[WhatsApp] Auto-starting session for ${userId}`);
-    startSession(userId, io);
+    const connectionId = dir.replace('whatsapp-auth-', '');
+    console.log(`[WhatsApp] Auto-starting session for ${connectionId}`);
+    startSession(connectionId, io);
   });
 }
 
+
+async function getProfilePicUrl(connectionId, jid) {
+  try {
+    const sock = sessions.get(connectionId);
+    if (sock) {
+      const url = await sock.profilePictureUrl(jid, 'image');
+      return url;
+    }
+  } catch (err) {
+    // Ignore errors (e.g. no profile picture)
+  }
+  return null;
+}
+
 module.exports = {
+  getProfilePicUrl,
   startSession,
   logoutSession,
   initializeExistingSessions,

@@ -787,6 +787,73 @@ app.get('/api/mail/inbox', (req, res) => res.json({ success: true, data: getStor
 app.get('/api/mail/sent', (req, res) => res.json({ success: true, data: getStore(req.query.userId).sent }));
 app.get('/api/mail/drafts', (req, res) => res.json({ success: true, data: getStore(req.query.userId).drafts }));
 
+app.get('/api/emails/autocomplete', (req, res) => {
+  const { userId, q = '' } = req.query;
+  if (!userId) return res.status(400).json({ success: false, message: 'userId required' });
+
+  const store = getStore(userId);
+  const contacts = {}; // email -> { name, email, interactionCount, lastInteractionAt }
+
+  const extractNameAndEmail = (str) => {
+    if (!str) return null;
+    const match = str.match(/^(.*)<(.+)>$/);
+    if (match) {
+      return { name: match[1].trim().replace(/^["']|["']$/g, ''), email: match[2].trim().toLowerCase() };
+    }
+    return { name: str.split('@')[0], email: str.trim().toLowerCase() };
+  };
+
+  const processEmailList = (emails, date) => {
+    if (!emails) return;
+    const list = Array.isArray(emails) ? emails : emails.split(',');
+    for (const item of list) {
+      const parsed = extractNameAndEmail(item.trim());
+      if (parsed && parsed.email) {
+        const email = parsed.email;
+        if (!contacts[email]) {
+          contacts[email] = { name: parsed.name, email, interactionCount: 0, lastInteractionAt: 0 };
+        }
+        contacts[email].interactionCount++;
+        const time = new Date(date).getTime();
+        if (time > contacts[email].lastInteractionAt) {
+          contacts[email].lastInteractionAt = time;
+          // Upgrade name if we found a better one
+          if (parsed.name && parsed.name !== email.split('@')[0]) {
+            contacts[email].name = parsed.name;
+          }
+        }
+      }
+    }
+  };
+
+  const processFolder = (folder) => {
+    if (!folder) return;
+    for (const msg of folder) {
+      const date = msg.createdAt || msg.date || new Date();
+      processEmailList(msg.toEmail || msg.to, date);
+      processEmailList(msg.fromEmail || msg.from, date);
+      processEmailList(msg.ccEmail || msg.cc, date);
+      processEmailList(msg.bccEmail || msg.bcc, date);
+    }
+  };
+
+  processFolder(store.inbox);
+  processFolder(store.sent);
+
+  const query = q.toLowerCase();
+  const results = Object.values(contacts).filter(c => {
+    if (!query) return true;
+    return c.name.toLowerCase().includes(query) || c.email.includes(query);
+  });
+
+  results.sort((a, b) => {
+    if (b.interactionCount !== a.interactionCount) return b.interactionCount - a.interactionCount;
+    return b.lastInteractionAt - a.lastInteractionAt;
+  });
+
+  res.json({ success: true, data: results.slice(0, 8) });
+});
+
 app.patch('/api/mail/read/:id', (req, res) => {
   const store = getStore(req.query.userId);
   const msg = store.inbox.find(e => e.id === req.params.id);
@@ -2126,7 +2193,7 @@ io.on('connection', (socket) => {
 
   // ── Chat: Mark messages as read ──
   socket.on('chat:read', ({ chatId, userId }) => {
-    if (!chatId || !userId || !chatData.messages[chatId]) return;
+    if (!chatId || !connectionId || !chatData.messages[chatId]) return;
     let changed = false;
     chatData.messages[chatId] = chatData.messages[chatId].map(m => {
       const readByStrings = (m.readBy || []).map(String);
@@ -2288,7 +2355,7 @@ app.get('/api/whatsapp/chats', (req, res) => {
 app.get('/api/whatsapp/chats/:chatId/messages', (req, res) => {
   const { userId } = req.query;
   const { chatId } = req.params;
-  if (!userId || !chatId) return res.status(400).json({ success: false });
+  if (!connectionId || !chatId) return res.status(400).json({ success: false });
   const messagesFile = path.join(DATA_DIR, `whatsapp-messages-${userId}.json`);
   const messages = fs.existsSync(messagesFile) ? JSON.parse(fs.readFileSync(messagesFile, 'utf8')) : {};
   
@@ -2297,7 +2364,7 @@ app.get('/api/whatsapp/chats/:chatId/messages', (req, res) => {
 
 app.post('/api/whatsapp/messages/send', whatsappSendLimiter, upload.single('file'), async (req, res) => {
   const { userId, chatId, type, text, replyToMessageId, forwardMessageId } = req.body;
-  if (!userId || !chatId || !type) {
+  if (!connectionId || !chatId || !type) {
     return res.status(400).json({ success: false, message: 'Missing required fields' });
   }
 
@@ -2367,14 +2434,14 @@ app.post('/api/whatsapp/messages/send', whatsappSendLimiter, upload.single('file
 });
 
 app.post('/api/whatsapp/messages/edit', async (req, res) => {
-  const { userId, chatId, messageId, newText } = req.body;
-  if (!userId || !chatId || !messageId || !newText) {
+  const { connectionId, chatId, messageId, newText } = req.body;
+  if (!connectionId || !chatId || !messageId || !newText) {
     return res.status(400).json({ success: false, message: 'Missing required fields' });
   }
   try {
     const { editMessage } = require('./services/whatsappService');
-    const result = await editMessage(userId, chatId, messageId, newText);
-    logAudit(userId, 'EDIT_MESSAGE', chatId, { messageId });
+    const result = await editMessage(connectionId, chatId, messageId, newText);
+    logAudit(connectionId, 'EDIT_MESSAGE', chatId, { messageId });
     res.json({ success: true, message: result });
   } catch (error) {
     console.error(`[WhatsApp] Edit message error:`, error);
@@ -2383,14 +2450,14 @@ app.post('/api/whatsapp/messages/edit', async (req, res) => {
 });
 
 app.post('/api/whatsapp/messages/delete', async (req, res) => {
-  const { userId, chatId, messageId } = req.body;
-  if (!userId || !chatId || !messageId) {
+  const { connectionId, chatId, messageId } = req.body;
+  if (!connectionId || !chatId || !messageId) {
     return res.status(400).json({ success: false, message: 'Missing required fields' });
   }
   try {
     const { deleteMessage } = require('./services/whatsappService');
-    const result = await deleteMessage(userId, chatId, messageId);
-    logAudit(userId, 'DELETE_MESSAGE', chatId, { messageId });
+    const result = await deleteMessage(connectionId, chatId, messageId);
+    logAudit(connectionId, 'DELETE_MESSAGE', chatId, { messageId });
     res.json({ success: true, message: result });
   } catch (error) {
     console.error(`[WhatsApp] Delete message error:`, error);
@@ -2398,14 +2465,29 @@ app.post('/api/whatsapp/messages/delete', async (req, res) => {
   }
 });
 
+app.get('/api/whatsapp/profile-pic/:connectionId/:jid', async (req, res) => {
+  const { connectionId, jid } = req.params;
+  try {
+    const { getProfilePicUrl } = require('./services/whatsappService');
+    const url = await getProfilePicUrl(connectionId, jid);
+    if (url) {
+      res.redirect(url);
+    } else {
+      res.status(404).json({ error: 'Not found' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch profile picture' });
+  }
+});
+
 app.post('/api/whatsapp/presence', async (req, res) => {
-  const { userId, chatId, presence } = req.body;
-  if (!userId || !chatId || !presence) {
+  const { connectionId, chatId, presence } = req.body;
+  if (!connectionId || !chatId || !presence) {
     return res.status(400).json({ success: false });
   }
   try {
     const { sendPresenceUpdate } = require('./services/whatsappService');
-    await sendPresenceUpdate(userId, chatId, presence);
+    await sendPresenceUpdate(connectionId, chatId, presence);
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ success: false });

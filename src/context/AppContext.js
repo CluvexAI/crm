@@ -1399,7 +1399,7 @@ export const AppProvider = ({ children }) => {
 
   // ─── Leave ────────────────────────────────────────────────────────────────
 
-  const applyLeave = (leaveData) => {
+  const applyLeave = async (leaveData) => {
     const newLeave = {
       ...leaveData,
       id: Date.now(),
@@ -1410,6 +1410,29 @@ export const AppProvider = ({ children }) => {
     };
     setAllLeaves((prev) => [...prev, newLeave]);
     addAuditLog('Leave Applied', currentUser.name, `${leaveData.type} on ${leaveData.date}`);
+
+    // Trigger email to HR
+    try {
+      const hrUsers = allUsers.filter(u => u.role === 'HR');
+      const hrEmails = hrUsers.map(u => u.email).filter(Boolean);
+      if (hrEmails.length > 0) {
+        const subject = `Leave Application - ${currentUser.name}`;
+        const body = `
+          <p>Hello HR,</p>
+          <p>A new leave application has been submitted.</p>
+          <ul>
+            <li><b>Employee:</b> ${currentUser.name}</li>
+            <li><b>Leave Type:</b> ${leaveData.type}</li>
+            <li><b>Date:</b> ${leaveData.date}</li>
+            <li><b>Reason:</b> ${leaveData.reason || 'N/A'}</li>
+          </ul>
+          <p>Please review it in the HR portal.</p>
+        `;
+        await sendEmail(hrEmails.join(', '), subject, body);
+      }
+    } catch (err) {
+      console.error('Failed to send HR leave notification email:', err);
+    }
   };
 
   const updateLeave = (id, status) => {

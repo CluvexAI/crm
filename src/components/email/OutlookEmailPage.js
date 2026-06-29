@@ -398,6 +398,13 @@ const OutlookEmailPage = () => {
     return draft;
   }, [uid, currentUser, emailAccount]);
 
+  const handleDiscardDraft = useCallback((draftId) => {
+    if (draftId) {
+      setEmails(prev => prev.filter(e => e.id !== draftId));
+      addToast('Draft discarded successfully');
+    }
+  }, [addToast]);
+
   const handleCompose = useCallback(() => {
     if (!perms.canComposeExternal && activeFolder !== 'drafts') {
       addToast('Agents can only reply to assigned contacts', 'error');
@@ -597,6 +604,7 @@ const OutlookEmailPage = () => {
           initialData={composeData}
           onSend={handleSend}
           onSaveDraft={handleSaveDraft}
+          onDiscardDraft={handleDiscardDraft}
           onClose={() => { setComposeOpen(false); setComposeData(null); }}
         />
       )}
