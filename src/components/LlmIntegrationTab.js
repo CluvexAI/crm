@@ -135,9 +135,9 @@ const LlmIntegrationTab = ({ showMsg }) => {
             >
               <option value="Insforge Model Gateway">Insforge Model Gateway</option>
               <option value="OpenRouter">OpenRouter</option>
-              <option value="OpenAI" disabled>OpenAI (Coming Soon)</option>
+              <option value="OpenAI">OpenAI</option>
               <option value="Anthropic" disabled>Anthropic (Coming Soon)</option>
-              <option value="Google Gemini" disabled>Google Gemini (Coming Soon)</option>
+              <option value="Google Gemini">Google Gemini</option>
               <option value="Ollama" disabled>Ollama (Coming Soon)</option>
               <option value="Custom API" disabled>Custom API (Coming Soon)</option>
             </select>
@@ -159,21 +159,29 @@ const LlmIntegrationTab = ({ showMsg }) => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">
-              {formState.provider === 'Insforge Model Gateway' ? 'Gateway URL' : 'Base URL'}
-            </label>
-            <input 
-              className="form-control" 
-              value={formState.provider === 'Insforge Model Gateway' ? formState.gateway_url : formState.base_url} 
-              onChange={e => {
-                if (formState.provider === 'Insforge Model Gateway') {
-                  setFormState({...formState, gateway_url: e.target.value});
-                } else {
-                  setFormState({...formState, base_url: e.target.value});
+              <label className="form-label">
+                {formState.provider === 'Insforge Model Gateway' ? 'Gateway URL' : 'Base URL'}
+              </label>
+              <input 
+                className="form-control" 
+                value={formState.provider === 'Insforge Model Gateway' ? formState.gateway_url : formState.base_url} 
+                onChange={e => {
+                  if (formState.provider === 'Insforge Model Gateway') {
+                    setFormState({...formState, gateway_url: e.target.value});
+                  } else {
+                    setFormState({...formState, base_url: e.target.value});
+                  }
+                }} 
+                placeholder={
+                  formState.provider === 'Insforge Model Gateway' 
+                    ? 'https://<insforge-gateway-endpoint>' 
+                    : formState.provider === 'Google Gemini' 
+                      ? 'https://generativelanguage.googleapis.com/v1beta'
+                      : formState.provider === 'OpenAI'
+                        ? 'https://api.openai.com/v1'
+                        : 'https://openrouter.ai/api/v1'
                 }
-              }} 
-              placeholder={formState.provider === 'Insforge Model Gateway' ? 'https://<insforge-gateway-endpoint>' : 'https://openrouter.ai/api/v1'}
-            />
+              />
           </div>
 
           <div className="form-group">
@@ -212,6 +220,21 @@ const LlmIntegrationTab = ({ showMsg }) => {
                     <option value="gemma-3-27b-it">gemma-3-27b-it</option>
                     <option value="llama-4-maverick">llama-4-maverick</option>
                     <option value="deepseek-chat">deepseek-chat</option>
+                  </>
+                )}
+                {formState.provider === 'Google Gemini' && (
+                  <>
+                    <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+                    <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+                    <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp</option>
+                    <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+                  </>
+                )}
+                {formState.provider === 'OpenAI' && (
+                  <>
+                    <option value="gpt-4o">gpt-4o</option>
+                    <option value="gpt-4-turbo">gpt-4-turbo</option>
+                    <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
                   </>
                 )}
                 

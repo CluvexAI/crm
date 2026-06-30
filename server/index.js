@@ -1693,8 +1693,8 @@ const validatePasswordPolicy = (password) => {
   return errors;
 };
 
-// PUT /api/users/:uuid/password — Dedicated password change endpoint
-app.put('/api/users/:uuid/password', async (req, res) => {
+// PUT /api/users/:uuid/auth-update — Dedicated password change endpoint
+app.put('/api/users/:uuid/auth-update', async (req, res) => {
   try {
     const { uuid } = req.params;
     const { newPassword, currentPassword, changedBy, changedByEmail, isAdminReset } = req.body;
@@ -1771,8 +1771,8 @@ app.put('/api/users/:uuid/password', async (req, res) => {
   }
 });
 
-// POST /api/users/:uuid/password/verify — Server-side password verification
-app.post('/api/users/:uuid/password/verify', async (req, res) => {
+// POST /api/users/:uuid/auth-verify — Server-side password verification
+app.post('/api/users/:uuid/auth-verify', async (req, res) => {
   try {
     const { uuid } = req.params;
     const { password } = req.body;
@@ -2295,8 +2295,8 @@ app.post('/api/attendance', (req, res) => {
 
 // ─── WhatsApp API ────────────────────────────────────────────────────────────
 app.post('/api/whatsapp/init', (req, res) => {
-  const { userId } = req.body;
-  if (!userId) return res.status(400).json({ success: false, message: 'userId is required' });
+  const userId = req.body.connectionId || req.body.userId;
+  if (!userId) return res.status(400).json({ success: false, message: 'connectionId is required' });
   
   startSession(userId, io).catch(err => {
     console.error(`[WhatsApp] Init Error:`, err);
@@ -2305,8 +2305,8 @@ app.post('/api/whatsapp/init', (req, res) => {
 });
 
 app.post('/api/whatsapp/logout', (req, res) => {
-  const { userId } = req.body;
-  if (!userId) return res.status(400).json({ success: false, message: 'userId is required' });
+  const userId = req.body.connectionId || req.body.userId;
+  if (!userId) return res.status(400).json({ success: false, message: 'connectionId is required' });
   
   logoutSession(userId);
   res.json({ success: true, message: 'WhatsApp session logged out' });
@@ -2716,6 +2716,12 @@ app.get('/api/audit/history', (req, res) => {
   const { type, userId } = req.query;
   const history = auditService.getAuditHistory(type, userId);
   res.json({ success: true, history });
+});
+
+// Serve React frontend (Production / Unified Deployment)
+app.use(express.static(path.join(__dirname, '../build')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../build', 'index.html'));
 });
 
 server.listen(PORT, () => {

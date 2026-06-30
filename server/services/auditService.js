@@ -69,6 +69,18 @@ const scrapeHTML = async (rawUrl) => {
     let html = await res.text();
     const finalUrl = res.url;
     
+    // Extract Maps data before stripping scripts
+    let mapsData = '';
+    if (finalUrl.includes('google.com/maps')) {
+      const scriptRegex = /<script\b[^>]*>(.*?)<\/script>/gis;
+      let sMatch;
+      while ((sMatch = scriptRegex.exec(html)) !== null) {
+        if (sMatch[1].includes('APP_INITIALIZATION_STATE') || sMatch[1].includes(')]}\'')) {
+          mapsData += sMatch[1] + '\n';
+        }
+      }
+    }
+    
     // Very naive tag stripping to reduce token count (remove script, style, SVG, etc.)
     html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
     html = html.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
@@ -82,8 +94,20 @@ const scrapeHTML = async (rawUrl) => {
     const metaMatch = html.match(/<meta[^>]+name="description"[^>]+content="([^">]+)"/i);
     const description = metaMatch ? metaMatch[1] : '';
     
+    let extractedBusinessName = '';
+    const match = finalUrl.match(/\/place\/([^\/]+)/);
+    if (match) {
+      extractedBusinessName = decodeURIComponent(match[1].replace(/\+/g, ' '));
+    }
+    
     // Strip all HTML tags, collapse whitespace
-    const textContent = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 50000); // limit to 50k chars
+    let textContent = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 50000); // limit to 50k chars
+    if (extractedBusinessName) {
+      textContent += `\n\nGoogle Maps Location Target: ${extractedBusinessName}`;
+    }
+    if (mapsData) {
+      textContent += `\n\nGoogle Maps Raw JSON Data:\n` + mapsData.slice(0, 150000);
+    }
     
     return {
       finalUrl,
@@ -93,6 +117,67 @@ const scrapeHTML = async (rawUrl) => {
     };
   } catch (err) {
     throw new Error('Could not scrape URL: ' + err.message);
+  }
+};
+
+const fetchPlacesData = async (url) => {
+  try {
+    let finalUrl = url;
+    const res = await fetch(normalizeUrl(url), { redirect: 'follow' });
+    finalUrl = res.url;
+    
+    let businessName = '';
+    const match = finalUrl.match(/\/place\/([^\/]+)/);
+    if (match) {
+      businessName = decodeURIComponent(match[1].replace(/\+/g, ' '));
+    }
+    
+    if (!businessName) {
+      throw new Error("Could not extract business name from URL to perform Places API search.");
+    }
+    
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyDGSMMyMwQ3gL5jveNEb50ZdksfLlRNurA';
+    
+    // 1. Search for Place ID
+    const searchRes = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress'
+      },
+      body: JSON.stringify({ textQuery: businessName })
+    });
+    
+    if (!searchRes.ok) throw new Error("Places API Search failed: " + searchRes.statusText);
+    const searchData = await searchRes.json();
+    
+    if (!searchData.places || searchData.places.length === 0) {
+      throw new Error(`No Places found for ${businessName}`);
+    }
+    
+    const placeId = searchData.places[0].id;
+    
+    // 2. Fetch Place Details
+    const detailsRes = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+      method: 'GET',
+      headers: {
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': 'id,displayName,formattedAddress,rating,userRatingCount,reviews,regularOpeningHours,nationalPhoneNumber,internationalPhoneNumber,websiteUri,types,primaryType'
+      }
+    });
+    
+    if (!detailsRes.ok) throw new Error("Places API Details failed: " + detailsRes.statusText);
+    const detailsData = await detailsRes.json();
+    
+    return {
+      finalUrl,
+      title: detailsData.displayName?.text || businessName,
+      description: `Google Places Data for ${businessName}`,
+      textContent: JSON.stringify(detailsData, null, 2)
+    };
+  } catch (err) {
+    throw new Error('Google Places API Error: ' + err.message);
   }
 };
 
@@ -123,30 +208,38 @@ const processAudit = async (jobId, type, url, userId) => {
     
     const provider = LLMFactory.create(llmConfig.provider, apiKey, targetUrl, llmConfig.default_model);
 
-    // 3. Scrape Data
-    const scrapedData = await scrapeHTML(url);
+    // 3. Scrape Data or API Fetch
+    let scrapedData;
+    if (type === 'gmb') {
+      scrapedData = await fetchPlacesData(url);
+    } else {
+      scrapedData = await scrapeHTML(url);
+    }
 
     // 4. Generate Audit
     let prompt = '';
     if (type === 'gmb') {
-      prompt = `You are an expert local-SEO auditor. I will provide you with the scraped text of a Google Business Profile (or Google Maps listing).
-Analyze the data and produce a JSON report.
-URL: ${scrapedData.finalUrl}
-Page Title: ${scrapedData.title}
+      const { getSystemPrompt } = require('./prompts');
+      prompt = `${getSystemPrompt('gmb')}
 
-Scraped Content:
+URL: ${scrapedData.finalUrl}
+Business Name: ${scrapedData.title}
+
+Raw JSON from Google Places API (Use this structured data to run your 500+ point audit):
 ${scrapedData.textContent}
 
-Produce a structured JSON report matching exactly this schema:
+Produce a structured JSON report mapping your 500+ point analysis into this EXACT schema:
 {
   "name": "Business Name",
   "address": "Business Address",
-  "score": 85, // 0-100 health score
+  "score": 85, // Overall GBP Health Score (0-100)
   "completeness": [
-    { "label": "Photos", "status": "ok" | "warning", "details": "Found X photos" }
+    { "label": "Category", "status": "ok" | "warning", "details": "Found issues..." },
+    { "label": "Photos & Videos", "status": "ok" | "warning", "details": "Analysis..." },
+    { "label": "Local SEO & NAP", "status": "ok" | "warning", "details": "Analysis..." }
   ],
-  "reviews_summary": "Summary of review sentiment and volume",
-  "nap_flags": ["Any inconsistencies found in Name, Address, Phone"],
+  "reviews_summary": "Summary of Reputation Score and Review Health",
+  "nap_flags": ["Any inconsistencies found in Name, Address, Phone, Website"],
   "recommendations": [
     { "priority": "Critical" | "Moderate" | "Minor", "action": "Action description", "rationale": "Why" }
   ],

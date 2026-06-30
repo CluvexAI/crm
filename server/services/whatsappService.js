@@ -57,7 +57,7 @@ async function startSession(connectionId, io) {
     auth: state,
     printQRInTerminal: false,
     logger,
-    browser: Browsers ? Browsers.macOS('Desktop') : ['Mac OS', 'Chrome', '10.15.7'],
+    browser: ['Ubuntu', 'Chrome', '20.0.04'],
     syncFullHistory: true, // Request full chat history on connect
   });
 

@@ -1,4 +1,5 @@
 const LLMProvider = require('./LLMProvider');
+const { getSystemPrompt } = require('./prompts');
 
 class InsforgeProvider extends LLMProvider {
   constructor(apiKey, baseUrl, defaultModel) {
@@ -50,41 +51,13 @@ class InsforgeProvider extends LLMProvider {
 
   async generateResearch(type, targetUrl, model) {
     const selectedModel = model || this.defaultModel;
+    let systemPrompt = getSystemPrompt(type);
     let userPrompt = '';
 
     if (type === 'website') {
-      userPrompt = `Analyze this business website.
-
-Provide:
-
-1. Business Summary
-2. Services Offered
-3. Website Strengths
-4. Website Weaknesses
-5. SEO Issues
-6. Conversion Opportunities
-7. Recommended Digital Marketing Services
-8. Lead Quality Score (1-100)
-9. Recommended Sales Pitch
-
-Website:
-${targetUrl}`;
+      userPrompt = `Analyze this website: ${targetUrl}`;
     } else if (type === 'gmb') {
-      userPrompt = `Analyze this Google Business Profile.
-
-Provide:
-
-1. Business Overview
-2. Review Analysis
-3. Reputation Score
-4. Local SEO Opportunities
-5. Missing Optimization Areas
-6. Recommended Services
-7. Lead Score
-8. Sales Recommendations
-
-Profile:
-${targetUrl}`;
+      userPrompt = `Analyze this Google Business Profile located at: ${targetUrl}`;
     } else {
       throw new Error('Invalid research type');
     }
@@ -99,6 +72,7 @@ ${targetUrl}`;
         body: JSON.stringify({
           model: selectedModel,
           messages: [
+            { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
           ]
         })

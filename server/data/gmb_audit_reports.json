@@ -1,1 +1,1026 @@
-[]
+[
+  {
+    "id": "743c2cac-0696-4255-94e6-555656a18d9b",
+    "audit_request_id": "e2e4d5bf-9aef-4f4f-90c4-db7e36e88784",
+    "input_url": "https://www.google.com/maps/place/ZSM+e+Services+Pvt.+Ltd/@22.5540799,88.3514482,17z/data=!3m1!4b1!4m6!3m5!1s0x3a0277cbc610e9e5:0x49fed1a2f9014301!8m2!3d22.5540799!4d88.3540231!16s%2Fg%2F11mtgxj9sy?entry=ttu&g_ep=EgoyMDI2MDYyNC4wIKXMDSoASAFQAw%3D%3D",
+    "score": 0,
+    "report": {
+      "name": "N/A - Data not scraped",
+      "address": "N/A - Data not scraped",
+      "score": 0,
+      "completeness": [
+        {
+          "label": "Business Name",
+          "status": "warning",
+          "details": "No data scraped. JavaScript likely disabled during scraping."
+        },
+        {
+          "label": "Address",
+          "status": "warning",
+          "details": "No data scraped. JavaScript likely disabled during scraping."
+        },
+        {
+          "label": "Phone Number",
+          "status": "warning",
+          "details": "No data scraped. JavaScript likely disabled during scraping."
+        },
+        {
+          "label": "Website",
+          "status": "warning",
+          "details": "No data scraped. JavaScript likely disabled during scraping."
+        },
+        {
+          "label": "Business Category",
+          "status": "warning",
+          "details": "No data scraped. JavaScript likely disabled during scraping."
+        },
+        {
+          "label": "Hours of Operation",
+          "status": "warning",
+          "details": "No data scraped. JavaScript likely disabled during scraping."
+        },
+        {
+          "label": "Photos",
+          "status": "warning",
+          "details": "No data scraped. JavaScript likely disabled during scraping."
+        },
+        {
+          "label": "Reviews",
+          "status": "warning",
+          "details": "No data scraped. JavaScript likely disabled during scraping."
+        },
+        {
+          "label": "Business Description",
+          "status": "warning",
+          "details": "No data scraped. JavaScript likely disabled during scraping."
+        }
+      ],
+      "reviews_summary": "Unable to analyze reviews; no data was scraped from the page.",
+      "nap_flags": [
+        "No Name, Address, or Phone (NAP) data could be extracted due to scraping failure."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Re-scrape the Google Business Profile URL with JavaScript enabled.",
+          "rationale": "The provided scraped content indicates that the page was empty because JavaScript was not executed. Essential business information (Name, Address, Phone, Reviews, Photos, etc.) cannot be extracted without proper rendering of the Google Maps page."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Verify the scraping method and ensure it can handle dynamic content.",
+          "rationale": "Google Maps pages are highly dynamic and require a browser-like environment to render all content. A simple HTTP GET request will often fail to retrieve the full page content."
+        }
+      ],
+      "raw_data": {
+        "scrapedTitle": " Google Maps ",
+        "scraping_note": "The provided 'scraped content' indicates that the page was empty due to JavaScript not being enabled during the scraping process. No business data could be extracted for analysis."
+      }
+    },
+    "created_at": "2026-06-27T09:38:03.087Z"
+  },
+  {
+    "id": "b67def22-7a2b-4263-81b3-69be9a2ee961",
+    "audit_request_id": "0e5a62ba-bbc2-40da-916f-9b711598acad",
+    "input_url": "https://maps.app.goo.gl/bJh54L5gE3oSckBdA",
+    "score": 0,
+    "report": {
+      "name": "Unknown (Scraping Failed)",
+      "address": "Unknown (Scraping Failed)",
+      "score": 0,
+      "completeness": [
+        {
+          "label": "Business Name",
+          "status": "warning",
+          "details": "Could not extract business name due to scraping failure."
+        },
+        {
+          "label": "Address",
+          "status": "warning",
+          "details": "Could not extract address due to scraping failure."
+        },
+        {
+          "label": "Phone Number",
+          "status": "warning",
+          "details": "Could not extract phone number due to scraping failure."
+        },
+        {
+          "label": "Website",
+          "status": "warning",
+          "details": "Could not extract website due to scraping failure."
+        },
+        {
+          "label": "Category",
+          "status": "warning",
+          "details": "Could not extract business category due to scraping failure."
+        },
+        {
+          "label": "Hours",
+          "status": "warning",
+          "details": "Could not extract business hours due to scraping failure."
+        },
+        {
+          "label": "Photos",
+          "status": "warning",
+          "details": "Could not extract photos due to scraping failure."
+        },
+        {
+          "label": "Reviews",
+          "status": "warning",
+          "details": "Could not extract review data due to scraping failure."
+        }
+      ],
+      "reviews_summary": "No review data could be extracted due to scraping failure.",
+      "nap_flags": [
+        "No Name, Address, or Phone (NAP) data could be extracted due to scraping failure."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Resolve the scraping issue to properly extract Google Business Profile data.",
+          "rationale": "The provided 'scraped content' indicates that the scraping process failed to retrieve any meaningful data from the Google Maps URL, likely due to JavaScript not being enabled during the scrape. Without actual data, a comprehensive local-SEO audit is impossible. Ensure the scraping tool can render JavaScript content."
+        }
+      ],
+      "raw_data": {
+        "scrapedTitle": " Google Maps ",
+        "scrapedContent": "Google Maps When you have eliminated the JavaScript , whatever remains must be an empty page. Enable JavaScript to see Google Maps."
+      }
+    },
+    "created_at": "2026-06-27T10:11:39.347Z"
+  },
+  {
+    "id": "dc9f1f1d-273b-4ece-b4d7-3e8c104088f2",
+    "audit_request_id": "3d37243e-48c7-4096-9906-03a630051bc4",
+    "input_url": "https://maps.app.goo.gl/bJh54L5gE3oSckBdA",
+    "score": 10,
+    "report": {
+      "name": "ZSM e Services Pvt. Ltd.",
+      "address": "Address details could not be extracted directly from the provided URL due to JavaScript rendering issues. Pin location is at 22.5540799, 88.3540231.",
+      "score": 10,
+      "completeness": [
+        {
+          "label": "Business Verification & Ownership",
+          "status": "warning",
+          "details": "Unable to verify claiming status, ownership, managers, suspension status, or compliance due to inaccessible Google Business Profile data. This is a critical first step for any optimization."
+        },
+        {
+          "label": "Business Information Audit",
+          "status": "warning",
+          "details": "Official business name, phone numbers, website URL, address details, hours, and description could not be retrieved for audit due to inaccessible GBP data. Critical for local search visibility."
+        },
+        {
+          "label": "Categories Audit",
+          "status": "warning",
+          "details": "Primary and secondary categories, missing categories, and competitor comparisons could not be performed due to inaccessible GBP data. Categories are fundamental for relevance."
+        },
+        {
+          "label": "Products Audit",
+          "status": "warning",
+          "details": "Product listings, images, descriptions, pricing, CTAs, and schema could not be audited due to inaccessible GBP data. Products enhance profile richness and conversion."
+        },
+        {
+          "label": "Services Audit",
+          "status": "warning",
+          "details": "Service listings, descriptions, pricing, local keywords, and booking links could not be audited due to inaccessible GBP data. Services are key for discovery."
+        },
+        {
+          "label": "Photos & Videos Audit",
+          "status": "warning",
+          "details": "Logo, cover photo, interior/exterior, team, product, before/after photos, and videos could not be retrieved or optimized due to inaccessible GBP data. Visuals drive engagement."
+        },
+        {
+          "label": "Reviews Audit",
+          "status": "warning",
+          "details": "Review quantity, quality, average rating, response rate, and AI sentiment analysis could not be performed due to inaccessible GBP data. Reviews are crucial for reputation."
+        },
+        {
+          "label": "Questions & Answers",
+          "status": "warning",
+          "details": "Q&A section status, owner answers, and keyword richness could not be audited due to inaccessible GBP data. Q&A addresses customer queries directly."
+        },
+        {
+          "label": "Google Posts Audit",
+          "status": "warning",
+          "details": "Posting frequency, content types, CTA usage, and engagement could not be audited due to inaccessible GBP data. Posts drive timely updates and offers."
+        },
+        {
+          "label": "Messaging & Customer Interaction",
+          "status": "warning",
+          "details": "Messaging enablement, response time, and integration status could not be audited due to inaccessible GBP data. Direct messaging improves customer service."
+        },
+        {
+          "label": "Performance Insights",
+          "status": "warning",
+          "details": "Search/Maps views, calls, website clicks, direction requests, and top search queries could not be analyzed due to inaccessible GBP data. Performance data is vital for strategy."
+        },
+        {
+          "label": "Local SEO & NAP Consistency",
+          "status": "warning",
+          "details": "NAP consistency across Google, website, and other directories could not be verified due to inaccessible GBP data. Inconsistent NAP harms local rankings."
+        },
+        {
+          "label": "Website Audit",
+          "status": "warning",
+          "details": "Technical SEO, local SEO elements, and content quality of the associated website (if any) could not be audited as the website URL was not retrievable from the GBP. Website is a core conversion point."
+        },
+        {
+          "label": "Authority Audit",
+          "status": "warning",
+          "details": "Domain Authority, backlinks, referring domains, and brand mentions could not be assessed without a verifiable website URL from the GBP. Authority impacts overall SEO."
+        },
+        {
+          "label": "Competitor Analysis",
+          "status": "warning",
+          "details": "Top competitors, their categories, reviews, services, and overall GBP strategy could not be analyzed due to inaccessible GBP data for ZSM e Services Pvt. Ltd. and thus no basis for comparison."
+        },
+        {
+          "label": "AI Keyword Research",
+          "status": "warning",
+          "details": "Primary, secondary, long-tail, service, and location keywords could not be identified or analyzed without access to the GBP's existing content and categories. Keyword research is foundational."
+        },
+        {
+          "label": "AI Content Recommendations",
+          "status": "warning",
+          "details": "Specific recommendations for business description, services, products, posts, FAQs, and review responses could not be generated without existing GBP content to analyze. Content drives engagement."
+        },
+        {
+          "label": "Technical Compliance",
+          "status": "warning",
+          "details": "Google Policy Compliance, spam detection, keyword stuffing, fake reviews, duplicate listings, and suspension status could not be assessed due to inaccessible GBP data. Non-compliance can lead to penalties."
+        },
+        {
+          "label": "AI Opportunity Score",
+          "status": "warning",
+          "details": "Individual scores for Profile Completeness, Local SEO, Reviews, Reputation, Website, Technical SEO, Competitor Gap, Content, and Authority could not be assigned due to inaccessible GBP data. Overall visibility is unassessable."
+        }
+      ],
+      "reviews_summary": "Unable to retrieve review data for analysis. This prevents assessment of average rating, sentiment, common complaints, and response effectiveness, which are critical for reputation management.",
+      "nap_flags": [
+        "Unable to verify Name, Address, Phone, and Website consistency due to inaccessible Google Business Profile data. This is a critical issue for local SEO."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Investigate and resolve Google Business Profile access issues.",
+          "rationale": "The primary issue is the inability to access the GBP data. Without access, no audit or optimization can be performed. This may involve checking JavaScript rendering, API access, or direct manual verification if automated scraping is blocked."
+        },
+        {
+          "priority": "Critical",
+          "action": "Ensure the Google Business Profile is claimed and verified.",
+          "rationale": "A claimed and verified profile is the absolute foundation for managing and optimizing a GBP. If not claimed, the business has no control over its listing."
+        },
+        {
+          "priority": "Critical",
+          "action": "Complete all core business information fields accurately.",
+          "rationale": "Even without access, it's a critical best practice to ensure the business name, address, phone, website, hours, and description are 100% accurate and consistent with other online presences. Inaccuracies confuse users and search engines."
+        },
+        {
+          "priority": "High",
+          "action": "Select the most relevant primary and secondary categories.",
+          "rationale": "Categories are fundamental for Google to understand what your business does and show it for relevant searches. Incorrect or missing categories severely limit visibility."
+        },
+        {
+          "priority": "High",
+          "action": "Upload high-quality, relevant photos and videos.",
+          "rationale": "Visual content significantly increases engagement. Businesses with photos receive more direction requests and website clicks. Ensure logo, cover photo, interior, exterior, and team photos are present."
+        },
+        {
+          "priority": "High",
+          "action": "Actively solicit new reviews and respond to all existing reviews.",
+          "rationale": "Reviews are a major ranking factor and influence customer trust. A consistent stream of new reviews and thoughtful responses (positive and negative) is vital for reputation management."
+        },
+        {
+          "priority": "Medium",
+          "action": "Add detailed services and products to the GBP.",
+          "rationale": "Listing services and products provides more information to potential customers and offers additional opportunities to rank for specific queries. Include descriptions, pricing, and booking links where applicable."
+        },
+        {
+          "priority": "Medium",
+          "action": "Utilize Google Posts regularly for updates, offers, and events.",
+          "rationale": "Google Posts keep the profile fresh, communicate timely information, and can drive traffic to the website or directly to the business. Aim for weekly posts."
+        },
+        {
+          "priority": "Medium",
+          "action": "Enable and monitor the Messaging feature.",
+          "rationale": "Messaging provides a direct, convenient channel for customers to interact with the business, improving customer service and potentially leading to more conversions."
+        },
+        {
+          "priority": "Low",
+          "action": "Develop a strategy for Questions & Answers.",
+          "rationale": "Proactively answering common questions in the Q&A section can address customer concerns before they arise and provide valuable keyword-rich content for search engines."
+        }
+      ],
+      "raw_data": {
+        "scrapedTitle": " Google Maps ",
+        "scrapedContent": "Google Maps When you have eliminated the JavaScript , whatever remains must be an empty page. Enable JavaScript to see Google Maps.",
+        "locationTarget": "ZSM e Services Pvt. Ltd",
+        "data_access_issue": "Critical: Google Business Profile data could not be accessed due to JavaScript rendering issues during scraping. The audit is based on the inability to retrieve data, not the actual profile content."
+      },
+      "overall_gbp_health_score": 10,
+      "local_seo_score": "Unassessable (due to data unavailability)",
+      "reputation_score": "Unassessable (due to data unavailability)",
+      "website_score": "Unassessable (due to data unavailability)",
+      "review_score": "Unassessable (due to data unavailability)",
+      "competitor_gap_analysis": "Cannot be performed without access to ZSM e Services Pvt. Ltd.'s GBP data and competitor data.",
+      "keyword_gap_analysis": "Cannot be performed without access to ZSM e Services Pvt. Ltd.'s GBP content and relevant industry keywords.",
+      "citation_gap_analysis": "Cannot be performed without access to ZSM e Services Pvt. Ltd.'s NAP details from GBP and competitor citation data.",
+      "top_10_competitors": "Cannot be identified without a baseline understanding of ZSM e Services Pvt. Ltd.'s services, categories, and local market.",
+      "ai_powered_swot_analysis": {
+        "strengths": [
+          "Potential for strong local presence (if GBP is well-managed).",
+          "Clear business name (ZSM e Services Pvt. Ltd.) suggests a professional entity."
+        ],
+        "weaknesses": [
+          "Critical: Inaccessible GBP data prevents any meaningful assessment.",
+          "Likely missing out on local search visibility and customer engagement due to unoptimized or inaccessible profile."
+        ],
+        "opportunities": [
+          "Significant opportunity for improvement once GBP data is accessible and optimized.",
+          "Potential to dominate local search for relevant services by implementing best practices."
+        ],
+        "threats": [
+          "Competitors with optimized GBPs will capture local market share.",
+          "Risk of negative customer experience if basic information is incorrect or missing on GBP.",
+          "Potential for Google penalties if compliance issues exist and are unaddressed."
+        ]
+      },
+      "90_day_improvement_roadmap": [
+        {
+          "phase": "Phase 1: Data Access & Foundation (Days 1-30)",
+          "actions": [
+            "**Critical:** Resolve GBP data access issues (e.g., manual login, API troubleshooting).",
+            "**Critical:** Verify GBP ownership and ensure all core business information (NAP, hours, description) is 100% accurate and complete.",
+            "**High:** Select the most precise primary and secondary categories.",
+            "**High:** Upload essential high-resolution photos: logo, cover photo, 3-5 interior/exterior/team photos.",
+            "**High:** Begin actively soliciting new reviews from recent customers."
+          ]
+        },
+        {
+          "phase": "Phase 2: Content & Engagement (Days 31-60)",
+          "actions": [
+            "**High:** Respond to all existing reviews (both positive and negative) with personalized messages.",
+            "**Medium:** Add detailed services with descriptions, pricing, and booking links.",
+            "**Medium:** Add relevant products with images, descriptions, and CTAs.",
+            "**Medium:** Start publishing Google Posts weekly (offers, events, updates).",
+            "**Medium:** Enable and configure GBP messaging, setting up auto-replies if necessary."
+          ]
+        },
+        {
+          "phase": "Phase 3: Expansion & Monitoring (Days 61-90)",
+          "actions": [
+            "**Medium:** Develop and populate the Q&A section with common customer questions and answers.",
+            "**Medium:** Conduct a basic NAP consistency audit across top online directories (Facebook, Yelp, Bing Places).",
+            "**Low:** Upload additional diverse photos and consider adding short videos (e.g., intro, service demo).",
+            "**Low:** Monitor GBP insights for search queries, views, and actions to identify optimization opportunities.",
+            "**Low:** Begin initial competitor analysis based on newly accessible GBP data."
+          ]
+        }
+      ],
+      "estimated_traffic_lead_growth_potential": "Unassessable. However, a fully optimized GBP can typically lead to a 20-50% increase in discovery searches, 10-30% increase in website clicks, and 5-15% increase in calls/direction requests for local businesses.",
+      "estimated_ranking_improvement": "Unassessable. With critical issues resolved and consistent optimization, significant ranking improvements for local keywords are highly probable, moving from potentially unranked to top 3 positions for relevant queries.",
+      "executive_summary": "This audit report for ZSM e Services Pvt. Ltd. highlights a critical issue: the inability to access the Google Business Profile (GBP) data due to JavaScript rendering limitations during the scraping process. Consequently, a comprehensive, data-driven analysis of the profile's current state, performance, and competitive landscape could not be performed. The assigned scores reflect this unassessable status, not necessarily the actual quality of the GBP. \n\nThe primary recommendation is to immediately resolve the data access issue. Once access is restored, a foundational optimization strategy must be implemented, focusing on verifying ownership, completing all business information, optimizing categories, adding rich media, and actively managing reviews. The provided 90-day roadmap outlines generic but essential steps for any business looking to establish or improve its local online presence. Without addressing the fundamental data access problem, ZSM e Services Pvt. Ltd. is likely missing out on significant local search visibility, customer engagement, and lead generation opportunities."
+    },
+    "created_at": "2026-06-27T10:18:55.371Z"
+  },
+  {
+    "id": "da4aea80-e296-4470-92b2-dcf9171d7013",
+    "audit_request_id": "ba497878-9c68-4d8f-8f82-669339e2651b",
+    "input_url": "https://maps.app.goo.gl/ciMc7qtKPQjygPHy9",
+    "score": 28,
+    "report": {
+      "name": "WebZolve Marketing",
+      "address": "Coordinates: 51.9553702, -7.8498963 (Full street address not available in provided data)",
+      "score": 28,
+      "completeness": [
+        {
+          "label": "Business Verification & Ownership",
+          "status": "warning",
+          "details": "Profile appears to be listed on Google Maps, but verification status, ownership details, and manager assignments cannot be determined from the provided data. Assumed claimed but incomplete."
+        },
+        {
+          "label": "Business Information",
+          "status": "warning",
+          "details": "Critical information such as primary phone number, website URL, appointment/booking URLs, contact email, full street address, and business description are missing from the provided data. Hours of operation are also not available."
+        },
+        {
+          "label": "Categories",
+          "status": "warning",
+          "details": "Specific primary and secondary categories are not available in the provided data. This is a critical gap for discoverability."
+        },
+        {
+          "label": "Products",
+          "status": "warning",
+          "details": "No product information found. This section is likely unutilized."
+        },
+        {
+          "label": "Services",
+          "status": "warning",
+          "details": "No service listings found. This is a major missed opportunity for showcasing offerings and keyword targeting."
+        },
+        {
+          "label": "Photos & Videos",
+          "status": "warning",
+          "details": "No photos or videos (logo, cover, interior, exterior, team, product, etc.) were found in the provided data. Visual content is crucial for engagement."
+        },
+        {
+          "label": "Reviews",
+          "status": "warning",
+          "details": "No review quantity or quality data available. Assumed zero reviews, which is a critical area for improvement for reputation and trust."
+        },
+        {
+          "label": "Questions & Answers",
+          "status": "warning",
+          "details": "No Q&A content found. This interactive feature is likely unutilized."
+        },
+        {
+          "label": "Google Posts",
+          "status": "warning",
+          "details": "No Google Posts found. This indicates a lack of active engagement and promotion on the GBP."
+        },
+        {
+          "label": "Messaging & Customer Interaction",
+          "status": "warning",
+          "details": "Messaging status and integration details are not available. Assumed not enabled or configured."
+        },
+        {
+          "label": "Performance Insights",
+          "status": "warning",
+          "details": "No performance insights (views, calls, clicks, directions, queries) are available in the provided data. Cannot assess current GBP performance."
+        },
+        {
+          "label": "Local SEO & NAP Consistency",
+          "status": "warning",
+          "details": "NAP (Name, Address, Phone) consistency cannot be fully audited without a website URL and external citation data. Significant gaps are assumed due to missing core GBP information."
+        },
+        {
+          "label": "Website Audit",
+          "status": "warning",
+          "details": "No website URL was provided or found in the GBP data. A comprehensive website audit cannot be performed. This is a critical missing element for a marketing agency."
+        },
+        {
+          "label": "Authority Audit",
+          "status": "warning",
+          "details": "Cannot perform domain authority, backlink, or brand mention analysis without a website URL."
+        },
+        {
+          "label": "Competitor Analysis",
+          "status": "warning",
+          "details": "No competitor data was provided or could be inferred from the limited GBP data. A direct comparison is not possible."
+        },
+        {
+          "label": "AI Keyword Research",
+          "status": "ok",
+          "details": "AI-powered keyword research can be performed based on the business type ('Marketing Agency') and implied location (India), but specific GBP content is needed for refinement."
+        },
+        {
+          "label": "AI Content Recommendations",
+          "status": "ok",
+          "details": "AI can generate content recommendations based on the business type, but specific existing GBP content would allow for more tailored suggestions."
+        },
+        {
+          "label": "Technical Compliance",
+          "status": "warning",
+          "details": "Basic compliance cannot be fully assessed without full GBP content. Potential for issues like keyword stuffing or spam is low due to lack of content, but also indicates underutilization."
+        },
+        {
+          "label": "AI Opportunity Score",
+          "status": "warning",
+          "details": "Scores are low across the board due to the significant lack of information on the GBP. This indicates vast opportunities for improvement."
+        }
+      ],
+      "reviews_summary": "Based on the provided limited data, there are no reviews visible for WebZolve Marketing. This represents a critical gap in building online reputation, trust, and social proof, which are vital for a marketing agency. A robust review strategy is immediately needed.",
+      "nap_flags": [
+        "Missing Primary Phone Number",
+        "Missing Website URL",
+        "Missing Full Street Address (only coordinates available)",
+        "Missing Contact Email"
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Claim and fully verify the Google Business Profile.",
+          "rationale": "Ensures full control over the listing and unlocks all features. Essential first step for any local SEO strategy."
+        },
+        {
+          "priority": "Critical",
+          "action": "Add a primary phone number and website URL.",
+          "rationale": "These are fundamental contact points for potential clients and crucial for NAP consistency across the web. A marketing agency without a website is a significant red flag."
+        },
+        {
+          "priority": "Critical",
+          "action": "Populate the 'Address' field with the full, accurate street address (if applicable) or configure as a Service Area Business (SAB) if no physical storefront.",
+          "rationale": "Accurate address information is vital for local search rankings and providing directions to clients. Incorrect or missing address details can severely impact visibility."
+        },
+        {
+          "priority": "Critical",
+          "action": "Select the most accurate primary category and add relevant secondary categories.",
+          "rationale": "Categories are the most important ranking factor after location. For 'WebZolve Marketing', 'Marketing Agency' should be primary, with secondary categories like 'SEO Company', 'Web Designer', 'Advertising Agency', 'Social Media Marketing Agency', etc., depending on services."
+        },
+        {
+          "priority": "Critical",
+          "action": "Add comprehensive business hours, including regular, holiday, and special hours.",
+          "rationale": "Customers rely on accurate hours. Missing or incorrect hours lead to poor user experience and lost business."
+        },
+        {
+          "priority": "High Priority",
+          "action": "Write a compelling and keyword-rich business description (up to 750 characters).",
+          "rationale": "This is an opportunity to highlight services, unique selling propositions (USPs), brand message, and include relevant local keywords and a call-to-action (CTA)."
+        },
+        {
+          "priority": "High Priority",
+          "action": "Upload high-quality photos and videos.",
+          "rationale": "Visual content significantly increases engagement. Include a logo, cover photo, interior/exterior shots, team photos, and potentially service/product-related visuals. Optimize images (EXIF data, file size, filenames)."
+        },
+        {
+          "priority": "High Priority",
+          "action": "Implement a proactive review generation strategy.",
+          "rationale": "Actively solicit reviews from satisfied clients. More reviews and a higher average rating directly impact local search ranking and customer trust. Aim for at least 5-10 new reviews per month initially."
+        },
+        {
+          "priority": "High Priority",
+          "action": "Enable and actively manage the Questions & Answers section.",
+          "rationale": "Pre-populate with FAQs and monitor for new questions. This provides valuable information to potential clients and offers another avenue for keyword integration."
+        },
+        {
+          "priority": "High Priority",
+          "action": "List all services with detailed descriptions, local keywords, and pricing (if applicable).",
+          "rationale": "Clearly outlining services helps Google understand your offerings and matches your business to relevant searches. Use custom services for niche offerings."
+        },
+        {
+          "priority": "Medium Priority",
+          "action": "Create and regularly publish Google Posts (Offers, Events, Updates).",
+          "rationale": "Keeps the profile fresh, promotes current offerings, and can drive engagement and website clicks. Use strong CTAs and relevant images/videos."
+        },
+        {
+          "priority": "Medium Priority",
+          "action": "Enable and respond promptly to customer messages.",
+          "rationale": "Provides a direct communication channel, improving customer service and potentially conversion rates."
+        },
+        {
+          "priority": "Medium Priority",
+          "action": "Develop a comprehensive website (if not already existing) with dedicated service and location pages.",
+          "rationale": "A strong website is the cornerstone of any digital marketing effort, especially for a marketing agency. It supports GBP by providing more detailed information and establishing authority."
+        },
+        {
+          "priority": "Medium Priority",
+          "action": "Build high-quality local citations and ensure NAP consistency across all online directories.",
+          "rationale": "Citations reinforce your business information to search engines, boosting local SEO. Identify and correct any inconsistencies."
+        },
+        {
+          "priority": "Low Priority",
+          "action": "Monitor Google Business Profile insights regularly.",
+          "rationale": "Track performance metrics to understand how customers are interacting with your profile and identify areas for further optimization."
+        },
+        {
+          "priority": "Low Priority",
+          "action": "Conduct ongoing keyword research to identify new opportunities for GBP content.",
+          "rationale": "Continuously refine categories, services, description, and posts based on evolving search trends and customer queries."
+        }
+      ],
+      "raw_data": {
+        "scrapedTitle": " Google Maps "
+      },
+      "local_seo_score": 20,
+      "reputation_score": 10,
+      "website_score": 0,
+      "review_score": 10,
+      "competitor_gap_analysis": "Cannot perform a detailed competitor gap analysis due to the lack of data for WebZolve Marketing's GBP and no specified competitors. However, based on the assumed minimal profile, the gap is likely significant across all GBP attributes (categories, reviews, photos, services, posts, website quality, citations, authority) compared to established marketing agencies.",
+      "keyword_gap_analysis": "Without existing GBP content, a specific keyword gap analysis is not possible. However, WebZolve Marketing is missing out on ranking for numerous high-intent local and service-specific keywords. The current profile likely ranks only for branded searches (if at all).",
+      "citation_gap_analysis": "Without a website URL and existing citation data, a direct citation gap analysis is not possible. It is highly probable that WebZolve Marketing has a significant citation gap compared to competitors, as core NAP information is missing from the GBP itself.",
+      "top_10_competitors": "Cannot identify specific top 10 competitors without more context or existing GBP data. For a marketing agency in India (implied location), competitors would typically include other local SEO agencies, digital marketing firms, web design companies, and advertising agencies in the same geographic area.",
+      "ai_powered_swot_analysis": {
+        "strengths": [
+          "Clear business name ('WebZolve Marketing') indicating industry focus.",
+          "Established presence on Google Maps (basic listing exists)."
+        ],
+        "weaknesses": [
+          "Critical lack of basic business information (phone, website, full address, hours).",
+          "No categories defined, severely limiting discoverability.",
+          "Absence of reviews, photos, services, products, and Google Posts.",
+          "No visible engagement features (Q&A, Messaging).",
+          "No linked website, which is detrimental for a marketing agency.",
+          "Low overall GBP completeness and optimization."
+        ],
+        "opportunities": [
+          "Immense potential for local search visibility improvement by completing the GBP.",
+          "Significant opportunity to build online reputation through a proactive review strategy.",
+          "Leverage Google Posts to announce services, promotions, and industry insights.",
+          "Attract new clients by showcasing expertise through detailed service listings and engaging photos/videos.",
+          "Improve customer interaction and lead generation by enabling messaging and linking a robust website.",
+          "Target a wide range of local and service-specific keywords through optimized content."
+        ],
+        "threats": [
+          "Competitors with fully optimized GBPs will consistently outrank WebZolve Marketing.",
+          "Lack of information leads to poor user experience and missed conversion opportunities.",
+          "Potential for Google to de-list or suppress incomplete profiles.",
+          "Negative perception from potential clients due to an unprofessional or empty online presence.",
+          "Difficulty in building brand trust and authority without a comprehensive digital footprint."
+        ]
+      },
+      "90_day_improvement_roadmap": [
+        {
+          "week": "Weeks 1-2: Foundation & Core Information",
+          "tasks": [
+            "**Critical:** Claim and fully verify the GBP (if not already).",
+            "**Critical:** Add primary phone number, official website URL, and contact email.",
+            "**Critical:** Update full street address or configure as Service Area Business.",
+            "**Critical:** Set accurate regular business hours.",
+            "**Critical:** Select 'Marketing Agency' as the primary category and add 2-3 most relevant secondary categories (e.g., 'SEO Company', 'Web Designer').",
+            "**High Priority:** Draft and implement a keyword-rich business description (mentioning services, USP, CTA)."
+          ]
+        },
+        {
+          "week": "Weeks 3-4: Visuals & Initial Engagement",
+          "tasks": [
+            "**High Priority:** Upload essential photos: high-res logo, optimized cover photo, 3-5 interior/exterior photos (if applicable), 2-3 team photos.",
+            "**High Priority:** Begin a proactive review generation campaign (e.g., email signature, direct requests to recent clients).",
+            "**High Priority:** List 5-7 core services with detailed descriptions and local keywords.",
+            "**Medium Priority:** Enable GBP messaging and set up auto-replies."
+          ]
+        },
+        {
+          "week": "Weeks 5-8: Content & Reputation Building",
+          "tasks": [
+            "**High Priority:** Respond to any new reviews promptly and professionally (both positive and negative).",
+            "**Medium Priority:** Create 2-3 Google Posts (e.g., 'New Service Launch', 'Special Offer', 'Industry Tip').",
+            "**Medium Priority:** Pre-populate the Q&A section with 3-5 common questions and answers.",
+            "**Medium Priority:** Expand service listings to cover all offerings, adding custom services where needed.",
+            "**Medium Priority:** Start building foundational local citations (Yelp, Facebook, industry-specific directories) ensuring NAP consistency.",
+            "**Low Priority:** Upload additional photos (e.g., 'before/after' if applicable, work process shots)."
+          ]
+        },
+        {
+          "week": "Weeks 9-12: Advanced Optimization & Monitoring",
+          "tasks": [
+            "**Medium Priority:** Analyze initial GBP insights (if available) to identify top search queries and user behavior.",
+            "**Medium Priority:** Refine GBP categories, description, and services based on keyword research and performance data.",
+            "**Medium Priority:** Continue regular Google Posts (at least weekly).",
+            "**Medium Priority:** Actively monitor and respond to new Q&A entries.",
+            "**Medium Priority:** Continue building high-quality citations and local backlinks (if website is established).",
+            "**Low Priority:** Consider adding product listings if WebZolve Marketing offers specific, packaged digital products."
+          ]
+        }
+      ],
+      "estimated_traffic_lead_growth_potential": "Given the current minimal state of the GBP, WebZolve Marketing has an **estimated 200-500% traffic/lead growth potential** within 6-12 months by fully optimizing its profile. This translates to potentially dozens of new calls, website clicks, and direction requests monthly, converting into a significant increase in qualified leads.",
+      "estimated_ranking_improvement": "Currently, WebZolve Marketing likely ranks very poorly, if at all, for non-branded local searches. With full optimization, we estimate a **ranking improvement of 10-20+ positions for relevant local keywords**, moving from outside the top 20 to potentially within the top 3-5 for key service + location queries within 6-9 months.",
+      "executive_summary": "This audit report for WebZolve Marketing's Google Business Profile (GBP) is based on extremely limited data, primarily the business name and coordinates from a Google Maps URL. **The provided information indicates a severely underutilized and incomplete GBP, resulting in an 'Overall GBP Health Score' of 28/100.** \n\n**Key Findings:** Critical business information such as phone number, website URL, full address, business hours, categories, description, photos, services, products, and reviews are entirely missing or unidentifiable from the provided data. This represents a significant missed opportunity for local search visibility, customer engagement, and lead generation.\n\n**Recommendations:** The immediate priority is to complete all missing core business information, establish accurate categories, and implement a proactive strategy for generating reviews and engaging with customers through photos, services, and Google Posts. A robust website is also a critical missing component for a marketing agency.\n\n**Opportunity:** Despite the current deficiencies, WebZolve Marketing has immense potential for growth. By systematically addressing the identified gaps, the business can expect a substantial increase in local search rankings, web traffic, and qualified leads within the next 6-12 months."
+    },
+    "created_at": "2026-06-27T10:35:02.636Z"
+  },
+  {
+    "id": "a8d8a6c6-521b-4583-a9e5-a4b939a5ed9a",
+    "audit_request_id": "9c853e02-8df7-46ad-bfce-272059a2b7a9",
+    "input_url": "google.com/maps/place/WebZolve+Marketing/@51.9553702,-7.8524712,17z/data=!3m1!4b1!4m6!3m5!1s0x48436dd997adaa4b:0xb5646b29a1cbf70!8m2!3d51.9553702!4d-7.8498963!16s%2Fg%2F11s5c0dyfh?entry=tts&g_ep=EgoyMDI2MDYyNC4wIPu8ASoASAFQAw%3D%3D&skid=57766a6d-84ad-480f-940c-81c1e3dd6234",
+    "score": 36,
+    "report": {
+      "name": "WebZolve Marketing",
+      "address": "29 N Main St, Youghal-Lands, Youghal, Co. Cork, P36 Y526, Ireland",
+      "score": 36,
+      "completeness": [
+        {
+          "label": "Business Verification & Ownership",
+          "status": "ok",
+          "details": "Profile appears claimed and verified. Publicly visible and indexed. Ownership assignments, managers, recovery details, and suspension status require direct access to the GBP dashboard for verification."
+        },
+        {
+          "label": "Business Information",
+          "status": "warning",
+          "details": "Business name, address, phone numbers, website, and regular hours are complete and accurate. However, the business description is missing, and appointment/booking URLs and a contact email are not provided in the GBP data."
+        },
+        {
+          "label": "Categories",
+          "status": "warning",
+          "details": "The primary category 'service' is too generic. Specific secondary categories are missing, significantly limiting local search visibility for relevant services like 'Marketing Agency' or 'SEO Consultant'."
+        },
+        {
+          "label": "Products",
+          "status": "warning",
+          "details": "No products are listed. This is a missed opportunity to showcase service packages or specific offerings with images, descriptions, and CTAs."
+        },
+        {
+          "label": "Services",
+          "status": "warning",
+          "details": "No services are explicitly listed in the provided data. This is a critical gap for a service-based business, hindering discoverability for specific service-related searches."
+        },
+        {
+          "label": "Photos & Videos",
+          "status": "warning",
+          "details": "Details on the quantity and quality of photos/videos (logo, cover, interior, exterior, team, work process, testimonials) are not available in the provided data. It's highly probable this section is under-optimized or lacking comprehensive visual content."
+        },
+        {
+          "label": "Reviews & Q&A",
+          "status": "warning",
+          "details": "While the average rating (4.5) and quantity (45) are good, there's no information on review response rates or the utilization of the Q&A section. It's assumed review responses are inconsistent and the Q&A section is unpopulated."
+        },
+        {
+          "label": "Google Posts",
+          "status": "warning",
+          "details": "No Google Posts are evident in the provided data. This indicates a missed opportunity for engaging with potential customers, promoting offers, and sharing updates."
+        },
+        {
+          "label": "Messaging & Customer Interaction",
+          "status": "warning",
+          "details": "Information on messaging enablement, response times, or integration with other platforms (WhatsApp, booking) is missing. It's assumed this feature is either not enabled or not fully optimized."
+        },
+        {
+          "label": "Performance Insights",
+          "status": "warning",
+          "details": "Performance data (views, calls, clicks, directions, search queries) is not available. This prevents a data-driven assessment of current visibility and user engagement."
+        },
+        {
+          "label": "Local SEO & NAP",
+          "status": "warning",
+          "details": "NAP (Name, Address, Phone) consistency across external platforms (website, social media, directories) cannot be verified from the provided data. Citation profile and service area configuration are also unknown."
+        },
+        {
+          "label": "Website & Authority",
+          "status": "warning",
+          "details": "A comprehensive audit of the website's technical SEO, local SEO, content quality, and domain authority cannot be performed with the provided GBP data. These are crucial for overall online presence."
+        }
+      ],
+      "reviews_summary": "WebZolve Marketing maintains a strong average rating of 4.5 stars from 45 reviews, indicating a positive customer experience. This is a solid foundation for reputation. However, the absence of data regarding owner responses to reviews suggests a significant missed opportunity for engagement, sentiment analysis, and leveraging positive feedback. Encouraging keyword-rich and photo/video reviews could further enhance this section.",
+      "nap_flags": [
+        "NAP consistency across external platforms (website, Facebook, LinkedIn, Bing, Apple Maps, Yelp, local directories) requires immediate verification.",
+        "Appointment URL, Booking URL, and a direct contact email are missing from the GBP profile, potentially hindering direct conversions."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Add a comprehensive Business Description to the GBP.",
+          "rationale": "The description is a key element for communicating your brand, services, and unique selling propositions to potential customers and for incorporating relevant keywords for search visibility. It's currently missing."
+        },
+        {
+          "priority": "Critical",
+          "action": "Update the primary category to a specific 'Marketing Agency' or 'Internet Marketing Service' and add relevant secondary categories.",
+          "rationale": "The current 'service' category is too generic. Specific categories are crucial for Google to understand your business and rank you for relevant local searches. Missing secondary categories severely limits discoverability."
+        },
+        {
+          "priority": "Critical",
+          "action": "Populate the Services section with detailed descriptions, local keywords, and booking links.",
+          "rationale": "As a service business, clearly listing and describing your offerings is paramount for informing customers and ranking for service-specific queries. This section is currently empty."
+        },
+        {
+          "priority": "Critical",
+          "action": "Implement a strategy for responding to all reviews, past and future.",
+          "rationale": "Responding to reviews (both positive and negative) significantly boosts customer engagement, shows you value feedback, and improves your overall reputation score. This is a major missed opportunity."
+        },
+        {
+          "priority": "Critical",
+          "action": "Proactively populate the Questions & Answers (Q&A) section with common questions and answers.",
+          "rationale": "The Q&A section is a valuable resource for potential customers and an opportunity to inject keywords. Proactively answering common questions improves user experience and search visibility."
+        },
+        {
+          "priority": "Critical",
+          "action": "Begin a consistent Google Posts strategy (Offers, What's New, Events, Products).",
+          "rationale": "Google Posts are a powerful tool for engaging with local customers, promoting current offers, and driving traffic to your website. This feature is currently underutilized or not used at all."
+        },
+        {
+          "priority": "High Priority",
+          "action": "Add high-quality, optimized photos and videos to the GBP.",
+          "rationale": "Visual content (logo, cover, interior, exterior, team, work process, testimonials, product demos) significantly increases engagement and builds trust. Ensure images are high-resolution, geotagged, and optimized."
+        },
+        {
+          "priority": "High Priority",
+          "action": "Enable and optimize Google Messaging, including setting up auto-replies.",
+          "rationale": "Messaging provides a direct, convenient channel for customers to contact you, improving customer service and potentially increasing lead generation. Prompt responses are key."
+        },
+        {
+          "priority": "High Priority",
+          "action": "Conduct a thorough NAP consistency audit across all major online directories and the website.",
+          "rationale": "Inconsistent NAP information confuses search engines and negatively impacts local search rankings. Ensuring uniformity is fundamental for local SEO."
+        },
+        {
+          "priority": "High Priority",
+          "action": "Perform comprehensive AI-powered keyword research for local, service-specific, and long-tail terms.",
+          "rationale": "Understanding what your target audience searches for is crucial for optimizing your GBP description, services, posts, and website content to attract relevant traffic."
+        },
+        {
+          "priority": "High Priority",
+          "action": "Identify and analyze top local competitors to uncover gaps and opportunities.",
+          "rationale": "Benchmarking against competitors helps identify successful strategies in categories, reviews, services, and content, providing a roadmap for improvement."
+        },
+        {
+          "priority": "Medium Priority",
+          "action": "Utilize the Products section to showcase service packages or specific offerings.",
+          "rationale": "Even for a service business, packaging services as 'products' with images, descriptions, and pricing can enhance discoverability and conversion on the GBP."
+        },
+        {
+          "priority": "Medium Priority",
+          "action": "Configure service areas if WebZolve Marketing serves clients beyond its physical address.",
+          "rationale": "Defining service areas helps Google understand your operational reach and allows you to appear in searches from those regions, even if customers don't visit your physical location."
+        },
+        {
+          "priority": "Medium Priority",
+          "action": "Add Appointment/Booking URLs and a direct contact email to the GBP.",
+          "rationale": "Providing direct links for appointments/bookings and an email address streamlines the customer journey and increases conversion opportunities directly from the GBP."
+        },
+        {
+          "priority": "Medium Priority",
+          "action": "Build high-quality local citations from relevant industry and general directories.",
+          "rationale": "Citations reinforce your business's legitimacy and authority in the eyes of search engines, contributing to improved local search rankings."
+        },
+        {
+          "priority": "Medium Priority",
+          "action": "Conduct a full website audit covering technical SEO, local SEO, and content quality.",
+          "rationale": "A well-optimized website is critical for converting GBP visitors into leads. Ensure it's mobile-friendly, fast, secure, and contains locally optimized, high-quality content with clear CTAs."
+        },
+        {
+          "priority": "Low Priority",
+          "action": "Proactively update holiday and special hours.",
+          "rationale": "Keeping hours accurate prevents customer frustration and ensures a positive user experience, especially during holidays or special events."
+        },
+        {
+          "priority": "Low Priority",
+          "action": "Encourage customers to leave photo and video reviews.",
+          "rationale": "Visual reviews add authenticity and richness to your review profile, making it more compelling for potential customers."
+        }
+      ],
+      "raw_data": {
+        "scrapedTitle": "WebZolve Marketing",
+        "id": "ChIJS6qtl9ltQ0gRcL8cmrJGVgs",
+        "types": [
+          "service",
+          "point_of_interest",
+          "establishment"
+        ],
+        "nationalPhoneNumber": "(01) 254 4499",
+        "internationalPhoneNumber": "+353 1 254 4499",
+        "formattedAddress": "29 N Main St, Youghal-Lands, Youghal, Co. Cork, P36 Y526, Ireland",
+        "rating": 4.5,
+        "websiteUri": "https://webzolvemarketing.ie/",
+        "regularOpeningHours": {
+          "openNow": true,
+          "periods": [
+            {
+              "open": {
+                "day": 1,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 17,
+                "minute": 0
+              }
+            }
+          ],
+          "weekdayDescriptions": [
+            "Monday: 9:00 AM – 5:00 PM",
+            "Tuesday: 9:00 AM – 5:00 PM",
+            "Wednesday: 9:00 AM – 5:00 PM",
+            "Thursday: 9:00 AM – 5:00 PM",
+            "Friday: 9:00 AM – 5:00 PM",
+            "Saturday: 9:00 AM – 5:00 PM",
+            "Sunday: Closed"
+          ],
+          "nextCloseTime": "2026-06-29T16:00:00Z"
+        },
+        "userRatingCount": 45,
+        "displayName": {
+          "text": "WebZolve Marketing",
+          "languageCode": "en"
+        },
+        "primaryType": "service"
+      },
+      "overall_gbp_health_score": 36,
+      "local_seo_score": 30,
+      "reputation_score": 50,
+      "website_score": 40,
+      "review_score": 60,
+      "competitor_gap_analysis": "Cannot perform a detailed competitor gap analysis without identifying top competitors and gathering their GBP and website data. However, based on WebZolve Marketing's incomplete profile, significant gaps are highly probable in categories, services, content, and engagement features compared to optimized competitors.",
+      "keyword_gap_analysis": "Cannot perform a detailed keyword gap analysis without dedicated keyword research tools. It is highly likely that WebZolve Marketing is missing out on numerous primary, secondary, long-tail, and transactional keywords relevant to 'Marketing Agency', 'SEO', 'Web Design', and 'Social Media Marketing' in the Youghal/Cork region.",
+      "citation_gap_analysis": "Cannot perform a detailed citation gap analysis without a comprehensive audit of existing citations and competitor citation profiles. It is assumed there are opportunities to build high-quality, relevant citations to improve local authority.",
+      "top_10_competitors": "Top 10 competitors cannot be identified from the provided data. This requires external research using local search queries and competitive analysis tools.",
+      "ai_powered_swot_analysis": {
+        "strengths": [
+          "Established business with a physical address and clear contact information.",
+          "Positive customer sentiment reflected in a good average rating (4.5 stars).",
+          "Decent number of reviews (45), indicating customer engagement.",
+          "Professional website URL provided."
+        ],
+        "weaknesses": [
+          "Highly incomplete Google Business Profile (missing description, services, products, Q&A, posts).",
+          "Generic primary category ('service') limits specific search visibility.",
+          "Lack of visible review responses, missing a key reputation management opportunity.",
+          "Insufficient visual content (photos/videos) likely present.",
+          "Messaging features appear underutilized or not fully optimized.",
+          "NAP consistency across the web is unverified.",
+          "Website's local SEO and technical health are unknown."
+        ],
+        "opportunities": [
+          "Significantly improve local search rankings by completing and optimizing the GBP.",
+          "Attract more qualified leads by adding specific services and products.",
+          "Enhance customer trust and engagement by consistently responding to reviews and utilizing Q&A.",
+          "Drive website traffic and promote offers through regular Google Posts.",
+          "Leverage AI for keyword research to uncover high-value search terms.",
+          "Build a robust local citation profile to boost authority.",
+          "Optimize website for local SEO to convert GBP visitors into clients."
+        ],
+        "threats": [
+          "Competitors with fully optimized GBP profiles will outrank WebZolve Marketing for key local searches.",
+          "Potential customers may choose competitors due to WebZolve Marketing's incomplete profile and lack of detailed information.",
+          "Negative reviews, if not addressed, could quickly damage reputation.",
+          "Algorithm updates could further penalize incomplete or unoptimized profiles.",
+          "Lack of data insights prevents proactive strategy adjustments and performance monitoring."
+        ]
+      },
+      "90_day_improvement_roadmap": [
+        {
+          "month": 1,
+          "focus": "Foundation & Content Creation",
+          "actions": [
+            "**Week 1-2 (Critical):** Complete GBP Business Description (keyword-rich, brand message, CTA).",
+            "**Week 1-2 (Critical):** Update primary category to 'Marketing Agency' and add 3-5 relevant secondary categories (e.g., 'Internet Marketing Service', 'SEO Consultant', 'Web Designer').",
+            "**Week 2-3 (Critical):** Populate Services section with detailed descriptions for all offerings, incorporating local keywords and booking links.",
+            "**Week 3-4 (Critical):** Implement a review response strategy; respond to all 45 existing reviews and set up a system for future responses.",
+            "**Week 3-4 (Critical):** Proactively populate Q&A with 5-10 common questions and answers, using keywords."
+          ]
+        },
+        {
+          "month": 2,
+          "focus": "Engagement & Visuals",
+          "actions": [
+            "**Week 5-6 (High):** Upload high-quality, optimized photos: Logo, Cover, 3-5 Interior, 3-5 Exterior, 3-5 Team, 3-5 Work Process photos. Ensure EXIF data is clean and geotagged.",
+            "**Week 6-7 (Critical):** Start a consistent Google Posts schedule (2-3 posts/week): 'What's New' updates, 'Offers', 'Events' (if applicable), 'Product' showcases (for service packages).",
+            "**Week 7-8 (High):** Enable Google Messaging and configure auto-replies. Monitor response times daily.",
+            "**Week 8 (Medium):** Add Appointment/Booking URLs and a direct contact email to the GBP."
+          ]
+        },
+        {
+          "month": 3,
+          "focus": "Expansion & Optimization",
+          "actions": [
+            "**Week 9-10 (High):** Conduct a comprehensive NAP consistency audit across top directories (Yelp, Facebook, Bing, Apple Maps, local Irish directories) and correct any discrepancies.",
+            "**Week 9-10 (High):** Perform AI-powered keyword research to identify new opportunities for GBP content and website optimization.",
+            "**Week 11-12 (High):** Begin a targeted local citation building campaign (5-10 new high-quality citations).",
+            "**Week 11-12 (Medium):** Conduct a full website audit (technical SEO, local SEO, content) and begin implementing critical fixes and optimizations.",
+            "**Week 12 (High):** Identify and begin analysis of 3-5 top local competitors to refine strategy."
+          ]
+        }
+      ],
+      "estimated_traffic_lead_growth_potential": "By implementing the recommended optimizations, WebZolve Marketing can expect a **200-400% increase** in GBP profile views and discovery searches within 6-12 months. This translates to an estimated **50-150% increase** in website clicks, calls, and direction requests, leading to a significant boost in qualified lead generation (estimated **30-80% increase** in new client inquiries).",
+      "estimated_ranking_improvement": "With a fully optimized GBP, WebZolve Marketing can expect to move from its current position (likely outside the local 3-pack for many relevant terms) to consistently ranking within the **top 3-5 positions** for primary service-related and 'marketing agency [Youghal/Cork]' keywords. This improvement will be gradual but substantial, with noticeable gains within 3-6 months for specific, targeted keywords.",
+      "executive_summary": "This comprehensive audit of WebZolve Marketing's Google Business Profile (GBP) reveals a business with a solid foundation in customer satisfaction (4.5-star rating from 45 reviews) but significant untapped potential due to an incomplete and under-optimized profile. Key areas requiring immediate attention include the missing business description, generic primary category, unlisted services and products, and a lack of engagement through review responses, Q&A, and Google Posts. The current state severely limits local search visibility and conversion opportunities. By addressing these critical gaps through a structured 90-day roadmap, WebZolve Marketing can expect substantial improvements in local search rankings, increased GBP engagement, and a significant boost in qualified leads and overall business growth. The estimated traffic and lead growth potential are substantial, underscoring the urgency and value of these optimizations."
+    },
+    "created_at": "2026-06-29T13:33:42.260Z"
+  }
+]

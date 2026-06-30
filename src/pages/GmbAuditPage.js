@@ -55,7 +55,7 @@ const GmbAuditPage = () => {
   }, [jobId]);
 
   const handleRunAudit = async () => {
-    if (!url.trim() || !url.includes('google')) {
+    if (!url.trim() || (!url.includes('google') && !url.includes('goo.gl') && !url.includes('g.page'))) {
       setError('Please enter a valid Google Maps URL.');
       return;
     }

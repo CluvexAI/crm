@@ -1,3 +1,3 @@
 {
-  "ignore": ["server/*.json", "server/data/*", "server/data/**/*.json"]
+  "ignore": ["server/data/**", "server/*.json"]
 }

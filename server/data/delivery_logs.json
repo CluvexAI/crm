@@ -911,5 +911,36 @@
     "email": "tanmoy.mondal@zsmeservices.com",
     "status": "completed",
     "timestamp": "2026-06-25T13:34:06.246Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<435fc4da-7eaf-56bc-325d-ce231bca21b6@zsmeservices.com>",
+    "timestamp": "2026-06-29T07:53:14.155Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<2dae9780-5526-30a4-5ffe-82d59f8f6478@zsmeservices.com>",
+    "timestamp": "2026-06-29T09:34:57.730Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<d3f3b04c-599a-775f-57de-d815869f3d7d@zsmeservices.com>",
+    "attempt": 1,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-06-30T13:52:32.298Z"
+  },
+  {
+    "type": "password_reset",
+    "email": "tanmoy.mondal@zsmeservices.com",
+    "status": "completed",
+    "timestamp": "2026-06-30T13:53:24.716Z"
   }
 ]

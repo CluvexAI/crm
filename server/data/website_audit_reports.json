@@ -1,1 +1,1526 @@
-[]
+[
+  {
+    "id": "80831ffd-c8a0-494e-9d2e-e36cc60c64de",
+    "audit_request_id": "8eec3020-d13a-465b-b5cf-1fe4869d27de",
+    "input_url": "http://webzymarketing.com",
+    "score": 55,
+    "report": {
+      "target_url": "https://webzymarketing.com/",
+      "score": 55,
+      "domain_summary": "Webzy Marketing is a digital marketing agency offering services such as SEO, Google Adwords, Social Media Marketing, Web Design, App Development, and Business Listing. They claim to operate globally, with a headquarters in the United Kingdom and clients/networks in Australia, Ireland, India, and the USA (from meta description). The website content indicates a founding year of 2020, though the meta description states 2012, and the copyright is set to 2026.",
+      "ux_score_breakdown": "The website's UX/UI performance is likely hindered by several factors. The presence of 'Skip to content' suggests potential accessibility or structural issues. Content repetition ('Your Marketing Partner', 'Digital online marketing') can make reading tedious and reduce perceived professionalism. The lack of clear content hierarchy (implied by flat scraped text) makes information difficult to scan. Most critically, the inconsistent dates (2012, 2020, 2026) and conflicting operational claims (USA vs. UK HQ) create significant distrust and a confusing user experience. Multiple 'Contact Now' buttons for the same regions could also lead to minor confusion.",
+      "keyword_summary": "Based on the content density, Webzy Marketing likely targets keywords such as: 'Digital Marketing Agencies', 'Digital Marketing Services', 'SEO', 'Search Engine Optimization', 'Web Design', 'Website Development', 'Google Adwords', 'Social Media Marketing', 'App Development', 'Business Listing'. Geographic modifiers include: 'United Kingdom', 'Australia', 'Ireland', 'India', and 'USA'. Long-tail opportunities could include 'Best Digital Marketing Agencies', 'Digital Marketing Expert', 'Web Design & Development'.",
+      "technical_errors": [
+        "Inconsistent founding dates (2012 in meta description, 2020 in body content).",
+        "Future copyright year (2026) indicating lack of maintenance or error.",
+        "Keyword stuffing in Title Tag and Meta Description.",
+        "Low content depth and generic descriptions for core service pages (e.g., SEO).",
+        "Repetitive phrases ('Your Marketing Partner', 'Digital online marketing') in body content.",
+        "Potential lack of clear heading structure (H1, H2, H3) based on flat scraped text.",
+        "The 'Skip to content' element often points to accessibility or structural issues.",
+        "Conflicting geographic claims (USA in meta description, UK HQ in body, various client locations)."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Rectify all date inconsistencies across the website (meta description, body content, copyright year).",
+          "rationale": "Inconsistent dates (2012, 2020, 2026) severely damage credibility and trust for both users and search engines. The future copyright year is a critical error that needs immediate correction."
+        },
+        {
+          "priority": "Critical",
+          "action": "Expand and deepen content for core service pages (e.g., SEO, Web Design, App Development).",
+          "rationale": "Current content is generic and lacks detail, which limits ranking potential for competitive keywords and fails to provide sufficient value or information to users. Each service page needs unique, comprehensive, and authoritative content."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Optimize Title Tag and Meta Description for clarity, conciseness, and user intent, removing keyword stuffing.",
+          "rationale": "The current title is long and keyword-stuffed. The meta description contains inconsistent information. This impacts click-through rates (CTR) from SERPs and initial user perception. Ensure they accurately reflect the page's content and value proposition."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement clear heading structures (H1, H2, H3, etc.) throughout the content.",
+          "rationale": "Proper heading structure improves readability, accessibility, and helps search engines understand content hierarchy and topic relevance, contributing to better SEO and user experience."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Review and refine repetitive phrases and instances of keyword stuffing in the body content.",
+          "rationale": "Repetitive content and keyword stuffing negatively impact readability and can be perceived as low quality by search engines, potentially leading to lower rankings."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Address the 'Skip to content' element and investigate its underlying cause.",
+          "rationale": "This often points to accessibility issues or a poorly structured layout that can negatively impact user experience and potentially SEO if it indicates fundamental HTML problems."
+        },
+        {
+          "priority": "Minor",
+          "action": "Consolidate or clarify multiple 'Contact Now' buttons for the same regions.",
+          "rationale": "Reduces potential user confusion and streamlines the conversion path, making it easier for users to take action."
+        },
+        {
+          "priority": "Minor",
+          "action": "Add more specific client testimonials or case studies.",
+          "rationale": "While 'Client Review' is mentioned, specific examples with details about projects and results would significantly enhance social proof, build trust, and demonstrate expertise."
+        }
+      ],
+      "raw_data": {
+        "title": "Best Digital Marketing Agencies And Services Expert | Webzy Marketing 2024",
+        "description": "Webzy Marketing provide Digital marketing agencies and services in the USA since 2012, our clients are based in Australia UK Ireland and India"
+      }
+    },
+    "created_at": "2026-06-27T09:34:00.285Z"
+  },
+  {
+    "id": "0494475c-c507-44cd-b01c-e5fa024c9f5e",
+    "audit_request_id": "d925368a-a979-40d4-8023-df1b523b93cb",
+    "input_url": "\thttp://webzymarketing.com",
+    "score": 60,
+    "report": {
+      "target_url": "https://webzymarketing.com/",
+      "score": 60,
+      "domain_summary": "Webzy Marketing is a digital marketing agency offering a range of services including SEO, Google Adwords, Social Media Marketing, Web Design & Development, Logo Design, App Development, Business Listing, and Domain & Hosting. The company claims to be headquartered in the United Kingdom, serving clients globally in Australia, UK, Ireland, India, and the USA (as per meta description). There's a discrepancy in their founding year, with the meta description stating 2012 and the body content stating 2020. The founder is identified as Riz alias John Davis. The website also lists a London address and UK contact number.",
+      "ux_score_breakdown": "The website appears to have a well-structured navigation menu, indicating good information architecture. Calls to action (CTAs) like 'Get in Touch', 'Call Now', and 'Schedule a Call Today' are present and clear, encouraging user interaction. The content attempts to introduce services and the company's background. However, the user experience is likely hampered by several factors: significant inconsistencies in company information (founding year 2012 vs 2020, primary location claims), repetitive content ('Digital online marketing' repeated, multiple 'Contact Now' buttons), and a future copyright date (2026) which suggests a lack of attention to detail. While 'Our Certificates' and 'Client Review' are mentioned as trust signals, their actual presentation is not evident from the scraped text. These issues can erode user trust and make the content feel less professional.",
+      "keyword_summary": "Based on content density, Webzy Marketing likely targets keywords such as 'Digital Marketing Agencies', 'Digital Marketing Services', 'SEO', 'Search Engine Optimization', 'Web Design', 'Website Development', 'App Development', 'Google Adwords', 'Social Media Marketing', and 'Business Listing'. Geographically, they are targeting 'United Kingdom', 'UK', 'Australia', 'Ireland', 'India', and 'USA'. They should aim to rank for specific service + location combinations like 'SEO United Kingdom', 'Digital Marketing Australia', 'Web Development Ireland', and 'Digital Marketing USA'. The repeated use of 'SEO Search Engine Optimization' indicates a strong focus on this area.",
+      "technical_errors": [
+        "Content Inconsistencies: Major discrepancy in founding year (2012 in meta description vs. 2020 in body content) and primary location claims (USA in meta vs. UK in body).",
+        "Outdated/Future Copyright Date: The copyright notice states '© Copyright 2026 Webzy Marketing', which is a future date, indicating a lack of website maintenance.",
+        "Meta Description Quality: While present, the meta description contains inconsistent information regarding the founding year and primary service location, which can confuse search engines and users.",
+        "Potential for Generic H1: The main heading 'Your Marketing Partner' is somewhat generic and may not be optimally descriptive or keyword-rich for the page's primary topic, assuming it functions as the H1.",
+        "Content Repetition: Phrases like 'Digital online marketing' are repeated unnecessarily, and multiple 'Contact Now' buttons for the same regions appear, which can dilute content quality and user focus."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Resolve Content Inconsistencies",
+          "rationale": "The conflicting information regarding the company's founding year (2012 vs. 2020) and primary service locations (USA vs. UK) severely damages credibility and trust for both users and search engines. This must be consistent across all website content, including meta descriptions."
+        },
+        {
+          "priority": "Critical",
+          "action": "Update Copyright Date",
+          "rationale": "A future copyright date ('© Copyright 2026') is a clear sign of an unmaintained website, which can negatively impact user trust and search engine perception of site freshness and reliability. It should be updated to the current year (2024)."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Optimize Meta Description",
+          "rationale": "The current meta description contains inconsistent information. It should be rewritten to be concise, compelling, accurate, and consistent with the on-page content, clearly stating the company's unique selling proposition and primary service areas without contradictions."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Improve Heading Structure (H1, H2, etc.)",
+          "rationale": "Ensure there is a single, clear, and keyword-rich H1 tag that accurately reflects the main topic of the page. Use H2 and H3 tags to logically break down content, improving readability and SEO for sub-topics. 'Your Marketing Partner' is too generic for an H1."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Expand and Diversify Service Content",
+          "rationale": "While services are listed, providing more in-depth, unique, and valuable content for each service will improve topical authority, user engagement, and opportunities to rank for long-tail keywords. This can include case studies, methodologies, and benefits."
+        },
+        {
+          "priority": "Minor",
+          "action": "Reduce Content Repetition",
+          "rationale": "Eliminate unnecessary repetition of phrases like 'Digital online marketing' and consolidate redundant CTAs. This improves readability, makes the content more engaging, and allows for a clearer focus on primary keywords."
+        },
+        {
+          "priority": "Minor",
+          "action": "Enhance Trust Signals Visibility",
+          "rationale": "While 'Our Certificates' and 'Client Review' are mentioned, ensure these are prominently displayed and easily accessible (e.g., actual testimonials, client logos, case studies) to build trust and credibility with visitors."
+        }
+      ],
+      "raw_data": {
+        "title": "Best Digital Marketing Agencies And Services Expert | Webzy Marketing 2024",
+        "description": "Webzy Marketing provide Digital marketing agencies and services in the USA since 2012, our clients are based in Australia UK Ireland and India"
+      }
+    },
+    "created_at": "2026-06-29T13:31:28.284Z"
+  },
+  {
+    "id": "39ecd515-f939-4c2d-b2bc-8a5beb210fd3",
+    "audit_request_id": "5ed276ef-744e-4193-b5ea-42bb68475beb",
+    "input_url": "msqcarpentry.ie",
+    "score": 55,
+    "report": {
+      "target_url": "https://msqcarpentry.ie/",
+      "score": 55,
+      "domain_summary": "MSQ Carpentry is a Dublin-based company specializing in a range of carpentry services, including composite decking (highlighted as a best-seller), timber and composite cladding, bespoke carpentry projects, stairs makeovers, doors, and flooring. They emphasize quality, reliability, and customer satisfaction, using materials imported from Europe. The business serves all of County Dublin and surrounding areas, offering supply, fit, design, and project management. The site includes a 'How It Works' process, contact information, and customer testimonials from Google.",
+      "ux_score_breakdown": "The website's structure provides clear navigation, prominent contact information, and a step-by-step process explanation ('HOW IT WORKS!!!'), which are positive for user experience. Testimonials from Google also build trust. However, the user experience is significantly hampered by repetitive content (e.g., 'Welcome To MSQ Carpentry' repeated for each service, multiple 'Call Now' buttons, repeated 'HOW IT WORKS' steps), the presence of placeholder text ('Donec convallis...'), and a list of keywords that appears as a dump. These issues make the content feel less professional, harder to scan, and potentially frustrating for users seeking specific information.",
+      "keyword_summary": "Based on content density, the website primarily targets keywords related to 'Carpentry' and 'Composite Decking' in the 'Dublin' area. Key phrases include: 'MSQ Carpentry', 'Best Carpentry Services', 'Carpentry in Dublin', 'Composite Decking', 'Timber and Composite Cladding', 'Bespoke Carpentry Projects', 'Stairs Makeover', 'Doors', 'Floors', 'Wooden Floors', 'Woodworks', 'Supply and Fit'. The strong emphasis on 'Composite Decking' suggests it's a core service they aim to rank highly for.",
+      "technical_errors": [
+        "Meta Description Mismatch: The meta description mentions 'Malibu Security' instead of 'MSQ Carpentry', creating a severe brand identity and trust issue.",
+        "Title Tag Date Anomaly: The page title includes '2026', which is a future date and confusing, potentially signaling outdated or placeholder content.",
+        "Placeholder Content: The presence of 'Donec convallis, nulla a euismod maximus, nibh nunc pellentesque neque, et egestas.' indicates incomplete or placeholder text.",
+        "Content Repetition: Significant repetition of phrases, service introductions, and call-to-action buttons ('Call Now', 'HOW IT WORKS!!!' steps) dilutes content quality and keyword focus.",
+        "Potential Keyword Stuffing: A comma-separated list of services ('COMPOSITE DECKING, STAIRS MAKEOVER, WOODEN FLOORS, CARPENTRY & WOODWORKS') appears to be a keyword dump, which can negatively impact SEO.",
+        "Lack of Clear H1 Structure: While the title is present, the initial scraped content suggests a messy start without a single, well-defined H1 tag for the main page topic.",
+        "Missing Local Business Schema Markup (implied): No explicit mention of structured data for local business information, which is crucial for local SEO.",
+        "Missing Review Schema Markup (implied): Testimonials are present, but there's no indication of review schema markup to enhance their visibility in search results."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Immediately correct the meta description to accurately reflect 'MSQ Carpentry' and its services.",
+          "rationale": "The current meta description mentions 'Malibu Security,' which is a different company, creating a severe brand identity and trust issue. This will negatively impact click-through rates (CTR) and user perception in search results."
+        },
+        {
+          "priority": "Critical",
+          "action": "Remove or update the '2026' date from the page title and footer copyright.",
+          "rationale": "Using a future date is confusing and unprofessional, potentially signaling outdated or placeholder content to both users and search engines, which can harm credibility."
+        },
+        {
+          "priority": "Critical",
+          "action": "Replace all placeholder text (e.g., 'Donec convallis...') with relevant, unique, and descriptive content.",
+          "rationale": "Placeholder text indicates an incomplete website, detracting from professionalism and potentially being flagged as low-quality content by search engines."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Restructure content to reduce repetition and improve flow. Consolidate similar sections and ensure each piece of information is presented clearly and concisely once.",
+          "rationale": "Excessive repetition can dilute keyword focus, make the content appear spammy, and negatively impact user experience by making the page harder to read and scan."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Review and optimize keyword usage, avoiding keyword stuffing. Integrate keywords naturally within descriptive paragraphs and headings.",
+          "rationale": "Keyword stuffing can lead to search engine penalties. Natural language processing prioritizes context and relevance over keyword density, improving both SEO and user experience."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement structured data (Schema Markup) for LocalBusiness, Service, and Review types.",
+          "rationale": "Schema markup helps search engines better understand the content, leading to richer search results (rich snippets) for local searches, service offerings, and testimonials, improving visibility and CTR."
+        },
+        {
+          "priority": "Minor",
+          "action": "Ensure a single, clear H1 tag is present at the top of the main content area, accurately describing the page's primary topic.",
+          "rationale": "A well-defined H1 improves content hierarchy for both users and search engines, aiding in topic understanding, accessibility, and overall page structure."
+        },
+        {
+          "priority": "Minor",
+          "action": "Review internal linking strategy to ensure all service pages and important sections are linked logically and descriptively.",
+          "rationale": "Effective internal linking helps distribute link equity, improves site navigation, and signals important content to search engines, enhancing crawlability and user journey."
+        }
+      ],
+      "raw_data": {
+        "title": "MSQ Carpentry | Best Carpentry Services | 2026",
+        "description": "Elevate your home with the Best Carpentry Services by Malibu Security. We master MSQ Carpentry projects. Get a free quote today..."
+      }
+    },
+    "created_at": "2026-06-30T09:03:42.267Z"
+  },
+  {
+    "id": "c2b51a38-4aa6-47b9-ab2b-9163d15d5dff",
+    "audit_request_id": "edbfc8a7-70ab-4f8c-884b-4fff80f1e8a9",
+    "input_url": "jcexteriorcleaning.ie",
+    "score": 75,
+    "report": {
+      "target_url": "https://jcexteriorcleaning.ie/",
+      "score": 75,
+      "domain_summary": "JC Exterior Cleaning is a fully insured and registered company based in Dublin, Ireland, specializing in commercial and residential exterior cleaning services. They offer a comprehensive range of services including window cleaning, gutter cleaning, pressure washing, fascia & soffit cleaning, soft washing, and roof cleaning, primarily serving Dublin and surrounding counties. The company emphasizes over 20 years of experience, professional-grade equipment, and strong customer satisfaction, evidenced by numerous positive Google reviews.",
+      "ux_score_breakdown": "The page structure appears to be user-friendly with clear navigation, prominent contact information, and multiple calls to action ('Get Quote', 'Call Us'). The presence of an 'About Us' section, detailed service descriptions, and customer testimonials enhances trust and provides relevant information. A '4-Step Cleaning Services' section simplifies the process for users. However, the extensive repetition of content blocks (hero section, service descriptions, testimonials, keyword lists) creates a cluttered and potentially confusing user experience, requiring excessive scrolling and making it difficult to find unique information. The 'Skip to content' link suggests good accessibility practices.",
+      "keyword_summary": "Estimated top keywords they rank for or should rank for based on content density:\n- **Primary Keywords**: \"JC Exterior Cleaning\", \"Exterior Cleaning Dublin\", \"Window Cleaning Dublin\", \"Gutter Cleaning Dublin\", \"Pressure Washing Dublin\".\n- **Secondary Keywords**: \"Fascia Soffit Cleaning Dublin\", \"Roof Cleaning Dublin\", \"Soft Washing Dublin\", \"Commercial Cleaning Dublin\", \"Residential Cleaning Dublin\", \"Power Washing Dublin\", \"Window Cleaner Dublin\", \"Property Cleaning Dublin\".\n- **Long-tail/Local Keywords**: \"Gutter Cleaning Services Dublin 15\", \"Window Cleaning Services Dublin 15\", \"Power Washing Services Dublin 15\", \"Power washing near me Dublin\".",
+      "technical_errors": [
+        "Extensive Content Duplication: The hero section, service descriptions, testimonials, and keyword lists are repeated multiple times within the same page, leading to significant internal content duplication.",
+        "Potential Title Tag Issue: The page title ends with '| 26', which appears to be an arbitrary number or an incomplete tag, potentially indicating a CMS issue or oversight.",
+        "Meta Description Grammatical Error: 'At JC Exterior Cleaning provide' should be corrected for better professionalism and clarity.",
+        "Future Copyright Date: The copyright notice states '© Copyright 2026', which is a future date and incorrect.",
+        "Developer Typo: 'WebZolve Marketin g' contains a typo in the developer credit.",
+        "Lack of Clear Heading Structure (Inferred): While sections are present, the scraped content doesn't explicitly show H1, H2, H3 tags. Given the repetition, there's a high likelihood of improper heading usage (e.g., multiple H1s, skipping heading levels).",
+        "Keyword Stuffing: The 'Our More Services :' sections, particularly the second instance with 'Dublin 15' appended to many keywords, borders on keyword stuffing and creates unnatural-sounding text.",
+        "HTML Entity Rendering: `&#8217;` and `&amp;` are present in the scraped text, suggesting these HTML entities are not being properly rendered or are being scraped as raw entities."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Immediately remove all instances of redundant and duplicated content. This includes the repeated hero sections, service descriptions, testimonial blocks, and keyword lists.",
+          "rationale": "Extensive internal content duplication is a major SEO penalty factor, diluting keyword relevance, wasting crawl budget, and severely impacting search engine rankings. It also creates a poor user experience."
+        },
+        {
+          "priority": "Critical",
+          "action": "Review and correct the page title to remove the trailing '| 26' and ensure it accurately reflects the page's primary focus and brand.",
+          "rationale": "An incomplete or arbitrary title tag can confuse search engines and users, negatively impacting click-through rates and perceived relevance."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement a clear and hierarchical heading structure (H1, H2, H3, etc.) throughout the page, ensuring only one H1 tag per page and logical progression of subheadings.",
+          "rationale": "Proper heading structure improves content readability for users and helps search engines understand the page's main topics and subtopics, contributing to better indexing and ranking."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Refine the meta description to correct the grammatical error ('At JC Exterior Cleaning provide' -> 'JC Exterior Cleaning provides') and ensure it is concise, compelling, and accurately summarizes the page content.",
+          "rationale": "A well-written meta description improves click-through rates from search results and presents a professional image."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Review and optimize the 'Our More Services :' sections to remove keyword stuffing. Integrate keywords naturally within descriptive text rather than listing them repetitively.",
+          "rationale": "Keyword stuffing can be penalized by search engines and creates a poor, unnatural reading experience for users. Natural language processing is key."
+        },
+        {
+          "priority": "Minor",
+          "action": "Correct the copyright date in the footer from '2026' to the current year (e.g., '2024').",
+          "rationale": "An incorrect copyright date can appear unprofessional or indicate a lack of attention to detail, potentially eroding user trust."
+        },
+        {
+          "priority": "Minor",
+          "action": "Correct the typo in the developer credit from 'WebZolve Marketin g' to 'WebZolve Marketing'.",
+          "rationale": "Small typos can detract from professionalism."
+        },
+        {
+          "priority": "Minor",
+          "action": "Ensure HTML entities like `&#8217;` and `&amp;` are correctly rendered as their respective characters (apostrophe and ampersand) in the displayed content.",
+          "rationale": "Proper rendering of special characters improves readability and professionalism."
+        }
+      ],
+      "raw_data": {
+        "title": "JC Exterior Cleaning | Best Window And Gutter Cleaning | 26",
+        "description": "At JC Exterior Cleaning provide commercial and residential property cleaning services in Dublin. We also provide gutter, and window Cleaning services Dublin."
+      }
+    },
+    "created_at": "2026-06-30T09:10:10.081Z"
+  },
+  {
+    "id": "ab4aa023-0d97-41bb-b42d-1eef23ffa8ac",
+    "audit_request_id": "73ca35c8-a0f4-4a40-8b43-4c9d6069e237",
+    "input_url": "k67plumbingandheating.ie",
+    "score": 55,
+    "report": {
+      "target_url": "https://k67plumbingandheating.ie/",
+      "score": 55,
+      "domain_summary": "K67 Plumbing & Heating is a local service business based in Swords, Co. Dublin, serving Dublin and surrounding areas. The website promotes a range of plumbing and heating services including boiler replacement, heat pump installation, underfloor heating, radiator installation, heating system installation, and bathroom renovations. The business claims over two decades of experience, emphasizing reliability, efficient installations, honest pricing, and quality workmanship. Contact information, including address, phone, and email, is prominently displayed. The site also mentions ownership by Celestin Andrei Buliga and development by WebZolve Marketing.",
+      "ux_score_breakdown": "The website features clear navigation with distinct sections for Home, About Us, Services, Gallery, and Contact Us. Call-to-actions like 'Get Free Quote' and 'Call Now' are present. Service offerings are well-listed, providing a good overview for users. However, several critical issues significantly detract from the user experience and trust: the '2026' date in the page title and copyright is confusing and unprofessional; the display of '0' for 'Running Projects', 'Happy Clients', 'K Award Winnings', and 'Team Members' severely undermines credibility and contradicts claims of extensive experience. Redundant information, such as repeated ownership mentions, also slightly impacts content quality. The 'gmail' and 'Location' text in the header/footer are not clearly actionable links, which is a minor UX oversight.",
+      "keyword_summary": "Based on content density, the website is well-positioned for local search terms related to plumbing and heating services in Dublin and Swords. Key estimated keywords include:\n- **Primary**: Plumbing & Heating Dublin, Boiler Services Dublin, Heat Pump Installation Dublin, Underfloor Heating Dublin, Bathroom Renovations Dublin, Plumber Dublin, Heating Engineer Dublin.\n- **Secondary**: Boiler Replacement Dublin, Radiator Installation Dublin, Heating System Installation Dublin, Local Plumbing Services Swords.\n- **Long-tail**: Reliable plumbing and heating services Dublin, Efficient boiler upgrades Dublin, Eco-friendly heat pump systems Dublin, Modern bathroom solutions Dublin. \nThe content effectively uses location-specific terms ('Dublin', 'Swords') alongside service keywords.",
+      "technical_errors": [
+        "Incorrect Year in Title Tag: '2026' is present, which is likely a placeholder or error, impacting relevance and trust.",
+        "Placeholder/Missing Social Proof Data: 'Running Projects 0', 'Happy Clients 0', 'K Award Winnings 0', 'Team Members 0' are displayed, severely undermining credibility.",
+        "Meta Description Encoding Issue: '&amp;' instead of '&' is used in the meta description.",
+        "Lack of Structured Data (Schema Markup): No explicit LocalBusiness or Service schema detected, missing a key opportunity for local SEO.",
+        "Poor Image Alt Text (Inferred): Image references like 'img2 Boiler Services Dublin' suggest generic or non-descriptive alt attributes.",
+        "Redundant Content: 'Owned by Celestin Andrei Buliga' appears multiple times.",
+        "Outdated Copyright Year: '2026' in the footer copyright is incorrect."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Update the page title to remove '2026' and ensure it accurately reflects the business and its services (e.g., 'K67 Plumbing & Heating | Best Plumbing & Heating Services Dublin').",
+          "rationale": "The current year in the title is confusing, unprofessional, and can negatively impact click-through rates and perceived relevance by search engines."
+        },
+        {
+          "priority": "Critical",
+          "action": "Immediately update or remove the 'Running Projects', 'Happy Clients', 'K Award Winnings', and 'Team Members' counters.",
+          "rationale": "Displaying '0' for these metrics severely damages user trust and credibility, contradicting claims of 'two decades' of experience. This is a major negative signal for both users and search engines."
+        },
+        {
+          "priority": "Critical",
+          "action": "Implement LocalBusiness and Service schema markup.",
+          "rationale": "Structured data helps search engines understand the business's services, location, and contact information, improving visibility in local search results and rich snippets."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Correct the '&amp;' to '&' in the meta description.",
+          "rationale": "Ensures proper rendering of the meta description in search results, improving professionalism."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Improve image alt text for all images on the site.",
+          "rationale": "Descriptive alt text enhances accessibility for visually impaired users and provides search engines with more context about image content, aiding SEO."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Expand content on dedicated service pages.",
+          "rationale": "Provides more in-depth information for users, allows for targeting a wider range of long-tail keywords, and establishes greater authority in specific service areas."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Enhance internal linking from the homepage to specific service pages.",
+          "rationale": "Improves site navigation, distributes link equity, and helps search engines discover and understand the hierarchy of content."
+        },
+        {
+          "priority": "Minor",
+          "action": "Update the copyright year in the footer to the current year (e.g., 2024).",
+          "rationale": "Maintains professionalism and indicates an actively managed website."
+        },
+        {
+          "priority": "Minor",
+          "action": "Review and reduce redundant content, such as repeated ownership mentions.",
+          "rationale": "Improves content quality and user experience."
+        },
+        {
+          "priority": "Minor",
+          "action": "Ensure 'gmail' and 'Location' in the header/footer are properly linked or clearly indicate their function.",
+          "rationale": "Improves user experience and accessibility of contact information."
+        }
+      ],
+      "raw_data": {
+        "title": "K67 Plumbing &amp; Heating | Best Plumbing Services | 2026",
+        "description": "K67 Plumbing &amp; Heating delivers reliable plumbing and heating services in &amp; Dublin — boilers, heat pumps, underfloor heating and bathrooms."
+      }
+    },
+    "created_at": "2026-06-30T09:13:43.280Z"
+  },
+  {
+    "id": "4346b181-14d2-4f2f-80a3-071cca58e245",
+    "audit_request_id": "1561e5cd-f079-4c79-8fe6-f55db98440bc",
+    "input_url": "everlastingroofingdublin.ie",
+    "score": 60,
+    "report": {
+      "target_url": "https://everlastingroofingdublin.ie/",
+      "score": 60,
+      "domain_summary": "Everlasting Roofing Dublin is a well-established roofing and guttering service provider operating in Dublin, Kildare, and surrounding areas in Ireland. They offer a comprehensive range of services for both commercial and domestic customers, including new roof installations, roof repair, storm damage repair, chimney repair, leak repair, Velux window installation, PVC fascia and soffit, gutter repair and maintenance, dry verge systems, and attic insulation. The company emphasizes over 20 years of experience, quality workmanship, competitive pricing, and customer satisfaction, backed by numerous positive testimonials. They are also members of the National Guild of Master Craftsmen.",
+      "ux_score_breakdown": "Based on the scraped content, the website appears to have a clear service offering and strong calls to action ('Get a quote', 'Request A Quote', 'Book Now'). Navigation seems comprehensive, listing all services. The inclusion of customer testimonials (Google reviews) provides excellent social proof, which is a strong UX element. Contact information (address, phone, email) is prominently displayed multiple times. The content is broken into logical sections (Who We Are, Why Choose Us, Latest Projects, Satisfied Customer, Our Services), improving readability. However, the significant repetition of large blocks of text (navigation, introductory paragraphs, CTAs, Guild information) creates a cluttered experience and can be frustrating for users trying to find unique information, negatively impacting overall UX.",
+      "keyword_summary": "The website targets a strong set of local and service-specific keywords. Primary keywords include 'Everlasting Roofing Dublin', 'Roofing Dublin', 'Roof Repair Dublin', 'Gutter Repair Dublin', 'Chimney Repair Dublin', 'Leak Repair Dublin', 'Storm Damage Repair Dublin', 'Velux Window Installation Dublin', 'PVC Fascia and Soffit Dublin', and 'Attic Insulation Dublin'. Secondary keywords extend to 'Roofing Kildare', 'Guttering Dublin', 'Commercial Roof Repairs Dublin', and 'Emergency Roof Dublin'. The content effectively incorporates these terms, often with geographical modifiers, indicating a clear intent to rank for local service queries.",
+      "technical_errors": [
+        "Severe On-Page Content Duplication: Large blocks of text, including navigation menus, introductory paragraphs, calls to action, and descriptive sections (e.g., 'National Guild of Master Craftsmen', 'Everlasting Roofing & Guttering is an Irish owned business...'), are repeated multiple times on the same page. This is a critical SEO issue.",
+        "Suboptimal Title Tag: The title 'Home | Best Everlasting Roofing Dublin | 2026' includes 'Home' which is generic, and '2026' which is a future year, making it appear outdated or incorrect.",
+        "Suboptimal Meta Description: The meta description starts with 'Home-' and could be more compelling and keyword-rich to improve click-through rates.",
+        "Incorrect Copyright Year: The copyright notice displays '© Copyright Everlasting Roofing & Guttering 2026.', which is a future year and indicates an error.",
+        "Potential Keyword Stuffing in Service Lists: The repetitive appending of 'Dublin' and 'Kildare' to almost every service listed in the footer/service section, while relevant, could be perceived as overly aggressive keyword usage.",
+        "Unconfirmed H1 Structure: Without HTML context, it's unclear if a single, descriptive H1 tag is used for the main page heading, which is important for page structure and SEO.",
+        "JavaScript Dependency for Contact Form: The explicit message 'Please enable JavaScript in your browser to complete this form.' suggests the contact form may not be accessible or functional for users (or bots) with JavaScript disabled."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Eliminate On-Page Content Duplication",
+          "rationale": "Extensive content duplication severely harms SEO by diluting page relevance, signaling low content quality to search engines, and potentially leading to penalties. Each piece of content should be unique and serve a distinct purpose."
+        },
+        {
+          "priority": "Critical",
+          "action": "Optimize Title Tag",
+          "rationale": "The current title is generic ('Home') and contains an incorrect future year ('2026'). A strong title tag is crucial for SEO and user click-through. It should be unique, descriptive, include primary keywords, and accurately reflect the page's content without errors."
+        },
+        {
+          "priority": "Critical",
+          "action": "Correct Copyright Year",
+          "rationale": "An incorrect future copyright year ('2026') can signal a lack of attention to detail or an outdated website to both users and search engines, potentially impacting trust and perceived freshness."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Improve Meta Description",
+          "rationale": "The meta description is an opportunity to entice users to click. It should be compelling, keyword-rich, and accurately summarize the page's value proposition, without generic prefixes like 'Home-'."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Review Keyword Density in Service Lists",
+          "rationale": "While targeting local services is good, the repetitive appending of 'Dublin' and 'Kildare' to every service in a list can appear unnatural. Refine the phrasing to be more organic while maintaining keyword relevance."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement Clear H1 Tag",
+          "rationale": "A single, descriptive H1 tag helps search engines understand the main topic of the page and improves accessibility. Ensure the most important heading on the page is marked as H1 and is unique."
+        },
+        {
+          "priority": "Minor",
+          "action": "Ensure Contact Form Accessibility",
+          "rationale": "Relying solely on JavaScript for a contact form can exclude users with JS disabled or certain search engine crawlers. Provide a fallback or ensure the form is accessible to all users."
+        }
+      ],
+      "raw_data": {
+        "title": "Home | Best Everlasting Roofing Dublin | 2026",
+        "description": "Home-Everlasting Roofing Dublin is proud to offer a whole host of professional roofing services to commercial and domestic customers"
+      }
+    },
+    "created_at": "2026-06-30T09:17:39.241Z"
+  },
+  {
+    "id": "375ac84e-d3ec-4788-9738-d86099cbd2e3",
+    "audit_request_id": "9bcbd906-1a42-4940-99e8-ffff5641d746",
+    "input_url": "martinpaintingdecorating.ie",
+    "score": 55,
+    "report": {
+      "target_url": "https://www.martinpaintingdecorating.ie/",
+      "score": 55,
+      "domain_summary": "Martin Painting Decorating is a painting and decorating company based in Ennis, County Clare, Ireland. They offer a comprehensive range of services including interior, exterior, house, commercial, artisan woodcraft, spray & hand painting, kitchen cabinet painting, pressure washing, and wallpapering. The company emphasizes professionalism, quality assurance, and customer service, positioning itself as a full-service provider for residential and commercial clients across various locations in Clare and potentially Limerick. They also highlight being a PDCA Certified Member and using eco-friendly practices.",
+      "ux_score_breakdown": "The website appears to have a clear navigation structure with distinct service categories, which is good for user experience. Contact information is readily available. However, the user experience is significantly hampered by content quality issues: there is verbatim repetition of service descriptions for 'Commercial Painting', 'Industrial Painting', and 'Domestic Painting', which can confuse users and make the content feel generic. The excessive repetition of 'Local Wallpaper Installation' and the dense list of locations without proper context also detract from readability and a smooth user journey. The '2026' in the title and copyright creates an immediate sense of outdatedness or error, impacting trust.",
+      "keyword_summary": "The website currently targets keywords such as 'painting services', 'painting company', 'interior painting', 'exterior painting', 'house painting', 'commercial painting', 'wallpapering', and 'pressure washing'. It heavily targets local keywords like 'Ennis', 'Clare', 'Shannon', 'Limerick', and a very extensive list of specific towns within County Clare. Key phrases include 'best painting services', 'professional painting services', 'painters decorators', and 'local wallpaper installation'. While the intent to target local services is clear, the execution often borders on keyword stuffing, particularly with the location list and repeated phrases.",
+      "technical_errors": [
+        "Incorrect year '2026' present in the page title, which is confusing and unprofessional.",
+        "Incorrect copyright year '2026' in the footer, indicating outdated information or a placeholder.",
+        "Significant content duplication across service descriptions (Commercial, Industrial, Domestic Painting have identical text).",
+        "Excessive keyword repetition/stuffing, particularly with 'Local Wallpaper Installation' and the extensive list of locations, which can negatively impact SEO.",
+        "Likely missing structured data (Schema Markup) for a local business, which could enhance visibility in local search results.",
+        "Meta description is functional but could be more compelling and include stronger unique selling propositions."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Update the page title to remove the incorrect year '2026'.",
+          "rationale": "The incorrect year in the title tag is confusing for users and search engines, potentially impacting click-through rates and perceived credibility."
+        },
+        {
+          "priority": "Critical",
+          "action": "Correct the copyright year in the footer from '2026' to the current year (e.g., 2024).",
+          "rationale": "An outdated or incorrect copyright year can signal to users and search engines that the website is not actively maintained, eroding trust."
+        },
+        {
+          "priority": "Critical",
+          "action": "Rewrite unique and descriptive content for each service category (e.g., Commercial Painting, Industrial Painting, Domestic Painting).",
+          "rationale": "Content duplication is a major SEO issue that can lead to lower rankings and a poor user experience. Unique content for each service will improve relevance and user engagement."
+        },
+        {
+          "priority": "Critical",
+          "action": "Address keyword stuffing by rephrasing repetitive phrases like 'Local Wallpaper Installation' and integrating the location list more naturally.",
+          "rationale": "Excessive keyword repetition can be penalized by search engines and makes the content difficult to read for users. Locations should be integrated into service area pages or a more descriptive 'areas we serve' section."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement LocalBusiness Schema Markup on the homepage and relevant service pages.",
+          "rationale": "Structured data helps search engines understand key business information (address, phone, services, hours), improving visibility in local search results and potentially enabling rich snippets."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Optimize the meta description to be more engaging, include a stronger unique selling proposition, and a clear call to action.",
+          "rationale": "A compelling meta description can significantly improve click-through rates from search results, even if it's not a direct ranking factor."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Expand on each service with more detailed descriptions, benefits, and examples of past work.",
+          "rationale": "Providing more in-depth, unique content for each service will enhance user value, improve keyword targeting, and establish the company as an authority in its field."
+        },
+        {
+          "priority": "Minor",
+          "action": "Enhance the visibility and variety of Calls to Action (CTAs) throughout the site.",
+          "rationale": "Clear and strategically placed CTAs (e.g., 'Get a Free Quote', 'Request a Consultation') guide users towards conversion goals, improving the site's effectiveness."
+        }
+      ],
+      "raw_data": {
+        "title": "Martin Painting Decorating | Best Painting Services | 2026",
+        "description": "The Martin Painting Decorating is a full-service interior and exterior painting company that believes in treating our customers like family."
+      }
+    },
+    "created_at": "2026-06-30T09:20:03.043Z"
+  },
+  {
+    "id": "c8f32642-5f3a-41f7-8de9-3f04097d8f7c",
+    "audit_request_id": "b3d83329-6d0f-49d5-932d-c40f4bc15cfa",
+    "input_url": "lukekavanaghlandscaping.ie",
+    "score": 75,
+    "report": {
+      "target_url": "https://lukekavanaghlandscaping.ie/",
+      "score": 75,
+      "domain_summary": "Luke Kavanagh Landscaping is a well-established, family-run business with over 20 years of experience, specializing in a comprehensive range of landscaping, garden design, and maintenance services. Based in Dublin, with a specific mention of Blackrock, Co. Dublin, the company offers services including site clearance, power washing, paving, tree surgery, and lawn care. The content emphasizes quality, personalized service, and customer satisfaction, supported by positive testimonials. The site aims to serve local clients seeking professional outdoor space transformations.",
+      "ux_score_breakdown": "The website appears to have a clear and intuitive navigation structure, with prominent contact information (phone, email, hours) and calls to action ('Get a Quote', 'Contact Us'). Service offerings are well-listed and described, and the inclusion of testimonials builds trust. A blog section suggests an effort towards providing valuable content. However, the repetition of navigation links in the scraped content might indicate a structural issue (e.g., sticky header duplication in raw text) that could impact screen reader users or content parsing. The presence of future dates in blog posts and the page title could also detract from user trust and perceived freshness.",
+      "keyword_summary": "The website is well-optimized for primary keywords such as 'Luke Kavanagh Landscaping', 'Landscaping Dublin', 'Garden Design Dublin', and 'Garden Maintenance Dublin'. It also targets specific service-related keywords like 'Power Washing Dublin', 'Paving Dublin', 'Tree Surgeon Dublin', 'Site Clearance Dublin', 'Lawn Maintenance Dublin', 'Garden Fencing Dublin', 'Grass Cutting Dublin', 'Hedge Trimming Dublin', 'Tree Removal Dublin', and 'Roof Cleaning Dublin'. There's good density for local intent, though more specific targeting for 'Blackrock, Co. Dublin' could be beneficial. The content effectively communicates the range of services offered, making it likely to rank for these terms.",
+      "technical_errors": [
+        "Incorrect year '2026' present in the page title and footer, which is a future date and likely a placeholder error.",
+        "Potential internal content duplication due to repeated navigation links in the scraped text, which could be a rendering issue or actual duplication.",
+        "Missing explicit H1 tag on the homepage (not identifiable in the scraped content, which is crucial for SEO hierarchy).",
+        "Blog posts are dated in the future (e.g., August 7, 2025, February 24, 2025), indicating placeholder content or a lack of current updates.",
+        "Lack of specific location targeting for 'Blackrock, Co. Dublin' in main content, despite being mentioned in the footer."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Correct the year '2026' in the page title and footer to the current year or remove it entirely.",
+          "rationale": "Using a future date is misleading, unprofessional, and can negatively impact user trust and search engine's perception of content freshness and accuracy."
+        },
+        {
+          "priority": "Critical",
+          "action": "Ensure a single, descriptive H1 tag is present on the homepage, clearly stating the primary topic (e.g., 'Luke Kavanagh Landscaping | Expert Garden Design & Maintenance in Dublin').",
+          "rationale": "An H1 tag is crucial for SEO, providing clear content hierarchy for search engines and users, and signaling the main topic of the page."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement LocalBusiness schema markup (e.g., Organization, LocalBusiness) to provide structured data about the business, services, and location.",
+          "rationale": "Schema markup enhances local search visibility, improves rich snippet potential in SERPs, and helps search engines better understand the entity and its offerings."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Expand the content on individual service pages and blog posts to provide more detailed information, FAQs, and target a wider range of long-tail keywords.",
+          "rationale": "More comprehensive content improves topical authority, user engagement, and increases the potential to rank for diverse and specific search queries."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Review and update blog post dates to reflect actual publication dates, avoiding future dates.",
+          "rationale": "Accurate dates improve credibility, signal content freshness to search engines, and build user trust. Placeholder dates can make the site appear neglected or untrustworthy."
+        },
+        {
+          "priority": "Minor",
+          "action": "Add descriptive alt text to all images on the website.",
+          "rationale": "Alt text improves accessibility for screen reader users, provides context for search engines, and can boost image search SEO."
+        },
+        {
+          "priority": "Minor",
+          "action": "Integrate more specific location-based keywords, such as 'Landscaping Blackrock Dublin' or 'Tree Surgeon Blackrock', into relevant content sections.",
+          "rationale": "Enhances hyper-local search visibility, helping the business attract customers in its immediate service area more effectively."
+        }
+      ],
+      "raw_data": {
+        "title": "Luke Kavanagh Landscaping | Best Gardening Services | 2026",
+        "description": "Luke Kavanagh Landscaping, Luke Kavanagh Landscape Gardener is a well-established, family-run business with over 20 years of experience in Landscaping Services."
+      }
+    },
+    "created_at": "2026-06-30T09:26:24.321Z"
+  },
+  {
+    "id": "81bcd3ba-816f-4ff6-ab62-77fb9b0d1174",
+    "audit_request_id": "70a1deef-2083-4b40-8ade-e8eaba1e8f9b",
+    "input_url": "stylishbathrooms.ie",
+    "score": 75,
+    "report": {
+      "target_url": "https://stylishbathrooms.ie/",
+      "score": 75,
+      "domain_summary": "Stylish Bathrooms is a Dublin-based company specializing in comprehensive bathroom renovation, remodeling, fitting, tiling, and design services. The website emphasizes over 10 years of experience, a focus on quality, attention to detail, and customer satisfaction. They highlight expertise in various tiling materials and offer a full suite of services including design, installation, and qualified tradespeople (tilers, carpenters, plumbers, electricians). The site features strong social proof through numerous positive Google reviews, reinforcing trust and credibility for potential clients in the Dublin area.",
+      "ux_score_breakdown": "The website appears to offer a generally positive user experience. Key strengths include clear navigation, prominent calls to action, and strong social proof through integrated Google reviews, which builds immediate trust. The 'Why choose us' section effectively addresses common customer concerns. However, the repetitive content on the homepage slider might reduce engagement, and the '2026' placeholder in the title and copyright could cause minor confusion or appear unprofessional. Minor typos ('Our aims is', 'Oualified Electricians') also slightly detract from the overall professional image. The clear listing of services and contact information contributes positively to usability.",
+      "keyword_summary": "Based on the content density, the website is strongly optimized for keywords related to bathroom renovation and services in Dublin. \n\n**Primary Keywords:** bathroom renovations Dublin, bathroom remodeling Dublin, bathroom fitters Dublin, bathroom installers Dublin, tiling Dublin, bathroom designs Dublin, bathroom refurbishment Dublin.\n\n**Secondary Keywords:** professional remodeling services Dublin, modern bathroom Dublin, elegant bathroom Dublin, functional bathroom Dublin, qualified tilers Dublin, qualified plumbers Dublin, qualified electricians Dublin, commercial tiling Dublin, domestic tiling Dublin, under floor heating Dublin.\n\n**Long-tail/LSI Keywords:** transform your bathroom Dublin, innovative bathroom ideas Dublin, flawless tiles Dublin, bathroom furniture Dublin, elegant bathroom designs Dublin, complete bathroom comfort Dublin, bathroom renovation company Dublin, best renovation company Dublin, bathroom remodel Dublin reviews.",
+      "technical_errors": [
+        "Incorrect/Placeholder Title Tag: The title 'Home | Best Renovation Company | 2026' is generic, includes a redundant 'Home |', and features a future year '2026' which is likely an error.",
+        "Redundant Meta Description Prefix: The meta description starts with 'Home ,', which is unnecessary.",
+        "Future Copyright Date: The copyright notice '© Copyright 2026.' uses a future date, indicating a placeholder or error.",
+        "Minor Typos: 'Our aims is' and 'Oualified Electricians' are present in the content.",
+        "Potential for Missing Structured Data: No explicit indication of LocalBusiness, Service, or Review schema markup, which would be highly beneficial for a local service business with reviews.",
+        "Potential for Missing Image Alt Text: While not directly visible in scraped text, the presence of sliders ('X Slide 1') suggests images that may lack descriptive alt attributes.",
+        "Limited Content Depth on Service Pages (Inferred): While services are listed, dedicated, in-depth pages for each service (e.g., 'Tiling Services', 'Bathroom Design Process') could be expanded for better keyword targeting and user engagement."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Optimize Title Tag",
+          "rationale": "The current title tag is generic, includes a redundant 'Home |', and features an incorrect future year ('2026'). A well-optimized title tag is crucial for search engine rankings and click-through rates. It should be specific, keyword-rich, and accurately reflect the page content and target location."
+        },
+        {
+          "priority": "Critical",
+          "action": "Correct Copyright Date",
+          "rationale": "The copyright year '2026' is incorrect and unprofessional. This should be updated to the current year to maintain credibility and accuracy."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Refine Meta Description",
+          "rationale": "Remove the redundant 'Home ,' from the beginning of the meta description. While the rest of the description is good, this minor cleanup improves professionalism and conciseness."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement Structured Data Markup",
+          "rationale": "Add LocalBusiness, Service, and Review schema markup. This will help search engines better understand the business, its services, and its excellent reviews, potentially leading to rich snippets in SERPs and improved local SEO visibility."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Expand Service Page Content",
+          "rationale": "Develop more comprehensive and detailed content for individual service pages (e.g., 'Bathroom Renovations', 'Tiling', 'Bathroom Designs'). This allows for better targeting of specific long-tail keywords, provides more value to users, and establishes the site as an authority in each service area."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Verify and Optimize H1 Tag",
+          "rationale": "Ensure a single, clear, and keyword-rich H1 tag is present on the homepage. While 'Welcome to Stylish Bathrooms' is likely the H1, confirming its proper implementation and ensuring it includes primary keywords will improve on-page SEO."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement Descriptive Image Alt Text",
+          "rationale": "Ensure all images, especially those in sliders and project galleries, have descriptive alt text. This improves accessibility for users with screen readers and provides SEO value by giving search engines context about the images."
+        },
+        {
+          "priority": "Minor",
+          "action": "Proofread and Correct Typos",
+          "rationale": "Correct minor grammatical errors and typos such as 'Our aims is' and 'Oualified Electricians'. While small, these errors can detract from the professional image of the business."
+        },
+        {
+          "priority": "Minor",
+          "action": "Vary Homepage Slider Content",
+          "rationale": "The current slider content is repetitive. Varying the messages across slides to highlight different services, unique selling points, or customer benefits can make the homepage more engaging and informative for visitors."
+        }
+      ],
+      "raw_data": {
+        "title": "Home | Best Renovation Company | 2026",
+        "description": "Home , Renovate your bathroom with professional remodeling services in Dublin. Create a modern, elegant, and functional space ."
+      }
+    },
+    "created_at": "2026-06-30T09:29:54.007Z"
+  },
+  {
+    "id": "03b60a9c-86eb-42a2-838f-554059082e77",
+    "audit_request_id": "58a0fca7-34d5-49b1-a46e-f8774ff058ac",
+    "input_url": "woodpinetreecare.ie",
+    "score": 65,
+    "report": {
+      "target_url": "https://woodpinetreecare.ie/",
+      "score": 65,
+      "domain_summary": "Woodpine Tree Care & Landscaping is a local service provider offering a comprehensive range of tree care, landscaping, and property maintenance services. Their target audience includes both domestic and commercial clients across County Mayo, Galway, Sligo, Clare, Roscommon, and Shannonbridge co. Offaly, Ireland. The website emphasizes professionalism, reliability, affordability, and expertise, aiming to create 'green dream homes' and transform outdoor spaces.",
+      "ux_score_breakdown": "The website structure, as inferred from the scraped content, suggests a clear navigation menu and prominent calls to action (e.g., 'ASK QUOTE', 'Book Our Team', 'Request A Quote'). The inclusion of client testimonials with Google review verification provides strong social proof, enhancing trust. Contact information (phone, email, WhatsApp) is readily available. However, the user experience is likely hampered by significant on-page content repetition, specifically the 'ABOUT WOOD PINE TREE CARE & LANDSCAPING SERVICES' section appearing twice. Additionally, the footer contains an extremely long and repetitive list of location-specific services, which, while intended for SEO, could overwhelm users and appear spammy, negatively impacting readability and perceived professionalism. The '2026' year in the page title and copyright also creates an odd, potentially confusing impression.",
+      "keyword_summary": "The website targets primary keywords such as 'Tree Care', 'Landscaping', 'Tree Cutting', 'Hedge Cutting', 'Garden Maintenance', 'Tree Surgery', and 'Fencing'. Secondary service keywords include 'Gutter Cleaning', 'Driveway Cleaning', 'Roof Cleaning', and 'Patios'. A strong emphasis is placed on geographic keywords, specifically 'Mayo', 'Galway', 'Sligo', 'Clare', 'Roscommon', and 'Shannonbridge co.offaly', often combined with service terms (e.g., 'Tree Services Mayo', 'Hedge Cutting Galway'). However, the footer exhibits severe keyword stuffing with excessive, repetitive combinations of services and locations, which is detrimental to SEO and user experience.",
+      "technical_errors": [
+        "Incorrect Year in Page Title: The title tag includes '2026', which is likely an error or placeholder and should be the current year or removed.",
+        "Keyword Stuffing: The footer contains an excessive and repetitive list of location-specific service keywords (e.g., 'Driveway Cleaning Galway' repeated multiple times), which is a black-hat SEO tactic that can lead to penalties.",
+        "On-Page Content Duplication: The 'ABOUT WOOD PINE TREE CARE & LANDSCAPING SERVICES WE'll HELP YOU TO CREATE YOUR DREAM GARDEN' section appears twice with identical content on the same page.",
+        "Inferred Missing H1 Tag: While there's a prominent 'Welcome to Wood Pine Tree Care & Landscaping PROFESSIONAL TREE CARE & LANDSCAPING', the scraped text doesn't confirm it as an H1, which is crucial for page structure and SEO.",
+        "Missing Schema Markup (Inferred): No explicit mention of structured data like LocalBusiness schema, which would greatly benefit local SEO for a service business.",
+        "Incorrect Copyright Year: The footer displays 'Copyright © 2026', which should be updated to the current year."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Correct the year in the page title and copyright information.",
+          "rationale": "The '2026' year is confusing and unprofessional. It should be updated to the current year to reflect accuracy and maintain trust with users and search engines."
+        },
+        {
+          "priority": "Critical",
+          "action": "Remove all instances of keyword stuffing, especially the repetitive service/location combinations in the footer.",
+          "rationale": "Excessive keyword repetition is a black-hat SEO tactic that can lead to manual penalties or algorithmic demotion, severely harming search rankings. Keywords should be integrated naturally into the content."
+        },
+        {
+          "priority": "Critical",
+          "action": "Eliminate on-page content duplication.",
+          "rationale": "Having identical blocks of text on the same page can dilute keyword relevance, make the content appear thin, and negatively impact user experience. Consolidate or rephrase duplicated sections."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement LocalBusiness schema markup.",
+          "rationale": "Structured data helps search engines understand key information about the business (address, phone, services, reviews), improving visibility in local search results, knowledge panels, and rich snippets."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Ensure a clear and unique H1 tag is present on the page.",
+          "rationale": "The H1 tag is a critical on-page SEO element that signals the main topic of the page to search engines and users. It should be descriptive and contain primary keywords."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Expand and diversify content for individual service pages.",
+          "rationale": "While services are listed, dedicated pages with more detailed descriptions, FAQs, case studies, and relevant keywords for each service (e.g., 'Tree Surgery', 'Gutter Cleaning') would improve depth and targeting."
+        },
+        {
+          "priority": "Minor",
+          "action": "Review and refine content for natural language flow and readability.",
+          "rationale": "While the content is informative, reducing repetition and ensuring a smooth reading experience will improve user engagement and indirectly benefit SEO."
+        }
+      ],
+      "raw_data": {
+        "title": "Woodpine Tree Care | Best Tree Care and Landscaping | 2026",
+        "description": "Woodpine Tree Care offers expert tree care &amp; landscaping services for homes and businesses. Reliable, affordable, and professional. Contact Woodpine Tree Care"
+      }
+    },
+    "created_at": "2026-06-30T09:34:00.136Z"
+  },
+  {
+    "id": "766bd497-bff5-4f85-b472-6504c6d928bd",
+    "audit_request_id": "118868d7-01fb-4215-9af3-55a00d9d510c",
+    "input_url": "mageepestcontrol.ie",
+    "score": 75,
+    "report": {
+      "target_url": "https://mageepestcontrol.ie/",
+      "score": 75,
+      "domain_summary": "Magee Pest Control is a locally-owned and operated pest control service based in Dublin, Ireland, with over a decade of experience. The website targets both residential and commercial clients, offering a comprehensive range of pest extermination services including treatment for wasps, rodents, bed bugs, cockroaches, woodworm, silverfish, and more. The content emphasizes professionalism, safety, efficiency, and local expertise, aiming to build trust with potential customers in the Dublin area.",
+      "ux_score_breakdown": "Based on the scraped content, the website appears to have a clear and functional structure. The navigation is straightforward, listing key services and contact options. Prominent calls to action (phone numbers, 'Call Now') are present, which is good for user conversion. The inclusion of client testimonials builds social proof and trust. The content is organized with headings for different pest types and reasons to choose their service, making it easy for users to find relevant information. However, the repetitive 'Our Services' sections in the footer could be streamlined for a cleaner user experience and better information hierarchy.",
+      "keyword_summary": "The website is well-optimized for local pest control services in Dublin and Ireland. \n\n**Primary Keywords:** 'Pest Control Dublin', 'Pest Control Ireland', 'Magee Pest Control'.\n\n**Secondary Keywords:** 'Wasp Control Dublin', 'Rodent Control Dublin', 'Bed Bug Removal Dublin', 'Cockroach Removal Dublin', 'Woodworm Control Dublin', 'Silverfish Control Dublin', 'Commercial Pest Control Dublin', 'Emergency Pest Control Dublin', 'Wildlife Removal Dublin', 'Pest Control Near Me Dublin'.\n\n**Long-tail Keywords:** 'Expert pest control services Dublin', 'Professional pest control services in Ireland', 'Rat control service Dublin', 'Pest control company Dublin', 'Eco-friendly pest control Dublin'.\n\nThe content effectively uses these keywords throughout the body, headings, and service listings, indicating a strong intent to rank for these terms.",
+      "technical_errors": [
+        "Page Title Error: The page title contains an extraneous '|26' at the end, which is likely an error or leftover from a template and should be removed.",
+        "Repetitive Footer Content: The 'Our Services' list is repeated multiple times in the footer with slight variations, leading to internal content duplication and a less optimal user experience.",
+        "Lack of Structured Data (Schema Markup): There is no explicit mention of LocalBusiness, Service, or Review schema markup in the scraped content, which is a significant missed opportunity for local SEO and rich snippets.",
+        "Underutilized Blog: A 'Blog' link is present in the navigation and footer, but no blog content is provided in the scrape, suggesting it might be empty or not actively used for content marketing and SEO.",
+        "Potential H1 Optimization: While there are strong headings like 'PROFESSIONAL PEST CONTROL SERVICES IN IRELAND', it's not explicitly confirmed as an H1 tag in the scrape. Ensuring a single, optimized H1 is crucial."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Correct the Page Title Tag",
+          "rationale": "The '|26' at the end of the title 'Magee Pest Control Dublin | Expert Pest Control Services |26' is unprofessional and can negatively impact click-through rates (CTR) in search results. It should be removed or replaced with a more relevant separator or brand element."
+        },
+        {
+          "priority": "Critical",
+          "action": "Implement Structured Data (Schema Markup)",
+          "rationale": "Add LocalBusiness schema markup to provide search engines with explicit information about the business (address, phone, opening hours, services). Also, implement Service schema for individual pest control services and Review schema for the testimonials to enhance visibility in local search results and potentially gain rich snippets."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Optimize Meta Description",
+          "rationale": "While present, the meta description could be more compelling. Focus on a stronger call to action and highlight unique selling propositions (USPs) beyond just contact information. Ensure it accurately reflects the page content and encourages clicks."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Streamline Footer Content",
+          "rationale": "Consolidate the multiple 'Our Services' sections in the footer into a single, well-organized list. This improves user experience, reduces internal content duplication, and helps search engines better understand the site's structure."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Develop and Utilize Blog Content",
+          "rationale": "Leverage the existing 'Blog' section to publish informative articles related to pest control, local pest issues, prevention tips, and company news. This will attract organic traffic for informational queries, establish authority, and provide fresh content for search engines."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Ensure Proper H1 Tag Implementation",
+          "rationale": "Verify that the main heading on the page ('PROFESSIONAL PEST CONTROL SERVICES IN IRELAND' or similar) is correctly marked as an H1 tag. Ensure there is only one H1 per page and that it contains primary keywords relevant to the page's content."
+        },
+        {
+          "priority": "Minor",
+          "action": "Review Internal Linking Strategy",
+          "rationale": "While internal links are present, ensure that all service pages linked from the homepage and footer have sufficient, unique content. Consider adding more contextual internal links within the body content to relevant service pages."
+        },
+        {
+          "priority": "Minor",
+          "action": "Add Alt Text to Images",
+          "rationale": "Although not visible in the scraped text, ensure all images on the website have descriptive alt text. This improves accessibility for users with screen readers and provides search engines with additional context about the image content, aiding in image search rankings."
+        }
+      ],
+      "raw_data": {
+        "title": "Magee Pest Control Dublin | Expert Pest Control Services |26",
+        "description": "Contact us now for a no obligation pest control survey, and treatment for Magee pest control Dublin on 0873421522. Expert solutions for wasps, bed bugs, rodents, ants, and more."
+      }
+    },
+    "created_at": "2026-06-30T09:39:13.909Z"
+  },
+  {
+    "id": "77ae4a74-8a95-4362-bf45-afc017d455c4",
+    "audit_request_id": "6b3430c0-14c0-4b10-ae39-8537cdc4b0da",
+    "input_url": "theatticexperts.ie",
+    "score": 75,
+    "report": {
+      "target_url": "https://theatticexperts.ie/",
+      "score": 75,
+      "domain_summary": "The Attic Experts is a service-based business specializing in attic conversions, loft conversions, and related carpentry work (wardrobes, Velux windows, roof repairs) in Dublin and Kildare, Ireland. The website highlights their expertise in custom solutions, a 10-year structural guarantee, and professional tradesmen. It provides clear contact information and showcases client testimonials and past projects.",
+      "ux_score_breakdown": "The website presents a clear service offering and prominent contact details, which are positive for user experience. Navigation appears straightforward with a standard menu. The inclusion of client feedback and a 'Our Work' section helps build trust. However, the lack of a meta description negatively impacts how the site appears in search results, potentially reducing click-through rates. The content, while present, could benefit from better formatting (more headings, bullet points) to improve scannability and readability. The message regarding JavaScript for the contact form suggests a potential accessibility hurdle for some users, which is a minor UX concern.",
+      "keyword_summary": "Based on the content density, the site currently ranks or should aim to rank for keywords such as: 'Attic Conversion Dublin', 'Attic Conversion Kildare', 'Loft Conversion Dublin', 'Dormer Attic Conversion Dublin', 'Attic Conversion Cost Dublin', 'Attic Experts', 'Attic Contractor Dublin', 'Velux Roof Windows Installation', 'Roof Repairs Dublin', 'Attic Stairs Installation'. Location-specific terms like 'Dormer Attic Conversion Blessington' and 'Attic Conversion Blessington' are also prominent.",
+      "technical_errors": [
+        "Missing Meta Description: The meta description tag is empty, which is a critical SEO oversight.",
+        "Suboptimal Page Title: The page title 'The Attic Experts &#8211; Carpentry' is not fully optimized for primary services and location, potentially missing out on relevant search queries.",
+        "Minor Keyword Stuffing/Redundancy: The footer's 'Our Services' list repeats 'Velux Roof Windows Blessington' multiple times, which can appear spammy and negatively impact user experience.",
+        "JavaScript Dependency for Contact Form: The message 'Please enable JavaScript in your browser to complete this form' indicates the contact form might not be accessible or functional for users with JavaScript disabled, potentially hindering lead generation and accessibility.",
+        "Lack of Structured Data (Inferred): There is no visible evidence of Schema.org markup for LocalBusiness, Services, or Reviews, which could enhance SERP visibility."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Add a compelling Meta Description.",
+          "rationale": "A well-crafted meta description (150-160 characters) is crucial for attracting clicks from search results. It should summarize the page content, include primary keywords, and offer a clear value proposition."
+        },
+        {
+          "priority": "Critical",
+          "action": "Optimize the Page Title.",
+          "rationale": "Revise the page title to be more descriptive and keyword-rich, focusing on primary services and target locations (e.g., 'Attic Conversions & Loft Conversions Dublin & Kildare | The Attic Experts'). This improves relevance for search engines and users."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement Structured Data (Schema Markup).",
+          "rationale": "Adding Schema.org markup for 'LocalBusiness', 'Service', and 'Review' can help search engines better understand the website's offerings, potentially leading to rich snippets in SERPs and improved visibility."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Improve Content Structure and Readability.",
+          "rationale": "Break down large blocks of text using more headings (H2, H3), bullet points, and shorter paragraphs. This enhances user experience by making the content easier to scan and digest, and can also help with keyword targeting for specific sections."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Address JavaScript Dependency for Contact Form.",
+          "rationale": "Ensure the contact form is accessible and functional for all users, even those with JavaScript disabled, or provide a clear, non-JavaScript alternative (e.g., direct email link) to prevent potential lead loss and improve accessibility."
+        },
+        {
+          "priority": "Minor",
+          "action": "Refine Footer Services List.",
+          "rationale": "Remove the repetitive entries for 'Velux Roof Windows Blessington' in the footer. This improves the user experience, makes the list more professional, and avoids potential negative signals for keyword stuffing."
+        },
+        {
+          "priority": "Minor",
+          "action": "Expand and Diversify Content.",
+          "rationale": "Consider adding dedicated service pages for each offering (e.g., 'Attic Conversion Cost Dublin', 'Dormer Attic Conversion') or a blog section with articles addressing common questions, case studies, and industry insights. This builds authority and provides more opportunities for keyword targeting."
+        }
+      ],
+      "raw_data": {
+        "title": "The Attic Experts &#8211; Carpentry",
+        "description": ""
+      }
+    },
+    "created_at": "2026-06-30T09:45:57.760Z"
+  },
+  {
+    "id": "db039e56-6166-43f8-b4e4-c1f8df65d6bf",
+    "audit_request_id": "9c93b0dd-7df3-4f46-9ace-fc6be8ab8fae",
+    "input_url": "mtwindowtintingdublin.ie",
+    "score": 45,
+    "report": {
+      "target_url": "https://mtwindowtintingdublin.ie/",
+      "score": 45,
+      "domain_summary": "MT Window Tinting And MT Motor Cars operates as a dual-service business in Dublin, Ireland, offering automotive services such as window tinting, caliper painting, and headlight polishing, alongside buying and selling used cars. The website aims to serve the local Dublin community, as indicated by the URL and numerous content mentions of 'Dublin' and 'Walkinstown, Co. Dublin'. However, a significant inconsistency exists with the meta description incorrectly stating the business is located in 'USA'. The site features car listings, service descriptions, customer testimonials, and contact information.",
+      "ux_score_breakdown": "The website's UX is hampered by significant content repetition, particularly for car listings and service descriptions, which can make the page feel cluttered and overwhelming. While navigation appears clear with a well-defined menu, the sheer volume of duplicated text (e.g., multiple identical car listings, repeated service paragraphs) creates a poor user experience, requiring excessive scrolling and making it difficult to find unique information. The presence of placeholder content like '0 Years of experience' also detracts from credibility. The conflicting location information (Dublin vs. USA) in the meta description is a critical trust and usability issue. Call-to-actions are present and clear, but the overall content presentation needs substantial refinement for better user engagement.",
+      "keyword_summary": "Based on the content density, the website primarily targets keywords related to its core services and location. Top estimated keywords include: 'Window Tinting Dublin', 'Car Tinting Dublin', 'Used Cars Dublin', 'Second Hand Cars Dublin', 'Caliper Painting Dublin', 'Polish Headlights Dublin', 'Headlight Restoration Dublin', 'Car Dealer Dublin', 'Auto Repair Dublin'. Secondary keywords include specific car models like 'BMW 1 series Dublin', 'Volkswagen Polo Dublin', 'Renault Lutecia Dublin', 'Honda Shuttle Dublin', 'Dacia Duster Dublin', and 'Nissan Note Dublin', due to the repeated listings. The brand name 'MT Window Tinting' and 'MT Motor Cars' are also prominent.",
+      "technical_errors": [
+        "Meta Description Mismatch: The meta description incorrectly states the business is in 'USA' while the URL and content clearly indicate 'Dublin, Ireland'. This is a critical geo-targeting error.",
+        "Title Tag Issues: The title tag includes '2026' which appears to be a placeholder or an error, and 'Best Car Dealer' might be an over-optimization attempt or not fully descriptive of all services.",
+        "Extensive Content Duplication: There is significant on-page content duplication, with multiple identical car listings and repeated service descriptions, which can dilute keyword relevance and signal low content quality to search engines.",
+        "Placeholder Content: Sections like '0 Years of experience', '0 k Vehicle Repaired', '0 Technicians & Workers', and '0 % Satisfied Customers' contain placeholder '0' values, indicating incomplete or unmaintained content.",
+        "HTML Entity Issues: Several HTML entities like `&#8211;`, `&amp;`, `&#8217;` are present in the scraped text, suggesting improper encoding or rendering in the source HTML.",
+        "Lack of Unique Car Listing Pages (Inferred): The repetition of car details suggests these might not be individual, crawlable pages, potentially missing out on long-tail keyword opportunities for specific car models.",
+        "Missing or Incomplete Schema Markup (Inferred): Given the placeholder '0' values in statistics and the nature of the business, it's highly probable that structured data (e.g., LocalBusiness, Car, Product, Review schema) is either missing or incorrectly implemented."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Correct the meta description immediately.",
+          "rationale": "The current meta description stating 'USA' is a severe geo-targeting error that will confuse search engines and users, preventing the site from ranking locally in Dublin, Ireland."
+        },
+        {
+          "priority": "Critical",
+          "action": "Update the page title tag.",
+          "rationale": "Remove the '2026' placeholder and refine the title to accurately reflect both 'Window Tinting' and 'Used Cars/Car Sales' in Dublin, ensuring it's descriptive and avoids potential over-optimization."
+        },
+        {
+          "priority": "Critical",
+          "action": "Remove or update all placeholder content.",
+          "rationale": "The '0' values for experience, vehicles repaired, technicians, and satisfied customers undermine credibility and professionalism. These should be updated with accurate figures or removed."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Address on-page content duplication.",
+          "rationale": "Consolidate repeated car listings into unique entries, ideally linking to dedicated product pages for each car. Similarly, consolidate and refine service descriptions to be unique and comprehensive, avoiding verbatim repetition. This improves content quality and user experience."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement or review structured data (Schema Markup).",
+          "rationale": "Utilize LocalBusiness schema for the business, and consider Car, Product, and Review schema for car listings and testimonials. This helps search engines understand the content better and can lead to rich snippets in SERPs."
+        },
+        {
+          "priority": "Minor",
+          "action": "Clean up HTML entities.",
+          "rationale": "Ensure proper character encoding to display special characters correctly (e.g., en dashes, apostrophes, ampersands) for better readability and a more professional appearance."
+        },
+        {
+          "priority": "Minor",
+          "action": "Enhance internal linking strategy.",
+          "rationale": "Ensure that each service and car listing has clear, unique internal links to dedicated pages (if created) to improve site architecture and distribute link equity effectively."
+        }
+      ],
+      "raw_data": {
+        "title": "MT Window Tinting And MT Motor Cars | Best Car Dealer | 2026",
+        "description": "MT Window Tinting And MT Motor Cars is a family owned and operated auto repair service in USA serving our local community and surrounding areas for 24 years."
+      }
+    },
+    "created_at": "2026-06-30T09:48:07.959Z"
+  },
+  {
+    "id": "e53a4259-e3c4-488b-a3e5-f1d2cfc17d59",
+    "audit_request_id": "de1b3e1a-6a9b-4e39-a1dd-8787564faa4b",
+    "input_url": "lrg.ie",
+    "score": 55,
+    "report": {
+      "target_url": "https://lrg.ie/",
+      "score": 55,
+      "domain_summary": "LRG (Leinster Roofing and Guttering) is a family-run business offering roofing and guttering services, including roof repair, flat roof repair, and guttering installation. They specialize in fibreglass roofing systems and operate in Dublin and Laois, serving the greater Leinster area. The website emphasizes quality workmanship, customer support, and competitive pricing, aiming to provide reliable solutions for residential and commercial roofing needs.",
+      "ux_score_breakdown": "The website features clear navigation, prominent contact information, and calls to action ('Get A Quote'). Testimonials from Google are integrated, which can build trust. Services are well-listed with links to more detailed pages, suggesting a structured approach. However, there are significant UX issues: repetitive content sections ('About Us', 'OUR FEATURE') suggest poor content management or a scraping artifact. The 'Years Of Experinse 0 Successful Project 0 Satisfied Clients 0' section is a major trust killer. A critical error is the mention of 'expert glass and door services in Dublin' which is completely irrelevant to roofing/guttering, severely undermining credibility. The '2026' in the title and copyright is confusing and unprofessional.",
+      "keyword_summary": "The website is well-optimized for core keywords such as 'roofing', 'guttering', 'roof repair', 'flat roof repair', and 'fibreglass roofing'. It effectively targets local searches with 'Dublin', 'Laois', and 'Leinster'. Secondary keywords include 'roof leak repair', 'guttering installation', 'waterproofing', 'ridge ventilation', and 'roofing solutions'. The content density supports these terms, indicating potential to rank for local service queries.",
+      "technical_errors": [
+        "Incorrect/Placeholder Title Tag: The title 'LRG | Best Fibreglass Roofing Dublin | 2026' includes a future year '2026', which is unusual and likely an error.",
+        "Suboptimal Meta Description: The meta description focuses only on 'Laois' for service areas, omitting 'Dublin' which is also a primary location mentioned on the page.",
+        "Content Duplication: Sections like 'About Us Locally operated and Family Owned Roofing and Remodeling' and 'OUR FEATURE Complete Rooftop Installation Services' appear twice in the scraped content, indicating potential on-page duplication.",
+        "Placeholder/Incorrect Content: The 'Years Of Experinse 0 Successful Project 0 Satisfied Clients 0' section displays zero values, which is detrimental to trust. Additionally, the phrase 'Get in touch today for expert glass and door services in Dublin' is irrelevant and incorrect for a roofing company.",
+        "Missing Schema Markup: No explicit Local Business or Service schema markup is visible, which could enhance local SEO visibility.",
+        "Potential H-tag Issues: While not explicitly shown, the content repetition might indicate a disorganized heading structure.",
+        "Outdated Copyright Year: The copyright year '2026' is a future date, which is incorrect and unprofessional."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Remove or correct the irrelevant 'glass and door services' text.",
+          "rationale": "This text is completely off-topic and severely damages the website's credibility and relevance for roofing services, confusing both users and search engines."
+        },
+        {
+          "priority": "Critical",
+          "action": "Update the 'Years Of Experinse 0 Successful Project 0 Satisfied Clients 0' section with accurate numbers or remove it entirely.",
+          "rationale": "Displaying zeros for experience, projects, and clients significantly erodes user trust and makes the business appear inexperienced or unreliable."
+        },
+        {
+          "priority": "Critical",
+          "action": "Correct the '2026' year in the page title and copyright notice.",
+          "rationale": "A future date in the title and copyright is confusing and unprofessional, potentially impacting user perception and search engine interpretation of content freshness."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Optimize the Meta Description to accurately reflect all primary service areas (Dublin and Laois) and be more compelling.",
+          "rationale": "A well-crafted meta description improves click-through rates from search results and provides a clearer summary of services and locations."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Review and eliminate any duplicate content sections on the page.",
+          "rationale": "Content duplication can dilute SEO value, make the page appear spammy to search engines, and negatively impact user experience."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement Local Business Schema Markup.",
+          "rationale": "Schema markup helps search engines better understand the business's information (address, phone, services, reviews), improving visibility in local search results and potentially rich snippets."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Expand and enrich content on individual service pages (Roof Repair, Flat Roof Repair, Guttering).",
+          "rationale": "More detailed, unique content on service pages can target a wider range of long-tail keywords, provide more value to users, and establish authority in specific service areas."
+        },
+        {
+          "priority": "Minor",
+          "action": "Conduct an audit of the H-tag structure to ensure logical hierarchy and keyword integration.",
+          "rationale": "A clear H-tag structure improves content readability for users and helps search engines understand the main topics and subtopics of the page."
+        }
+      ],
+      "raw_data": {
+        "title": "LRG | Best Fibreglass Roofing Dublin | 2026",
+        "description": "LRG(Leinster Roofing and Guttering ) Services offers professional roof repairs, gutter installations, and maintenance services throughout Laois."
+      }
+    },
+    "created_at": "2026-06-30T09:51:23.602Z"
+  },
+  {
+    "id": "6c8f546b-a9e4-4408-b890-237428e429d5",
+    "audit_request_id": "502f41b3-68b6-4878-ae02-437b096e2047",
+    "input_url": "mullenbrostiling.ie",
+    "score": 75,
+    "report": {
+      "target_url": "https://mullenbrostiling.ie/",
+      "score": 75,
+      "domain_summary": "Mullen Bros Tiling is an Irish tiling service based in Edenderry, Co. Offaly, serving the Leinster region. They specialize in a comprehensive range of tiling services for both commercial and domestic clients, including wall & floor tiling, bathroom refurbishment, tanking systems, new builds, grant & insurance work, and wet rooms. The website emphasizes expertise, quality, and customer satisfaction, featuring testimonials and clear contact information. The domain positions itself as a reliable and professional tiling contractor.",
+      "ux_score_breakdown": "The website appears to have a clear and logical navigation structure with distinct sections for Home, About Us, Services, Gallery, and Contact Us. Prominent calls to action like 'Book Appointment' and 'Request a Callback' are present. Customer testimonials provide strong social proof, enhancing trust. Contact details (phone, address, social links) are easily accessible. However, the overall content depth on the homepage is somewhat sparse, which might not fully engage users seeking detailed information. The 'Please enable JavaScript...' message for the callback form could indicate a less-than-optimal user experience if JavaScript is disabled, or simply a placeholder for the form itself. The '2026' in the title and copyright is confusing and unprofessional, potentially impacting user perception.",
+      "keyword_summary": "Based on content density, the website likely ranks or should aim to rank for keywords such as: 'Tiling Services Offaly', 'Best Tiling Services Ireland', 'Wall and Floor Tiling', 'Bathroom Refurbishment Offaly', 'Tanking Systems Ireland', 'Wet Rooms Leinster', 'Commercial Tiling', 'Domestic Tiling', 'Expert Tiler Offaly', 'Tiling Contractor Leinster'. Secondary keywords include 'Free Measuring Service', 'Grant & Insurance Tiling Work', and 'Quality Tiling'.",
+      "technical_errors": [
+        "Incorrect year in Page Title (2026)",
+        "Truncated or poorly written Meta Description (ends with '..........')",
+        "Thin content on the homepage, particularly for service descriptions",
+        "Incorrect copyright year in footer (2026)",
+        "Potential JavaScript dependency for the callback form, which could hinder crawlability or usability for some users",
+        "Broken HTML entities (e.g., '&amp;' instead of '&')",
+        "Lack of explicit Schema.org structured data for LocalBusiness, Services, or Reviews (inferred from scraped text)",
+        "Missing or non-descriptive image alt text (inferred from scraped text, common issue for sites with galleries/projects)"
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Update the Page Title",
+          "rationale": "The '2026' in the page title is confusing, unprofessional, and could negatively impact click-through rates and search engine interpretation. It should reflect the current year or be removed if not relevant."
+        },
+        {
+          "priority": "Critical",
+          "action": "Improve Meta Description",
+          "rationale": "The current meta description is truncated and ends abruptly. A well-crafted, keyword-rich meta description is crucial for attracting clicks from search results and accurately summarizing page content."
+        },
+        {
+          "priority": "Critical",
+          "action": "Expand Homepage Content",
+          "rationale": "The homepage content is relatively thin. Adding more detailed, unique, and engaging text about services, expertise, benefits, and the company's unique selling points will improve keyword relevance, user engagement, and search engine rankings."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement Schema.org Markup",
+          "rationale": "Adding structured data for LocalBusiness, Service, and Review will help search engines better understand the website's content, potentially leading to rich snippets in SERPs and improved local search visibility."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Correct Copyright Year",
+          "rationale": "The copyright year '2026' in the footer is incorrect. It should be updated to the current year (e.g., 2024) to maintain professionalism and accuracy."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Optimize Image Alt Text",
+          "rationale": "Ensure all images, especially those in 'Recent Projects' and 'Gallery', have descriptive alt text. This improves accessibility for visually impaired users and provides SEO value by giving search engines context about the images."
+        },
+        {
+          "priority": "Minor",
+          "action": "Review JavaScript Dependency for Forms",
+          "rationale": "While not a critical issue, ensuring the callback form's core functionality and content are accessible even if JavaScript is disabled can improve robustness and crawlability. At minimum, ensure the form's labels and instructions are crawlable."
+        },
+        {
+          "priority": "Minor",
+          "action": "Clean HTML Entities",
+          "rationale": "Replace instances of '&amp;' with '&' for cleaner HTML code. While browsers render it correctly, it's a best practice for code quality."
+        }
+      ],
+      "raw_data": {
+        "title": "Mullen Bros Tiling | Best Tiling Services | 2026",
+        "description": "Expert tiling for your home or business. Get the Best Tiling Services from Mullen Bros Tiling—fully guaranteed quality. Call us today.........."
+      }
+    },
+    "created_at": "2026-06-30T09:52:59.643Z"
+  },
+  {
+    "id": "f02ef370-c92c-412d-b8a5-ddd6f45f2015",
+    "audit_request_id": "e2dbe68f-6343-467e-bbd8-ed0998cb549a",
+    "input_url": "lynchbuilders.ie",
+    "score": 65,
+    "report": {
+      "target_url": "https://lynchbuilders.ie/",
+      "score": 65,
+      "domain_summary": "Lynch Builders is a family-owned construction and renovation company based in Dublin, Ireland. They specialize in a wide range of services including home renovation, repair, maintenance, roofing, carpentry, kitchen/bathroom renovation, and building extensions. The website emphasizes quality, expertise, and a professional approach, targeting both residential and commercial clients in Dublin and surrounding areas. The content suggests a focus on delivering 'affordable comfort' and 'high-end construction projects'.",
+      "ux_score_breakdown": "The website's structure provides clear navigation with a well-defined menu for services, about, gallery, and contact. Calls to action like 'Request A Quote' and 'Free Consultation' are present. Contact information (address, phone, email) is prominently displayed. However, the user experience is likely hampered by significant content repetition, particularly the 'WELCOME TO LYNCH BUILDERS' and 'WHO WE ARE CONSTRUCTION REPAIR Build New Building' sections, which can make the page feel redundant and less professional. The '2026' date in the title and copyright is confusing and unprofessional. The use of a personal Gmail address for business contact might also detract from perceived professionalism. Forms requiring JavaScript could be an accessibility issue for some users.",
+      "keyword_summary": "Based on the content density, Lynch Builders likely ranks or should rank for keywords such as 'building renovations Dublin', 'home renovation Dublin', 'roofing services Dublin', 'carpentry services Dublin', 'kitchen renovation Dublin', 'bathroom renovation Dublin', and 'building extension Dublin'. More specific long-tail keywords include 'bespoke furniture building Dublin', 'fitted hardwood wardrobes', 'insulation contractors South Dublin', and 'interior renovation South Dublin'. The content effectively incorporates geographic modifiers like 'Dublin', 'Dun Laoghaire', and 'South Dublin', indicating a strong local SEO focus.",
+      "technical_errors": [
+        "Incorrect copyright date (2026 in the future).",
+        "Incorrect year in page title (2026).",
+        "Significant content duplication (e.g., 'WHO WE ARE CONSTRUCTION REPAIR Build New Building' block repeated).",
+        "Repetitive heading-like phrases ('WELCOME TO LYNCH BUILDERS') which may indicate poor heading structure (multiple H1s or H2s).",
+        "Use of a personal Gmail address for primary business contact.",
+        "Non-standard and inconsistent phone number formatting.",
+        "Forms appear to be JavaScript-dependent, potentially impacting accessibility and crawlability for some users/bots."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Address and eliminate all instances of content duplication.",
+          "rationale": "Duplicate content severely harms SEO rankings by confusing search engines about the authoritative source and diluting keyword relevance. It also creates a poor user experience."
+        },
+        {
+          "priority": "Critical",
+          "action": "Correct the copyright date and the year in the page title to the current year.",
+          "rationale": "An incorrect future date (2026) in the title and copyright is unprofessional, misleading, and can negatively impact user trust and search engine perception of content freshness."
+        },
+        {
+          "priority": "Critical",
+          "action": "Review and optimize the website's heading (H1, H2, H3, etc.) structure.",
+          "rationale": "Proper heading structure improves content readability for users and helps search engines understand the hierarchy and main topics of the page. Repetitive headings are detrimental."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Replace the personal Gmail address with a professional, domain-specific email address.",
+          "rationale": "Using a professional email (e.g., info@lynchbuilders.ie) enhances brand credibility, trust, and professionalism, which can influence user perception and conversion rates."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Standardize and correctly format all phone numbers on the website.",
+          "rationale": "Consistent and correctly formatted phone numbers improve user experience, make it easier for potential clients to contact the business, and can be better recognized by local search algorithms."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Ensure all forms are accessible and functional without JavaScript, or provide clear fallback options.",
+          "rationale": "Relying solely on JavaScript for forms can exclude users with JS disabled and may hinder search engine bots from fully understanding form content, potentially impacting lead generation and crawlability."
+        },
+        {
+          "priority": "Minor",
+          "action": "Implement structured data (Schema Markup) for LocalBusiness, Service, and Review types.",
+          "rationale": "Schema markup helps search engines better understand the business, its services, and its reputation, leading to richer search results (rich snippets) and improved visibility in local search."
+        },
+        {
+          "priority": "Minor",
+          "action": "Expand and regularly update the testimonials section with more detailed client feedback.",
+          "rationale": "Robust testimonials build social proof and trust, which are crucial for converting visitors into clients. Fresh testimonials also signal an active and reputable business."
+        }
+      ],
+      "raw_data": {
+        "title": "Lynch Builders | Best Building Renovations Company | 2026",
+        "description": "Need the best building renovations? Lynch Builders delivers quality and expertise. Get a free quote today.."
+      }
+    },
+    "created_at": "2026-06-30T10:00:09.182Z"
+  },
+  {
+    "id": "c7ae5509-db3f-448b-be62-ad0636c8ac31",
+    "audit_request_id": "515fc621-0824-4333-a540-eb7cadb4daf1",
+    "input_url": "daojaithaitherapy.co.uk",
+    "score": 75,
+    "report": {
+      "target_url": "https://daojaithaitherapy.co.uk/",
+      "score": 75,
+      "domain_summary": "The website belongs to Daojai Thai Therapy, a massage service operating in London. It offers a variety of massage types including Thai, Swedish, Deep Tissue, Aromatherapy, Reflexology, and Sports massage. Services are available both incall (Victoria, London SW1E 5NE) and outcall (London Zone 1). The therapist, Daojai, is presented as experienced and qualified from reputable schools. The site provides service descriptions, pricing, contact information, booking options, and a blog section, emphasizing relaxation, stress relief, and a hygienic environment.",
+      "ux_score_breakdown": "The page structure appears well-organized with clear headings for services, pricing, about the therapist, and contact information, which aids readability and user navigation. Key information like location, contact details, and service types are prominent. The inclusion of therapist qualifications builds trust. However, repetitive use of the business name might feel slightly redundant. The presence of 'Please enable JavaScript' messages suggests reliance on JavaScript for forms, which could impact accessibility for some users or crawlers. Blog post dates being in the future and unusual author links ('Daojaithaitherapy.ie812') detract from professionalism and credibility.",
+      "keyword_summary": "Based on content density, the website likely ranks or should aim to rank for keywords such as: 'Daojai Thai Therapy', 'Thai Massage London', 'Incall Outcall London Zone 1', 'Massage London Victoria', 'Reflexology Massage London', 'Deep Tissue Massage London', 'Aromatherapy Massage London', 'Swedish Massage London', 'Sports Massage London', 'Massage therapist London', 'Home visit massage London', 'Relaxing massage London', 'Muscle tension relief London', 'Watpo Thai Traditional Medical Massage School'.",
+      "technical_errors": [
+        "Meta description is lengthy and appears keyword-stuffed, potentially exceeding optimal display limits.",
+        "Blog posts are dated in the future (e.g., March 20, 2025), which is incorrect and negatively impacts content freshness signals and credibility.",
+        "Blog post authors link to 'Daojaithaitherapy.ie812', indicating a potential domain mismatch, misconfiguration, or broken internal linking structure.",
+        "The copyright year in the footer is set to 2026, which is in the future and incorrect.",
+        "Reliance on JavaScript for forms ('Please enable JavaScript in your browser to complete this form.') might hinder accessibility and crawlability for some users/bots.",
+        "Repetitive use of 'Daojai Thai Therapy' in the content could be perceived as minor keyword stuffing or simply redundant, affecting natural language flow."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Update all blog post dates to reflect their actual publication dates.",
+          "rationale": "Future-dated content severely impacts credibility, content freshness signals, and can confuse users and search engines."
+        },
+        {
+          "priority": "Critical",
+          "action": "Investigate and correct the 'Daojaithaitherapy.ie812' issue in blog post authors/links.",
+          "rationale": "This indicates a misconfiguration, potential broken internal links, or a domain mismatch that can negatively impact SEO, user experience, and site authority."
+        },
+        {
+          "priority": "Critical",
+          "action": "Correct the copyright year in the footer to the current year (e.g., 2024).",
+          "rationale": "An incorrect future copyright year appears unprofessional and can undermine trust."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Rewrite the meta description to be more concise (under 155-160 characters), compelling, and less keyword-stuffed.",
+          "rationale": "An optimized meta description improves click-through rates (CTR) from search engine results pages (SERPs) and provides a better user experience."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Ensure that forms relying on JavaScript have appropriate fallbacks or server-side rendering for users with JavaScript disabled and for search engine crawlers.",
+          "rationale": "Improves accessibility for all users and ensures that form content and functionality are discoverable by search engines."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement Local Business Schema Markup (e.g., LocalBusiness, Service, Review).",
+          "rationale": "Enhances visibility in local search results, provides rich snippets, and helps search engines better understand the business's offerings and location, improving CTR."
+        },
+        {
+          "priority": "Minor",
+          "action": "Review the content for natural language flow, specifically reducing repetitive use of 'Daojai Thai Therapy' where it feels forced.",
+          "rationale": "Improves readability for users and avoids potential over-optimization signals that could negatively impact search engine rankings."
+        },
+        {
+          "priority": "Minor",
+          "action": "Ensure a clear and unique H1 tag is present on the page, distinct from the page title, that accurately reflects the main topic.",
+          "rationale": "A well-defined H1 improves page structure for both users and search engines, aiding in topic understanding and content hierarchy."
+        }
+      ],
+      "raw_data": {
+        "title": "Daojai Thai Therapy | Incall Outcall London Zone 1",
+        "description": "Reflexology Massage provides by Daojai Thai Therapy reduces muscle tension, is relaxing, and improves circulation of blood. Incall Outcall London Zone 1"
+      }
+    },
+    "created_at": "2026-06-30T10:01:56.419Z"
+  },
+  {
+    "id": "d22af809-a43c-49f9-ab6f-77591bfbee8e",
+    "audit_request_id": "ea8689a8-d299-4f43-94a8-3c7552031cd8",
+    "input_url": "crystalglazing.ie",
+    "score": 75,
+    "report": {
+      "target_url": "https://crystalglazing.ie/",
+      "score": 75,
+      "domain_summary": "Crystal Glazing is an emergency glass and window repair service based in Ireland, offering 24/7 callout services across Dublin, Meath, Wicklow, and Kildare. The business, led by glazier Larry Teeling with over 30 years of experience, specializes in a wide range of glazing services including double glazing, fire glazing, PVC windows & doors, shop windows, stained glass, and glass replacement. They are also a registered contractor for the 'Better Energy Homes' program, offering potential government subsidies for energy-efficient window and door installations in 2026. The company emphasizes prompt, professional, and personal service, backed by positive customer testimonials highlighting their efficiency and quality workmanship.",
+      "ux_score_breakdown": "The page content is structured to provide essential information clearly, with multiple contact numbers (including a dedicated emergency line) prominently displayed. The inclusion of customer testimonials from Google, verified by Trustindex, significantly builds trust and credibility. Services are listed comprehensively, and an 'Areas We Cover' section is beneficial for local users. The 'About Us' section introduces the experienced founder, adding a personal touch. However, there is noticeable repetition of service lists, SEAI grant information, and contact forms, which could make the page feel slightly cluttered or redundant to a user. The 'Skip to content' link suggests good accessibility considerations.",
+      "keyword_summary": "Based on content density, the primary keywords Crystal Glazing likely ranks for or should target include: 'Emergency Glass Repair', 'Window Repair Ireland', 'Emergency Glazing Dublin', '24/7 Glass Repair', 'Glass Replacement', 'Double Glazing', 'PVC Windows & Doors', 'Shop Window Repair', 'Stained Glass', 'Boarding Up Service'. Secondary and long-tail keywords include specific Dublin districts (e.g., 'Glass Repair Dublin 15'), 'SEAI Grant Windows', 'Patio Door Glass Replacement', and 'Fire Glazing'. The company name 'Crystal Glazing' is also a core brand keyword.",
+      "technical_errors": [
+        "Future Copyright Date: The copyright notice states 'Copyright © 2026', which is in the future.",
+        "Excessive Content Repetition: Key information such as service lists, SEAI grant details, and contact forms are repeated multiple times within the scraped content, which can negatively impact user experience and content quality signals.",
+        "Vague Address Information: The provided address 'Dublin, Ireland' is too general for optimal local SEO, lacking a specific street address or Eircode.",
+        "Generic Email Address: The use of a 'gmail.com' email address ('crystalglazingsales@gmail.com') instead of a domain-specific email ('@crystalglazing.ie') can sometimes be perceived as less professional or trustworthy by users and search engines."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Update the copyright year in the footer to the current year.",
+          "rationale": "An incorrect or future copyright date can make the website appear outdated or untrustworthy to both users and search engines."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Consolidate and optimize content to reduce repetition.",
+          "rationale": "Excessive content repetition can dilute keyword relevance, negatively impact user experience, and may be flagged as low-quality content by search engines. Streamlining information improves readability and focus."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement LocalBusiness Schema Markup.",
+          "rationale": "Structured data helps search engines better understand key business information (name, address, phone, opening hours, services, reviews), significantly improving local search visibility and rich snippet potential."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Provide a more specific physical address for the business.",
+          "rationale": "A precise street address is crucial for strong local SEO signals, helping the business rank for 'near me' searches and appear accurately on Google Maps and other local directories."
+        },
+        {
+          "priority": "Minor",
+          "action": "Consider transitioning to a domain-specific email address.",
+          "rationale": "Using an email address tied to the domain (e.g., info@crystalglazing.ie) enhances brand professionalism, trust, and consistency across all online touchpoints."
+        },
+        {
+          "priority": "Minor",
+          "action": "Review and optimize heading (H1, H2, H3) structure throughout the page.",
+          "rationale": "A clear heading hierarchy improves content readability for users and helps search engines understand the main topics and subtopics, contributing to better topical relevance and SEO performance."
+        }
+      ],
+      "raw_data": {
+        "title": "Emergency Glass And Window Repair - Crystal Glazing",
+        "description": "Crystal Glazing is your trusted partner for Emergency Glass and window Repair services in Ireland. Our dedicated team is available 24/7 for callout service."
+      }
+    },
+    "created_at": "2026-06-30T10:04:27.451Z"
+  },
+  {
+    "id": "04f41ff7-b865-4e56-8d32-e36abdf002ca",
+    "audit_request_id": "47041fc6-82d8-4745-a556-cbb9ef02bc4d",
+    "input_url": "archwoodconstructions.ie",
+    "score": 75,
+    "report": {
+      "target_url": "https://archwoodconstructions.ie/",
+      "score": 75,
+      "domain_summary": "Archwood Constructions (also referred to as Arch Woodworking & Building Construction) is an established building services contracting company based in Ireland. They specialize in a comprehensive range of domestic and commercial construction projects, including new builds, renovations, extensions, attic conversions, bathrooms, and steel installations. The company emphasizes a project-managed, turn-key solution, utilizing qualified, registered, and insured trade persons. They also assist clients with Home Energy and Assisted Living Grants. Operating across Dublin, Meath, and Louth, the website highlights their commitment to quality, client satisfaction, and a strong local reputation.",
+      "ux_score_breakdown": "The page structure appears to offer a generally positive user experience with clear navigation, prominent contact information, and a well-defined list of services. Testimonials and a 'Our Promise' section help build trust. However, the repetitive use of the company name in the main content could feel redundant to users. The '2026' date in the title and copyright is confusing and unprofessional, potentially eroding trust. The visible 'Skip to the content' text suggests potential accessibility or content display issues. The extensive, keyword-rich service list at the bottom, while good for SEO, might not be the most user-friendly presentation.",
+      "keyword_summary": "The website is strongly optimized for local building and renovation services in Ireland, specifically Dublin, Meath, and Louth. Key phrases include 'Archwood Constructions', 'Arch Woodworking & Building Construction', 'building services', 'building contractor', 'home renovations', 'home extensions', 'attic conversion', 'bathrooms', 'steel installations', and 'grants'. There's a high density of location-specific keywords like 'Extensions Dublin', 'Building Contractor Meath', 'Kitchen Renovations Dublin', and 'Steel Installers Meath', indicating a clear intent to rank for local search queries related to their services.",
+      "technical_errors": [
+        "Incorrect/Future Date in Title Tag: The title 'Archwood Constructions | Best Renovations Experts | 2026' contains a future year, which is misleading and unprofessional.",
+        "Generic Meta Description: The meta description is basic and doesn't fully leverage keywords or a compelling call to action.",
+        "Copyright Date Error: The copyright notice '© Copyright Archwood Construction 2026.' uses a future date.",
+        "Content Repetition: Excessive repetition of 'Archwood Constructions' and 'Arch Woodworking & Building Construction' in the main body content, which could be perceived as keyword stuffing.",
+        "Potential Accessibility Issue: 'Skip to the content Skip to content' is visible in the scraped text, suggesting a possible issue with hidden elements or screen reader navigation.",
+        "Missing Schema Markup (Likely): No explicit mention of structured data (e.g., LocalBusiness, Service, Review schema) in the scraped content, which is a missed opportunity for rich snippets and enhanced SERP visibility.",
+        "Unoptimized Heading Structure (Potential): While a main heading is present, the immediate repetition of company names suggests a less-than-optimal heading hierarchy."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Update Title Tag and Copyright Date",
+          "rationale": "The '2026' date in both the page title and copyright notice is confusing, unprofessional, and can negatively impact user trust and search engine interpretation. This should be updated to the current year (e.g., 2024)."
+        },
+        {
+          "priority": "Critical",
+          "action": "Optimize Meta Description",
+          "rationale": "The current meta description is generic. It should be rewritten to be more compelling, include primary keywords (e.g., 'renovations', 'extensions', 'Dublin, Meath, Louth'), and a clear value proposition to improve click-through rates from search results."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement Schema Markup",
+          "rationale": "Adding structured data like LocalBusiness, Service, and Review schema will help search engines better understand the content, enhance visibility in SERPs with rich snippets, and improve local SEO performance."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Review Content for Repetition and Readability",
+          "rationale": "Reduce the excessive repetition of the company name in the main body content. While keyword density is important, over-repetition can negatively impact user experience, readability, and potentially trigger keyword stuffing penalties from search engines."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Address Accessibility Issues",
+          "rationale": "Investigate why 'Skip to the content' is visible in the scraped text. Ensure proper implementation for screen readers and visual users to improve accessibility for all users and positively impact SEO."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Optimize Heading Structure",
+          "rationale": "Ensure there is a single, clear H1 tag per page that accurately reflects the page's primary topic. Use H2s, H3s, etc., to structure content logically. This improves content readability, accessibility, and helps search engines understand the page's hierarchy and main topics."
+        },
+        {
+          "priority": "Minor",
+          "action": "Add Descriptive Image Alt Text",
+          "rationale": "Ensure all images on the site have descriptive alt text. This improves accessibility for visually impaired users, provides additional context for search engines, and can contribute to image search rankings."
+        }
+      ],
+      "raw_data": {
+        "title": "Archwood Constructions | Best Renovations Experts | 2026",
+        "description": "Archwood Constructions is an established company that has built up a first-class reputation in the building industry."
+      }
+    },
+    "created_at": "2026-06-30T10:08:49.499Z"
+  },
+  {
+    "id": "4565c425-2e4d-4305-8179-31de13008e03",
+    "audit_request_id": "d4fe3a1f-3f2e-428c-9d9f-a6fc6ae1b245",
+    "input_url": "gillenremovalsireland.ie",
+    "score": 75,
+    "report": {
+      "target_url": "https://gillenremovalsireland.ie/",
+      "score": 75,
+      "domain_summary": "Gillen Removals Ireland is a family-run business based in Mullingar, County Westmeath, with over 25 years of experience in providing comprehensive removal and storage services across Ireland. They cater to both residential and business clients, offering a wide range of solutions including home and office removals, commercial removals, staff relocation, managed storage, self-storage, crate hire, and truck rental. The company emphasizes flexibility, security, affordability, and a stress-free moving experience. They highlight their nationwide service and provide clear pricing for storage and crate hire. The business also incorporates 'First Choice Removals', suggesting a history or expansion.",
+      "ux_score_breakdown": "The page content suggests a well-structured and user-friendly experience. Navigation appears clear with a comprehensive menu (Home, About Us, Our Services, Storage, Self Storage, Removals, Truck Rental, Crate Hire, Gallery, Contact Us). Key services are detailed with dedicated sections, and pricing for storage and crate hire is transparently displayed, which is excellent for user decision-making. Calls to action like 'Request a FREE Quote', 'Call Now', and 'Book Now' are present and prominent. Client testimonials provide strong social proof, enhancing trust. The presence of 'Skip to content' links indicates a consideration for accessibility. Overall, the content is well-organized and aims to guide users efficiently through services and contact points.",
+      "keyword_summary": "The website is well-optimized for core removal and storage keywords within Ireland. Primary keywords include 'Gillen Removals Ireland' (brand), 'Removals Ireland', 'House Removals Ireland', 'Office Removals Ireland', 'Storage Ireland', 'Self Storage Ireland', 'Crate Hire Ireland', and 'Truck Rental Ireland'. Secondary and long-tail keywords include 'Removal Services Mullingar', 'Commercial Removals Ireland', 'Staff Relocation Ireland', 'Moving crates Ireland', 'Secure storage facilities Westmeath', 'Dublin removal company', 'Affordable removals Ireland', and 'Stress-free moving Ireland'. The content effectively integrates these terms, demonstrating a clear focus on their service offerings and geographic reach, with good density for key terms like 'removals', 'storage', and 'crate hire'.",
+      "technical_errors": [
+        "Future-dated Title Tag: The page title 'Gillen Removals Ireland | Best Home and Office Removal 2026' contains the year '2026', which is misleading for current content and can negatively impact user perception and CTR.",
+        "Future-dated Copyright Year: The copyright notice '© Copyright Gillen Removals & Storage 2026' is also future-dated, indicating a potential configuration error.",
+        "Implied Missing H1 Tag: Based on the scraped content, a clear H1 tag for the main page heading (e.g., 'Flexible & Secure Gillen Removals Ireland Solutions') is not explicitly visible, which can hinder content hierarchy and SEO.",
+        "Duplicate Footer Content: A significant block of footer content, including company description, useful links, and contact information, appears twice at the very end of the scraped text, suggesting on-page duplication.",
+        "Generic Email Address: The use of a '@gmail.com' address ('gillenremovals@gmail.com') for a professional business can slightly diminish trust and professionalism compared to a custom domain email.",
+        "Lack of Schema Markup (Implied): No structured data (e.g., LocalBusiness, Service, Review schema) is evident in the scraped content, which is a missed opportunity for rich snippets and enhanced SERP visibility.",
+        "Image Alt Text (Implied): The scraped content does not include any image alt text, suggesting potential accessibility and image SEO issues."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Update the Title Tag and Copyright Year to reflect the current year.",
+          "rationale": "The future-dated '2026' in both the title tag and copyright is misleading and unprofessional. It can confuse users, impact click-through rates, and signal outdated information to search engines. This should be corrected immediately for accuracy and trust."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement relevant Schema Markup (Structured Data).",
+          "rationale": "Adding LocalBusiness, Service, and Review schema markup will help search engines better understand the business, its offerings, and customer feedback. This can lead to rich snippets in search results, improving visibility and click-through rates."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Ensure a clear and descriptive H1 tag is present on the page.",
+          "rationale": "A well-defined H1 tag helps search engines understand the primary topic of the page and improves content hierarchy for users. The main heading 'Flexible & Secure Gillen Removals Ireland Solutions' or similar should be marked as H1."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Review and slightly reduce the repetition of the brand name 'Gillen Removals Ireland' in body paragraphs.",
+          "rationale": "While branding is important, over-repetition can make the text less natural to read and might be perceived as minor keyword stuffing. Varying phrasing where appropriate can improve readability and user experience without sacrificing brand presence."
+        },
+        {
+          "priority": "Minor",
+          "action": "Consolidate or remove the duplicate footer content.",
+          "rationale": "Having identical blocks of content on the same page, even in the footer, is unnecessary and can be cleaned up for better code hygiene. While not a major SEO issue, it's good practice to avoid on-page duplication."
+        },
+        {
+          "priority": "Minor",
+          "action": "Consider transitioning to a custom domain email address (e.g., info@gillenremovalsireland.ie).",
+          "rationale": "A professional email address enhances brand credibility and trust, which can indirectly influence user perception and potentially SEO. A custom domain email aligns better with a well-established business."
+        },
+        {
+          "priority": "Minor",
+          "action": "Add descriptive alt text to all images on the page.",
+          "rationale": "Alt text improves accessibility for visually impaired users by providing context for images. It also helps search engines understand image content, contributing to image search visibility and overall page relevance."
+        },
+        {
+          "priority": "Minor",
+          "action": "Expand on location-specific content, particularly for major cities like Dublin.",
+          "rationale": "While 'Ireland Nationwide' is mentioned, creating more detailed content or dedicated service pages for specific high-demand locations (e.g., 'Dublin removal company' mentioned once) could significantly improve local SEO targeting and capture more specific search queries."
+        }
+      ],
+      "raw_data": {
+        "title": "Gillen Removals Ireland | Best Home and Office Removal 2026",
+        "description": "Gillen Removals Ireland has wide experience in the removal and storage of household goods and office furniture and equipment"
+      }
+    },
+    "created_at": "2026-06-30T10:14:18.216Z"
+  },
+  {
+    "id": "b170aec5-3159-4b81-934c-a971d7a22544",
+    "audit_request_id": "47a25913-1e62-40d6-9d2f-bb5a487b2a4b",
+    "input_url": "griffinlandscaping.ie",
+    "score": 75,
+    "report": {
+      "target_url": "https://www.griffinlandscaping.ie/",
+      "score": 75,
+      "domain_summary": "Griffin Landscaping is a well-established company, founded in 1998, operating out of Cork, Ireland. They specialize in comprehensive landscape maintenance and services for a diverse clientele including hotels, factories, residential parks, and government buildings throughout the Munster Region. Their service offerings are extensive, covering grass cutting, tree and shrub maintenance, patio installation, lawn care, site clearance, decking, environmentally friendly weed control, power washing, stone walls, turf laying, design, and land drainage. The company emphasizes health and safety, with all employees certified in relevant areas. Contact information, including phone numbers and email, is clearly provided.",
+      "ux_score_breakdown": "Based on the scraped text, the website appears to have a clear navigation structure with essential pages like Home, About Us, Services, Gallery, Testimonials, and Contact Us. Key information such as contact details and a list of services is readily available. The 'About Us' section provides good company history and credibility. However, the presence of '26' in the page title is confusing and detracts from professionalism. The meta description contains a grammatical error ('grown the be'). The content, while informative, could benefit from better structural organization using proper headings (H1, H2, H3) to improve readability and scannability for users, as the scraped text suggests a somewhat flat content hierarchy. The 'more' link implies truncated content, which might require an extra click for users to get full information.",
+      "keyword_summary": "The website currently targets and should rank well for keywords such as 'Landscaping Cork', 'Landscape Maintenance Cork', 'Landscaping Services Cork', 'Power Washing Cork', 'Grass Cutting Cork', 'Tree And Shrub Maintenance Cork', 'Commercial Landscaping Cork', 'Facilities Management Cork', and 'Biodiversity Landscaping Cork'. Potential keywords to further optimize for include 'Garden Design Cork', 'Lawn Care Cork', 'Patio Installation Cork', 'Site Clearance Cork', 'Decking Cork', 'Weed Control Cork', 'Turf Laying Cork', and location-specific terms like 'Landscaping Munster Region' or 'Landscaping Southern Region' given their stated operational area.",
+      "technical_errors": [
+        "Unusual/unoptimized title tag (contains '26')",
+        "Typo in meta description ('grown the be')",
+        "Implied lack of proper heading (H1, H2, etc.) structure based on scraped content presentation"
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Optimize Title Tag",
+          "rationale": "The '26' in the title tag is unprofessional, confusing, and wastes valuable character space. It should be removed or replaced with more descriptive keywords or branding to improve click-through rates and search engine understanding."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Correct Meta Description Typo",
+          "rationale": "The grammatical error 'grown the be' should be corrected to 'grown to be'. A professional and error-free meta description enhances credibility and can improve click-through rates from search results."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement Proper Heading Structure (H1, H2, H3)",
+          "rationale": "Based on the scraped content, the page appears to lack clear HTML heading tags. Implementing a logical heading structure (e.g., H1 for the main page title, H2s for major sections like 'About Us' and 'Our Services', H3s for sub-services) improves content readability for users and helps search engines understand the page's hierarchy and key topics, which is crucial for SEO."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Expand and Structure Service Pages/Sections",
+          "rationale": "While services are listed, creating dedicated pages or more detailed sections for each major service (e.g., 'Power Washing Cork', 'Tree and Shrub Maintenance Cork') would allow for more in-depth content, target more specific long-tail keywords, and provide a better user experience by giving detailed information on each offering."
+        },
+        {
+          "priority": "Minor",
+          "action": "Enhance Call to Action (CTA)",
+          "rationale": "While phone numbers are present, a more prominent and engaging call to action (e.g., 'Request a Free Quote', 'Get in Touch Today for a Consultation') could improve conversion rates by guiding users more clearly on the next step."
+        },
+        {
+          "priority": "Minor",
+          "action": "Optimize for Broader Local SEO",
+          "rationale": "The content mentions 'Southern Region' and 'Munster Region'. Consider creating content or optimizing existing content to explicitly target these broader geographical areas, perhaps with specific service pages or location-based content, to capture a wider audience beyond just Cork City."
+        }
+      ],
+      "raw_data": {
+        "title": "Griffin Landscaping | Best Landscaping Services In Cork | 26",
+        "description": "Griffin landscaping was established in 1998 and has grown the be one of the leading landscape maintenance companies in Cork City. Get a call 086-8128885."
+      }
+    },
+    "created_at": "2026-06-30T10:17:04.124Z"
+  },
+  {
+    "id": "6d7d0bef-e102-47d3-aad8-ab0d290277da",
+    "audit_request_id": "7a1df4e0-fae3-40db-b06f-91fb72f6855a",
+    "input_url": "https://monkstownglassdublin.ie/",
+    "score": 55,
+    "report": {
+      "target_url": "https://monkstownglassdublin.ie/",
+      "score": 55,
+      "domain_summary": "Monkstown Glass And Glazing is a local service provider based in Monkstown, Dublin, specializing in 24/7 emergency door and window glass repair, replacement, and installation. The website highlights over 17 years of experience and serves Dublin and surrounding areas. Key services include general glass repair, emergency window repair, bespoke glass solutions, and door repair/replacement. Contact information (phone, email, address) is prominently displayed.",
+      "ux_score_breakdown": "The website provides essential information clearly, including contact details, service offerings, and calls to action ('GET A QUOTE'). The navigation appears straightforward. However, the user experience is significantly hampered by excessive content repetition and a large, unnatural keyword-stuffed section, particularly in what appears to be a footer area. This 'Our More Services' section is difficult to read and unprofessional. The repeated 'Please enable JavaScript...' message for forms also suggests potential usability issues or a less polished implementation. The 'Home Home Home Home' repetition is also a minor visual glitch.",
+      "keyword_summary": "The website targets a strong set of local and emergency-related keywords. Primary keywords include 'Monkstown Glass', 'Window Replacement Dublin', 'Emergency Window Repair Dublin', 'Glass Repair Dublin', 'Door Repair Dublin', and '24/7 Window Replacement Dublin'. Secondary and long-tail keywords include 'Bespoke Glass Solutions Dublin', 'Glass Cut To Size Dublin', 'Double Glazed Glass Replacement Near Me', and 'Window Repair Monkstown'. The content demonstrates a clear intent to rank for various glass and glazing services within the Dublin area, with a strong emphasis on emergency services.",
+      "technical_errors": [
+        "Severe Keyword Stuffing: The 'Our More Services' section is an egregious example of keyword stuffing, listing numerous service and location variations unnaturally, which is a black-hat SEO tactic.",
+        "Content Repetition: Key phrases describing the business and its service area are repeated multiple times throughout the page, leading to internal content duplication.",
+        "JavaScript Dependency for Forms: The explicit message 'Please enable JavaScript in your browser to complete this form.' suggests forms might not be fully accessible or functional without JavaScript, potentially impacting user experience and bot interaction.",
+        "Poor Internal Linking/Footer Structure: The repetition of 'Home Home Home Home' and the keyword-stuffed list in the footer indicate a poorly structured or implemented footer/internal linking section.",
+        "Lack of Structured Data (Inferred): No visible LocalBusiness or Service schema markup, which is crucial for local businesses to enhance SERP visibility.",
+        "Suboptimal Heading Structure (Inferred): While some headings are present, the overall H-tag hierarchy might not be fully optimized for readability and SEO.",
+        "Missing Image Alt Text (Inferred): No alt text for images is present in the scraped content, which is a common accessibility and SEO oversight."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Immediately remove or completely restructure the 'Our More Services' keyword-stuffed section.",
+          "rationale": "This section is a clear violation of search engine guidelines for keyword stuffing. It severely degrades user experience, makes the site appear spammy, and is highly likely to result in search engine penalties or suppressed rankings. Replace it with naturally integrated, descriptive content or a well-organized list of internal links to dedicated service pages."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Consolidate and rephrase repetitive content.",
+          "rationale": "Phrases like 'Monkstown Glass And Glazing is a glass company who specialize in glass and emergency repair. Based in Monkstown, we serve Dublin and the surrounding areas..' appear multiple times. This creates unnecessary internal content duplication, dilutes keyword focus, and makes the content less engaging for users. Rephrase and integrate this information more naturally."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Implement LocalBusiness Schema Markup.",
+          "rationale": "As a local service provider, structured data like LocalBusiness schema will help search engines better understand key business information (address, phone, hours, services). This can lead to rich snippets in search results, improving visibility and click-through rates for local searches."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Optimize the heading (H-tag) structure of the page.",
+          "rationale": "Ensure a clear hierarchy with a single H1 for the main topic, followed by H2s for major sections, and H3s for sub-sections. This improves content readability for users and helps search engines understand the page's structure and key themes."
+        },
+        {
+          "priority": "Minor",
+          "action": "Review and improve the implementation of contact forms.",
+          "rationale": "The repetitive 'Please enable JavaScript...' message suggests potential issues with form accessibility or implementation. Ensure forms are robust, user-friendly, and provide a seamless experience for all visitors, regardless of their JavaScript settings."
+        },
+        {
+          "priority": "Minor",
+          "action": "Develop dedicated service pages for each major service.",
+          "rationale": "While services are listed, creating individual, in-depth pages for 'Glass Repair Dublin', 'Emergency Window Repair Dublin', 'Bespoke Glass Solutions Dublin', etc., allows for more comprehensive content, better targeting of specific long-tail keywords, and improved internal linking, which can boost authority for each service."
+        }
+      ],
+      "raw_data": {
+        "title": "Monkstown Glass And Glazing | 24/7 Window Replacement Dublin",
+        "description": "Monkstown Glass And Glazing provides 24/7 Emergency door and window repair, replacement, and installation services, deliver reliable craftsmanship. Call us now"
+      }
+    },
+    "created_at": "2026-06-30T10:26:55.547Z"
+  },
+  {
+    "id": "ab640513-222d-400b-a497-83c01afc9982",
+    "audit_request_id": "46e6e10b-8e98-41e2-b739-72c89051e90a",
+    "input_url": "renewit.ie",
+    "score": 55,
+    "report": {
+      "target_url": "https://renewit.ie/",
+      "score": 55,
+      "domain_summary": "RenewIT appears to be a kitchen painting and resurfacing company based in Ireland, with a focus on transforming kitchens affordably. The owner has a background in painting and decorating since 1990, emphasizing quality and experience. Services include kitchen cabinet respraying, countertop resurfacing, and bespoke furniture painting. The website aims to provide virtual quotes and showcase projects through a gallery. The inclusion of '2026' in the title and copyright is an unusual element.",
+      "ux_score_breakdown": "The website's navigation seems clear with a well-structured menu, which is positive for user experience. Content is broken into small, readable sections, and calls to action like 'Virtual Quote' and 'Contact Us' are present. The mention of 'BEFORE AND AFTER' images and 'TESTIMONIALS' suggests an intent to provide visual proof and social validation, which are crucial for this service type. However, the overall content depth is extremely thin, which will likely lead to a poor user experience for visitors seeking detailed information, potentially increasing bounce rates. The use of a Gmail address and the confusing '2026' date in the title and copyright could also detract from perceived professionalism and trust.",
+      "keyword_summary": "Based on the content density, the website is likely targeting keywords such as 'kitchen painting company Ireland', 'kitchen respray Ireland', 'best kitchen painting services', 'kitchen cabinet painting', 'countertop resurfacing Ireland', and 'affordable kitchen update'. Secondary keywords might include 'bespoke furniture painting', 'kitchen respray cost', and potentially location-specific terms like 'kitchen painting Cork' (implied by owner's history). The current content is too sparse to rank effectively for a wide range of long-tail or competitive keywords, despite the good primary keyword usage in the title and description.",
+      "technical_errors": [
+        "Low Content Density: The page has very little unique, descriptive text, which is a significant SEO drawback.",
+        "Missing or Poorly Implemented H1 Tag: Based on the scraped content, there is no clear H1 heading identified, which is crucial for page structure and SEO.",
+        "Thin Content: The page offers minimal value beyond basic service descriptions, limiting its ability to rank for various queries.",
+        "No Schema Markup (Likely): Given the simplicity, it's highly probable that no structured data (e.g., LocalBusiness, Service, FAQPage) is implemented.",
+        "Limited Internal Linking: Due to thin content, there are few opportunities for internal links within the body text, hindering link equity distribution.",
+        "Confusing Date in Title/Copyright: The '2026' in the page title and copyright is unusual and could be misinterpreted by search engines or users.",
+        "Gmail Email Address: Using a generic Gmail address instead of a domain-specific email can impact professional credibility and trust signals.",
+        "No Blog or Resource Section: Lack of a content hub limits opportunities for topical authority and long-tail keyword targeting."
+      ],
+      "recommendations": [
+        {
+          "priority": "Critical",
+          "action": "Significantly expand content on the homepage and create dedicated, detailed service pages.",
+          "rationale": "The current content is extremely thin, which severely limits keyword rankings, user engagement, and overall authority. Each service (e.g., Kitchen Cabinet Respraying, Countertop Resurfacing) should have its own comprehensive page with detailed descriptions, benefits, process, FAQs, and examples."
+        },
+        {
+          "priority": "Critical",
+          "action": "Implement a clear H1, H2, and H3 heading structure throughout the page.",
+          "rationale": "Proper heading tags improve readability for users and help search engines understand the page's hierarchy and main topics. The current content lacks clear heading tags in the scraped text."
+        },
+        {
+          "priority": "Critical",
+          "action": "Implement relevant Schema Markup (e.g., LocalBusiness, Service, FAQPage).",
+          "rationale": "Structured data helps search engines better understand the content, leading to richer search results (rich snippets) and improved visibility, especially for local services."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Review and update the page title and copyright year to reflect current information.",
+          "rationale": "The '2026' in the title and copyright is confusing and makes the site appear incorrectly dated or untrustworthy. It should be updated to the current year or removed from the title."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Create a blog or 'Tips' section with valuable, informative content.",
+          "rationale": "A blog allows for targeting long-tail keywords, demonstrating expertise, and providing value to potential customers (e.g., 'How to choose kitchen paint colors', 'Benefits of kitchen respraying'). This also provides crucial internal linking opportunities."
+        },
+        {
+          "priority": "Moderate",
+          "action": "Replace the Gmail address with a professional domain-specific email address.",
+          "rationale": "Using a domain-specific email (e.g., info@renewit.ie) enhances brand credibility and professionalism, which can indirectly influence user trust and perception."
+        },
+        {
+          "priority": "Minor",
+          "action": "Add internal links within the body content to relevant service pages, blog posts, or other important sections.",
+          "rationale": "Improves user navigation, distributes 'link equity' across the site, and helps search engines discover more content, enhancing overall site architecture."
+        },
+        {
+          "priority": "Minor",
+          "action": "Optimize images for SEO by adding descriptive alt text and ensuring proper compression.",
+          "rationale": "Images are crucial for a visual service. Proper alt text improves accessibility and provides context to search engines, while compression improves page load speed, a key ranking factor."
+        }
+      ],
+      "raw_data": {
+        "title": "RenewIT | Best Kitchen Painting Company In Ireland | 2026",
+        "description": "Transform your kitchen with RenewIT! Discover the best kitchen painting services for a stunning, affordable update. Get your free quote today.........."
+      }
+    },
+    "created_at": "2026-06-30T13:32:35.321Z"
+  }
+]

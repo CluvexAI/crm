@@ -1,12 +1,12 @@
 [
   {
-    "provider": "OpenRouter",
-    "api_key": "f3a9f006b5766ab3bad63c988933fd89:e1f3148fe580dae5609b86f256a6e5c9b7ec83c633f777e92ff62a661cfb39227e3b690b6eed870138b15e9f32ace52e8ebb096821847be7cbb15c98927c9055ccf4d4445fa9ed8032:71dc7bb7ecbbc3551393704d9a9d51f1",
-    "base_url": "https://openrouter.ai/api/v1",
+    "provider": "OpenAI",
+    "api_key": "dff02660e3ae7f60b05bbb5c41e3ab27:e26d1ca938386710f6cea18af1a12a54acc0a9100b3ea4935b17e945b778830162dedbae0b3560afc08deeb43b49c366206d68f140:918b3a40ec53940466bde13b21e74705",
+    "base_url": "https://generativelanguage.googleapis.com/v1beta",
     "gateway_url": "",
     "fallback_provider": "None",
-    "default_model": "openai/gpt-5",
+    "default_model": "gemini-2.5-flash",
     "enabled": true,
-    "updated_at": "2026-06-25T11:09:28.445Z"
+    "updated_at": "2026-06-30T13:27:40.255Z"
   }
 ]

@@ -1,19 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Picker from 'emoji-picker-react';
-import { Smile, Paperclip, Send, X, File, Image as ImageIcon, Check, CheckCheck, Mic, Square, CornerDownLeft, Edit2, Trash2, Forward, Search, MoreVertical, AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react';
+import { Smile, Paperclip, Send, X, File, Image as ImageIcon, Check, CheckCheck, Mic, Square, CornerDownLeft, Edit2, Trash2, Forward, Search, MoreVertical, AlertTriangle, RefreshCw, ArrowLeft, Users, UserPlus, Megaphone, Phone, Video } from 'lucide-react';
 
 const PROXY = process.env.REACT_APP_API_URL || '';
 
-const WhatsAppChatUI = ({ userId, socket, onLogout, logoutLoading }) => {
+const WhatsAppChatUI = ({ connectionId, socket, onLogout, logoutLoading }) => {
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loadingChats, setLoadingChats] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   
-  // Search
+  // Search and New Chat Pane
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
+  const [showNewChatPane, setShowNewChatPane] = useState(false);
+  const [newChatSearch, setNewChatSearch] = useState('');
+  
+  // New Contact Form
+  const [showNewContactPane, setShowNewContactPane] = useState(false);
+  const [newContact, setNewContact] = useState({ firstName: '', lastName: '', countryCode: '+91', phone: '', syncToPhone: false });
+
+  // New Group Form
+  const [showNewGroupPane, setShowNewGroupPane] = useState(false);
+  const [newGroupSearch, setNewGroupSearch] = useState('');
+  const [selectedGroupMembers, setSelectedGroupMembers] = useState([]);
 
   // Composer State
   const [messageText, setMessageText] = useState('');
@@ -51,8 +62,8 @@ const WhatsAppChatUI = ({ userId, socket, onLogout, logoutLoading }) => {
     fetchChats();
     
     if (socket) {
-      socket.on(`whatsapp:chats_update:${userId}`, () => fetchChats());
-      socket.on(`whatsapp:message_new:${userId}`, (data) => {
+      socket.on(`whatsapp:chats_update:${connectionId}`, () => fetchChats());
+      socket.on(`whatsapp:message_new:${connectionId}`, (data) => {
         if (data.jid === activeChatId) {
           setMessages(prev => {
             if (!prev.find(m => m.key.id === data.message.key.id)) {
@@ -62,23 +73,23 @@ const WhatsAppChatUI = ({ userId, socket, onLogout, logoutLoading }) => {
           });
         }
       });
-      socket.on(`whatsapp:message_update:${userId}`, (data) => {
+      socket.on(`whatsapp:message_update:${connectionId}`, (data) => {
         if (data.jid === activeChatId) {
           setMessages(prev => prev.map(m => m.key.id === data.message.key.id ? data.message : m));
         }
       });
-      socket.on(`whatsapp:sync_complete:${userId}`, () => fetchChats());
+      socket.on(`whatsapp:sync_complete:${connectionId}`, () => fetchChats());
     }
 
     return () => {
       if (socket) {
-        socket.off(`whatsapp:chats_update:${userId}`);
-        socket.off(`whatsapp:message_new:${userId}`);
-        socket.off(`whatsapp:message_update:${userId}`);
-        socket.off(`whatsapp:sync_complete:${userId}`);
+        socket.off(`whatsapp:chats_update:${connectionId}`);
+        socket.off(`whatsapp:message_new:${connectionId}`);
+        socket.off(`whatsapp:message_update:${connectionId}`);
+        socket.off(`whatsapp:sync_complete:${connectionId}`);
       }
     };
-  }, [userId, socket, activeChatId]);
+  }, [connectionId, socket, activeChatId]);
 
   useEffect(() => {
     if (activeChatId) {
@@ -111,7 +122,7 @@ const WhatsAppChatUI = ({ userId, socket, onLogout, logoutLoading }) => {
 
   const fetchChats = async () => {
     try {
-      const res = await fetch(`${PROXY}/api/whatsapp/chats?userId=${userId}`);
+      const res = await fetch(`${PROXY}/api/whatsapp/chats?connectionId=${connectionId}`);
       const data = await res.json();
       if (data.success) setChats(data.chats);
     } catch (err) {
@@ -124,7 +135,7 @@ const WhatsAppChatUI = ({ userId, socket, onLogout, logoutLoading }) => {
   const fetchMessages = async (chatId) => {
     setLoadingMessages(true);
     try {
-      const res = await fetch(`${PROXY}/api/whatsapp/chats/${encodeURIComponent(chatId)}/messages?userId=${userId}`);
+      const res = await fetch(`${PROXY}/api/whatsapp/chats/${encodeURIComponent(chatId)}/messages?connectionId=${connectionId}`);
       const data = await res.json();
       if (data.success) setMessages(data.messages);
     } catch (err) {
@@ -145,7 +156,7 @@ const WhatsAppChatUI = ({ userId, socket, onLogout, logoutLoading }) => {
       fetch(`${PROXY}/api/whatsapp/presence`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, chatId: activeChatId, presence: 'composing' })
+        body: JSON.stringify({ connectionId, chatId: activeChatId, presence: 'composing' })
       });
     }
     
@@ -153,7 +164,7 @@ const WhatsAppChatUI = ({ userId, socket, onLogout, logoutLoading }) => {
       fetch(`${PROXY}/api/whatsapp/presence`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, chatId: activeChatId, presence: 'paused' })
+        body: JSON.stringify({ connectionId, chatId: activeChatId, presence: 'paused' })
       });
       typingTimeoutRef.current = null;
     }, 2000);
@@ -214,14 +225,14 @@ const WhatsAppChatUI = ({ userId, socket, onLogout, logoutLoading }) => {
         await fetch(`${PROXY}/api/whatsapp/messages/edit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, chatId: activeChatId, messageId: editMsg.key.id, newText: messageText })
+          body: JSON.stringify({ connectionId, chatId: activeChatId, messageId: editMsg.key.id, newText: messageText })
         });
         setEditMsg(null);
         setMessageText('');
       } else {
         // Send / Reply flow
         const formData = new FormData();
-        formData.append('userId', userId);
+        formData.append('connectionId', connectionId);
         formData.append('chatId', activeChatId);
         formData.append('text', messageText);
 
@@ -274,7 +285,7 @@ const WhatsAppChatUI = ({ userId, socket, onLogout, logoutLoading }) => {
     
     // Resend
     const formData = new FormData();
-    formData.append('userId', userId);
+    formData.append('connectionId', connectionId);
     formData.append('chatId', activeChatId);
     formData.append('text', text);
     formData.append('type', 'text');
@@ -295,7 +306,7 @@ const WhatsAppChatUI = ({ userId, socket, onLogout, logoutLoading }) => {
       await fetch(`${PROXY}/api/whatsapp/messages/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, chatId: targetChatId, type: 'text', forwardMessageId: forwardMsg.key.id })
+        body: JSON.stringify({ connectionId, chatId: targetChatId, type: 'text', forwardMessageId: forwardMsg.key.id })
       });
       setShowForwardModal(false);
       setForwardMsg(null);
@@ -311,7 +322,7 @@ const WhatsAppChatUI = ({ userId, socket, onLogout, logoutLoading }) => {
         await fetch(`${PROXY}/api/whatsapp/messages/delete`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, chatId: activeChatId, messageId: msg.key.id })
+          body: JSON.stringify({ connectionId, chatId: activeChatId, messageId: msg.key.id })
         });
       } catch (e) {
         console.error('Delete failed', e);
@@ -382,50 +393,262 @@ const WhatsAppChatUI = ({ userId, socket, onLogout, logoutLoading }) => {
       }}
     >
       
-      {/* Left Pane - Chat List */}
+      {/* Left Pane - Chat List / New Chat Pane / New Contact Pane / New Group Pane */}
       {(!isNarrow || !activeChatId) && (
-        <div style={{ width: isNarrow ? '100%' : '100%', borderRight: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', background: '#fff', minHeight: 0 }}>
-        <div style={{ padding: '16px', background: '#f5f7fa', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0, fontSize: 16 }}>Chats</h3>
-          <button onClick={onLogout} disabled={logoutLoading} style={{ background: 'transparent', border: 'none', color: '#ff4d4f', cursor: 'pointer', fontSize: 14 }}>
-            {logoutLoading ? '...' : 'Disconnect'}
-          </button>
-        </div>
-        
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          {loadingChats ? (
-            <div style={{ padding: 20, textAlign: 'center', color: '#888' }}>Loading chats...</div>
-          ) : chats.length === 0 ? (
-            <div style={{ padding: 20, textAlign: 'center', color: '#888' }}>No chats found.</div>
-          ) : (
-            chats.map(chat => (
-              <div 
-                key={chat.id} 
-                onClick={() => setActiveChatId(chat.id)}
-                style={{ 
-                  padding: '16px 20px', 
-                  borderBottom: '1px solid #f0f0f0', 
-                  cursor: 'pointer',
-                  background: activeChatId === chat.id ? '#f0f9ff' : 'transparent',
-                  transition: 'background 0.2s'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontWeight: 600, fontSize: 16, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {chat.name || `+${chat.id.split('@')[0]}`}
-                  </span>
-                  <span style={{ fontSize: 13, color: '#888' }}>{formatTime(chat.conversationTimestamp)}</span>
+        <div style={{ width: isNarrow ? '100%' : '100%', borderRight: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', background: '#fff', minHeight: 0, position: 'relative' }}>
+          
+          {showNewGroupPane ? (
+            <>
+              {/* New Group Header */}
+              <div style={{ padding: '16px', background: '#008069', color: '#fff', display: 'flex', alignItems: 'center', gap: 16 }}>
+                <button onClick={() => setShowNewGroupPane(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                  <ArrowLeft size={20} />
+                </button>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 500 }}>Add group members</h3>
+                  <div style={{ fontSize: 13, opacity: 0.9, marginTop: 2 }}>{selectedGroupMembers.length} selected</div>
                 </div>
-                {chat.name && (
-                  <div style={{ fontSize: 10, color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    +{chat.id.split('@')[0]}
+              </div>
+
+              {/* Selected Members area (only show if any selected) */}
+              {selectedGroupMembers.length > 0 && (
+                <div style={{ padding: '12px 20px', borderBottom: '1px solid #f0f0f0', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {selectedGroupMembers.map(member => (
+                    <div key={member.id} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#e9edef', padding: '4px 8px 4px 4px', borderRadius: 16 }}>
+                      <img src={`${PROXY}/api/whatsapp/profile-pic/${connectionId}/${member.id}`} onError={(e) => { e.target.onerror = null; e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${member.name || member.id}`; }} alt="avatar" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                      <span style={{ fontSize: 13, color: '#111b21' }}>{member.name || `+${member.id.split('@')[0]}`}</span>
+                      <X size={14} color="#8696a0" style={{ cursor: 'pointer' }} onClick={() => setSelectedGroupMembers(selectedGroupMembers.filter(m => m.id !== member.id))} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Search Box */}
+              <div style={{ padding: '8px 12px', borderBottom: '1px solid #f0f0f0' }}>
+                <div style={{ borderBottom: '2px solid #008069', display: 'flex', alignItems: 'center', padding: '6px 0' }}>
+                  <input 
+                    type="text" 
+                    placeholder="Search name or number" 
+                    value={newGroupSearch}
+                    onChange={(e) => setNewGroupSearch(e.target.value)}
+                    style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: 15, color: '#3b4a54' }}
+                  />
+                </div>
+              </div>
+
+              {/* Contacts List for Group */}
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                {chats.filter(c => !newGroupSearch || (c.name || c.id).toLowerCase().includes(newGroupSearch.toLowerCase())).map(chat => {
+                  const isSelected = selectedGroupMembers.some(m => m.id === chat.id);
+                  return (
+                    <div 
+                      key={`group-add-${chat.id}`}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedGroupMembers(selectedGroupMembers.filter(m => m.id !== chat.id));
+                        } else {
+                          setSelectedGroupMembers([...selectedGroupMembers, chat]);
+                        }
+                      }}
+                      style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer', borderBottom: '1px solid #f0f0f0' }}
+                      className="hover-bg-gray"
+                    >
+                      <div style={{ position: 'relative' }}>
+                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#dfe5e7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', overflow: 'hidden' }}>
+                          <img src={`${PROXY}/api/whatsapp/profile-pic/${connectionId}/${chat.id}`} onError={(e) => { e.target.onerror = null; e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${chat.name || chat.id}`; }} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                        {isSelected && (
+                          <div style={{ position: 'absolute', bottom: -2, right: -2, background: '#008069', borderRadius: '50%', padding: 2, display: 'flex' }}>
+                            <Check size={12} color="#fff" />
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ flex: 1, overflow: 'hidden' }}>
+                        <div style={{ fontSize: 16, color: '#111b21', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {chat.name || `+${chat.id.split('@')[0]}`}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Floating Next Button */}
+              {selectedGroupMembers.length > 0 && (
+                <div style={{ position: 'absolute', bottom: 24, right: 24, width: 48, height: 48, borderRadius: '50%', background: '#00a884', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }} onClick={() => alert('Proceed to group naming (not implemented yet)')}>
+                  <ArrowLeft size={24} color="#fff" style={{ transform: 'rotate(180deg)' }} />
+                </div>
+              )}
+            </>
+          ) : showNewContactPane ? (
+            <>
+              {/* New Contact Header */}
+              <div style={{ padding: '16px', background: '#008069', color: '#fff', display: 'flex', alignItems: 'center', gap: 16 }}>
+                <button onClick={() => setShowNewContactPane(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                  <ArrowLeft size={20} />
+                </button>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 500 }}>New contact</h3>
+              </div>
+              <div style={{ padding: '24px 20px', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+                <div style={{ display: 'flex', gap: 16 }}>
+                  <div style={{ paddingTop: 8 }}><UserPlus size={20} color="#8696a0" /></div>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    <input type="text" placeholder="First name" value={newContact.firstName} onChange={e => setNewContact({...newContact, firstName: e.target.value})} style={{ border: 'none', borderBottom: '1px solid #8696a0', outline: 'none', padding: '4px 0', fontSize: 16 }} />
+                    <input type="text" placeholder="Last name" value={newContact.lastName} onChange={e => setNewContact({...newContact, lastName: e.target.value})} style={{ border: 'none', borderBottom: '1px solid #8696a0', outline: 'none', padding: '4px 0', fontSize: 16 }} />
                   </div>
+                </div>
+                <div style={{ display: 'flex', gap: 16 }}>
+                  <div style={{ paddingTop: 8 }}><Phone size={20} color="#8696a0" /></div>
+                  <div style={{ flex: 1, display: 'flex', gap: 12 }}>
+                    <input type="text" placeholder="Country" value={newContact.countryCode} onChange={e => setNewContact({...newContact, countryCode: e.target.value})} style={{ width: 80, border: 'none', borderBottom: '1px solid #8696a0', outline: 'none', padding: '4px 0', fontSize: 16 }} />
+                    <input type="text" placeholder="Phone" value={newContact.phone} onChange={e => setNewContact({...newContact, phone: e.target.value})} style={{ flex: 1, border: 'none', borderBottom: '1px solid #8696a0', outline: 'none', padding: '4px 0', fontSize: 16 }} />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+                  <div style={{ paddingTop: 8 }}><RefreshCw size={20} color="#8696a0" /></div>
+                  <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontSize: 16, color: '#111b21' }}>Sync contact to phone</div>
+                      <div style={{ fontSize: 13, color: '#8696a0', marginTop: 4 }}>This contact will be added to your phone's address book.</div>
+                    </div>
+                    <input type="checkbox" checked={newContact.syncToPhone} onChange={e => setNewContact({...newContact, syncToPhone: e.target.checked})} style={{ width: 40, height: 20 }} />
+                  </div>
+                </div>
+                <button 
+                  onClick={() => { alert('New Contact added!'); setShowNewContactPane(false); }} 
+                  style={{ marginTop: 20, background: '#008069', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: 24, fontSize: 16, cursor: 'pointer', alignSelf: 'center' }}
+                >
+                  Save
+                </button>
+              </div>
+            </>
+          ) : showNewChatPane ? (
+            <>
+              {/* New Chat Header */}
+              <div style={{ padding: '16px', background: '#008069', color: '#fff', display: 'flex', alignItems: 'center', gap: 16 }}>
+                <button onClick={() => setShowNewChatPane(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                  <ArrowLeft size={20} />
+                </button>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 500 }}>New chat</h3>
+              </div>
+              
+              {/* New Chat Search */}
+              <div style={{ padding: '8px 12px', background: '#fff', borderBottom: '1px solid var(--border-light)' }}>
+                <div style={{ background: '#f0f2f5', borderRadius: 8, display: 'flex', alignItems: 'center', padding: '6px 12px' }}>
+                  <Search size={16} color="#54656f" style={{ marginRight: 12 }} />
+                  <input 
+                    type="text" 
+                    placeholder="Search name or number" 
+                    value={newChatSearch}
+                    onChange={(e) => setNewChatSearch(e.target.value)}
+                    style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: 14, color: '#3b4a54' }}
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ padding: '12px 0', borderBottom: '1px solid #f0f0f0' }}>
+                <div onClick={() => setShowNewGroupPane(true)} style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer', transition: 'background 0.2s' }} className="hover-bg-gray">
+                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#00a884', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                    <Users size={20} />
+                  </div>
+                  <span style={{ fontSize: 16, color: '#111b21' }}>New group</span>
+                </div>
+                <div onClick={() => setShowNewContactPane(true)} style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer', transition: 'background 0.2s' }} className="hover-bg-gray">
+                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#00a884', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                    <UserPlus size={20} />
+                  </div>
+                  <span style={{ fontSize: 16, color: '#111b21' }}>New contact</span>
+                </div>
+                <div style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: 'background 0.2s' }} className="hover-bg-gray">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#00a884', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                      <Megaphone size={20} />
+                    </div>
+                    <span style={{ fontSize: 16, color: '#111b21' }}>New business broadcast</span>
+                  </div>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00a884' }}></div>
+                </div>
+              </div>
+
+              {/* Contacts List */}
+              <div style={{ padding: '16px 20px 8px 20px', fontSize: 14, color: '#008069', letterSpacing: 1 }}>
+                CONTACTS ON WHATSAPP
+              </div>
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                {chats.filter(c => !newChatSearch || (c.name || c.id).toLowerCase().includes(newChatSearch.toLowerCase())).map(chat => (
+                  <div 
+                    key={`newchat-${chat.id}`}
+                    onClick={() => {
+                      setActiveChatId(chat.id);
+                      setShowNewChatPane(false);
+                    }}
+                    style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer', borderBottom: '1px solid #f0f0f0' }}
+                    className="hover-bg-gray"
+                  >
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#dfe5e7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', overflow: 'hidden' }}>
+                      <img src={`${PROXY}/api/whatsapp/profile-pic/${connectionId}/${chat.id}`} onError={(e) => { e.target.onerror = null; e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${chat.name || chat.id}`; }} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                    <div style={{ flex: 1, overflow: 'hidden' }}>
+                      <div style={{ fontSize: 16, color: '#111b21', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {chat.name || `+${chat.id.split('@')[0]}`}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Default Chat List Header */}
+              <div style={{ padding: '16px', background: '#f5f7fa', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: 16 }}>Chats</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <button onClick={() => setShowNewChatPane(true)} style={{ background: 'transparent', border: 'none', color: '#54656f', cursor: 'pointer', padding: 4 }} title="New chat">
+                    <UserPlus size={20} />
+                  </button>
+                  <button onClick={onLogout} disabled={logoutLoading} style={{ background: 'transparent', border: 'none', color: '#ff4d4f', cursor: 'pointer', fontSize: 14 }}>
+                    {logoutLoading ? '...' : 'Disconnect'}
+                  </button>
+                </div>
+              </div>
+              
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                {loadingChats ? (
+                  <div style={{ padding: 20, textAlign: 'center', color: '#888' }}>Loading chats...</div>
+                ) : chats.length === 0 ? (
+                  <div style={{ padding: 20, textAlign: 'center', color: '#888' }}>No chats found.</div>
+                ) : (
+                  chats.map(chat => (
+                    <div 
+                      key={chat.id} 
+                      onClick={() => setActiveChatId(chat.id)}
+                      style={{ 
+                        padding: '16px 20px', 
+                        borderBottom: '1px solid #f0f0f0', 
+                        cursor: 'pointer',
+                        background: activeChatId === chat.id ? '#f0f9ff' : 'transparent',
+                        transition: 'background 0.2s'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ fontWeight: 600, fontSize: 16, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {chat.name || `+${chat.id.split('@')[0]}`}
+                        </span>
+                        <span style={{ fontSize: 13, color: '#888' }}>{formatTime(chat.conversationTimestamp)}</span>
+                      </div>
+                      {chat.name && (
+                        <div style={{ fontSize: 10, color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          +{chat.id.split('@')[0]}
+                        </div>
+                      )}
+                    </div>
+                  ))
                 )}
               </div>
-            ))
+            </>
           )}
         </div>
-      </div>
       )}
 
       {/* Right Pane - Messages & Composer */}
@@ -452,6 +675,12 @@ const WhatsAppChatUI = ({ userId, socket, onLogout, logoutLoading }) => {
                     style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ddd', outline: 'none' }}
                   />
                 )}
+                <button onClick={() => alert('Video calls are not supported yet.')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#54656f' }}>
+                  <Video size={18} />
+                </button>
+                <button onClick={() => alert('Voice calls are not supported yet.')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#54656f' }}>
+                  <Phone size={18} />
+                </button>
                 <button onClick={() => { setIsSearchActive(!isSearchActive); setSearchQuery(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#54656f' }}>
                   <Search size={18} />
                 </button>

@@ -13,7 +13,7 @@ const API_BASE = (process.env.REACT_APP_API_URL || '') + '/api/users';
  */
 export async function changePasswordOnServer(uuid, newPassword, changedBy, changedByEmail, isAdminReset, currentPassword) {
   try {
-    const res = await fetch(`${API_BASE}/${uuid}/password`, {
+    const res = await fetch(`${API_BASE}/${uuid}/auth-update`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -45,7 +45,7 @@ export async function changePasswordOnServer(uuid, newPassword, changedBy, chang
  */
 export async function verifyPasswordOnServer(uuid, password) {
   try {
-    const res = await fetch(`${API_BASE}/${uuid}/password/verify`, {
+    const res = await fetch(`${API_BASE}/${uuid}/auth-verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password })

@@ -110,9 +110,9 @@
     "uuid": "8102000e-bec4-4924-8553-157b47c0c149",
     "id": 1779867142556,
     "createdAt": "2026-05-27T07:32:22.720Z",
-    "updatedAt": "2026-06-25T13:34:06.213Z",
-    "version": 11,
-    "password": "$2a$12$QtrSjOuDlncciW6MOqOeE.EiOlLpVybS2fGXjM5ouH52Z8/GBGccO",
+    "updatedAt": "2026-06-30T13:53:24.631Z",
+    "version": 44,
+    "password": "$2a$12$5vShkn.BMBBIVUCS5AwPr.DJgpAxZBoh9Rt.MscSRrHmgU07h1m9S",
     "phone": "+91",
     "foodPref": "Veg",
     "role": "Admin",
@@ -126,8 +126,14 @@
       "smtpHost": "mail.zsmeservices.com",
       "smtpPort": 465
     },
-    "passwordChangedAt": "2026-06-25T13:34:06.213Z",
-    "must_change_password": false
+    "passwordChangedAt": "2026-06-30T13:53:24.631Z",
+    "must_change_password": false,
+    "whatsappSession": {
+      "status": "connected",
+      "connectedAt": "2026-06-27T11:18:05.233Z",
+      "deviceId": "device-1779867142556"
+    },
+    "passwordChangedBy": "a1b2c3d4-0001-4e5f-8a9b-000000000001"
   },
   {
     "uuid": "a1b2c3d4-0001-4e5f-8a9b-000000000001",
@@ -983,8 +989,8 @@
     "profileImageName": null,
     "profileImageUploadedAt": null,
     "createdAt": "2026-05-27T09:36:02.634Z",
-    "updatedAt": "2026-06-03T12:43:57.448Z",
-    "version": 5,
+    "updatedAt": "2026-06-30T09:00:19.126Z",
+    "version": 6,
     "passwordChangedAt": "2026-06-03T12:43:57.387Z",
     "passwordChangedBy": "a1b2c3d4-0001-4e5f-8a9b-000000000001",
     "must_change_password": false
@@ -1038,6 +1044,54 @@
     "version": 1
   },
   {
+    "name": "Priyanka Kumari Limbu",
+    "email": "priyankakumari.limbu@zsmeservices.com",
+    "phone": "+91",
+    "whatsapp": "",
+    "password": "$2b$12$WnhbK6g/N6jED7dbtkLLz.YpHEZr.nbOmHZn8jA4AfeKa37rJzu2W",
+    "address": "",
+    "fatherName": "",
+    "motherName": "",
+    "bloodGroup": "",
+    "foodPref": "Veg",
+    "emergencyContact": "",
+    "hobbies": "",
+    "localStation": "",
+    "localPostOffice": "",
+    "referredBy": "",
+    "role": "Sales Agent",
+    "department": "Sales",
+    "designation": "Web Consultant",
+    "dateOfJoining": "2020-01-01",
+    "shift": "9:00 AM - 6:00 PM",
+    "salary": "",
+    "qualification": "",
+    "experience": "",
+    "pan": "",
+    "aadhaar": "",
+    "voterId": "",
+    "mailConfig": {
+      "useCustom": false,
+      "password": "",
+      "imapHost": "mail.zsmeservices.com",
+      "imapPort": 993,
+      "smtpHost": "mail.zsmeservices.com",
+      "smtpPort": 465
+    },
+    "uuid": "9e5616b8-bed7-4e35-b894-7d7d147e2aad",
+    "id": 1782826614827,
+    "employeeId": "EMP-023",
+    "status": "Active",
+    "profileImageUrl": null,
+    "profileImageSize": null,
+    "profileImageType": null,
+    "profileImageName": null,
+    "profileImageUploadedAt": null,
+    "createdAt": "2026-06-30T13:36:55.349Z",
+    "updatedAt": "2026-06-30T13:36:55.349Z",
+    "version": 1
+  },
+  {
     "uuid": "53984c72-7fc6-47a5-be0a-94bb7382c067",
     "id": "53984c72-7fc6-47a5-be0a-94bb7382c067",
     "email": "operations@zsmeservices.com",
@@ -1046,8 +1100,8 @@
     "department": "Operations",
     "status": "active",
     "employeeId": "EMP-OPS-001",
-    "createdAt": "2026-06-25T13:26:36.386Z",
-    "updatedAt": "2026-06-25T13:26:36.386Z"
+    "createdAt": "2026-06-30T14:18:43.782Z",
+    "updatedAt": "2026-06-30T14:18:43.782Z"
   },
   {
     "uuid": "3fc54ade-f756-46ee-a571-43191703de19",
@@ -1058,7 +1112,7 @@
     "department": "Billing",
     "status": "active",
     "employeeId": "EMP-BIL-001",
-    "createdAt": "2026-06-25T13:26:36.394Z",
-    "updatedAt": "2026-06-25T13:26:36.394Z"
+    "createdAt": "2026-06-30T14:18:43.799Z",
+    "updatedAt": "2026-06-30T14:18:43.799Z"
   }
 ]

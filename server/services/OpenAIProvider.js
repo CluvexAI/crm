@@ -1,15 +1,15 @@
 const LLMProvider = require('./LLMProvider');
 const { getSystemPrompt } = require('./prompts');
 
-class OpenRouterProvider extends LLMProvider {
+class OpenAIProvider extends LLMProvider {
   constructor(apiKey, baseUrl, defaultModel) {
-    super(apiKey, baseUrl || 'https://openrouter.ai/api/v1', defaultModel || 'google/gemini-2.5-pro');
-    this.name = 'OpenRouter';
+    super(apiKey, baseUrl || 'https://api.openai.com/v1', defaultModel || 'gpt-4o');
+    this.name = 'OpenAI';
   }
 
   async testConnection() {
     try {
-      const response = await fetch(`${this.baseUrl}/auth/key`, {
+      const response = await fetch(`${this.baseUrl}/models`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`
@@ -18,7 +18,7 @@ class OpenRouterProvider extends LLMProvider {
       if (!response.ok) {
         throw new Error('Invalid API Key or connection failed');
       }
-      return { success: true, message: 'OpenRouter connection successful' };
+      return { success: true, message: 'OpenAI connection successful' };
     } catch (error) {
       return { success: false, message: error.message };
     }
@@ -58,9 +58,7 @@ class OpenRouterProvider extends LLMProvider {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://zsmeservices.com',
-          'X-Title': 'ZSM CRM'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           model: selectedModel,
@@ -101,8 +99,6 @@ class OpenRouterProvider extends LLMProvider {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
-          'HTTP-Referer': 'https://crm.zsmeservices.com',
-          'X-Title': 'ZSM CRM',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -116,7 +112,7 @@ class OpenRouterProvider extends LLMProvider {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || errorData.message || 'Failed to generate completion via OpenRouter');
+        throw new Error(errorData.error?.message || errorData.message || 'Failed to generate completion via OpenAI');
       }
 
       const data = await response.json();
@@ -138,4 +134,4 @@ class OpenRouterProvider extends LLMProvider {
   }
 }
 
-module.exports = OpenRouterProvider;
+module.exports = OpenAIProvider;

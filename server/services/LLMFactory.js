@@ -1,5 +1,7 @@
 const OpenRouterProvider = require('./OpenRouterProvider');
 const InsforgeProvider = require('./InsforgeProvider');
+const GoogleGeminiProvider = require('./GoogleGeminiProvider');
+const OpenAIProvider = require('./OpenAIProvider');
 
 class LLMFactory {
   static create(providerName, apiKey, baseUrl, defaultModel) {
@@ -8,13 +10,36 @@ class LLMFactory {
         return new InsforgeProvider(apiKey, baseUrl, defaultModel);
       case 'OpenRouter':
         return new OpenRouterProvider(apiKey, baseUrl, defaultModel);
+      case 'Google Gemini':
+        return new GoogleGeminiProvider(apiKey, baseUrl, defaultModel);
+      case 'OpenAI':
+        return new OpenAIProvider(apiKey, baseUrl, defaultModel);
       default:
         // Default to OpenRouter if unknown but provide warning or fallback
         return new OpenRouterProvider(apiKey, baseUrl, defaultModel);
     }
   }
 
+  static async resolveShortUrl(url) {
+    if (!url) return url;
+    if (url.includes('maps.app.goo.gl') || url.includes('g.page')) {
+      try {
+        console.log(`[LLM] Expanding short URL: ${url}`);
+        const response = await fetch(url, { method: 'HEAD' });
+        console.log(`[LLM] Expanded URL: ${response.url}`);
+        return response.url || url;
+      } catch (err) {
+        console.error(`[LLM] Failed to expand short URL: ${err.message}`);
+        return url;
+      }
+    }
+    return url;
+  }
+
   static async generateWithFallback(primaryProviderStr, fallbackProviderStr, dbSettings, decryptFn, type, targetUrl) {
+    // Expand targetUrl if it's a short link
+    const expandedUrl = await LLMFactory.resolveShortUrl(targetUrl);
+    
     const { provider, api_key, gateway_url, base_url, default_model } = dbSettings;
     
     // Decrypt API key for primary
@@ -25,7 +50,7 @@ class LLMFactory {
     const primaryProvider = LLMFactory.create(primaryProviderStr, primaryKey, primaryUrl, default_model);
     
     console.log(`[LLM] Attempting research via primary provider: ${primaryProviderStr}`);
-    let result = await primaryProvider.generateResearch(type, targetUrl, default_model);
+    let result = await primaryProvider.generateResearch(type, expandedUrl, default_model);
     
     if (result.success) {
       return result;
@@ -45,7 +70,7 @@ class LLMFactory {
       const fallbackUrl = fallbackProviderStr === 'OpenRouter' ? 'https://openrouter.ai/api/v1' : primaryUrl;
       const fallbackProvider = LLMFactory.create(fallbackProviderStr, primaryKey, fallbackUrl, 'google/gemini-2.5-pro');
       
-      let fallbackResult = await fallbackProvider.generateResearch(type, targetUrl, 'google/gemini-2.5-pro');
+      let fallbackResult = await fallbackProvider.generateResearch(type, expandedUrl, 'google/gemini-2.5-pro');
       if (fallbackResult.success) {
         console.log(`[LLM] Fallback successful`);
         return fallbackResult;

@@ -526,7 +526,7 @@ const UsersPage = () => {
         if (password) {
           try {
             const BACKEND_BASE = process.env.REACT_APP_API_URL || '';
-            const res = await fetch(`${BACKEND_BASE}/api/users/${editUser.uuid}/password`, {
+            const res = await fetch(`${BACKEND_BASE}/api/users/${editUser.uuid}/auth-update`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -540,11 +540,14 @@ const UsersPage = () => {
               const errData = await res.json();
               throw new Error(errData.message || 'Failed to reset password');
             }
+            const data = await res.json();
+            if (data.success && data.hashedPassword) {
+              safe.password = data.hashedPassword;
+            }
           } catch (pwdErr) {
             console.error('[Password Reset]', pwdErr);
             throw new Error(`Password reset failed: ${pwdErr.message}`);
           }
-          delete safe.password;
         }
         
         await updateUser(editUser.uuid, safe);
