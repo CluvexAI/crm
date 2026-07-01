@@ -1,4 +1,6 @@
 const dns = require("dns").promises;
+const logger = require('./logger.js');
+
 
 async function resolveTxtWithRetry(hostname, retries = 3) {
   const resolvers = ["8.8.8.8", "1.1.1.1"];
@@ -11,7 +13,7 @@ async function resolveTxtWithRetry(hostname, retries = 3) {
         const records = await dns.resolveTxt(hostname);
         return records.map(r => r.join(""));
       } catch (err) {
-        console.error(
+        logger.error(
           `DNS lookup failed for ${hostname} using ${resolver}`,
           err.message
         );

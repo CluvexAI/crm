@@ -1,4 +1,5 @@
 const express = require('express');
+const logger = require('./utils/logger.js');
 const http = require('http');
 const { Server } = require('socket.io');
 const { ImapFlow } = require('imapflow');
@@ -43,6 +44,7 @@ dotenv.config({ path: path.join(__dirname, '..', '.env') }); // root .env fallba
 const postmarkClient = new postmark.ServerClient(process.env.POSTMARK_API_TOKEN || '7f34db3b-5094-4a8f-a162-16888266d45b');
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (useful for rate-limiting behind Nginx/ALB/Cloudflare)
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] }
@@ -51,6 +53,10 @@ const io = new Server(server, {
 app.use(cors());
 app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '50mb' }));
+
+// ─── Fast Health Check (For Load Balancers / ECS) ─────────────────────────
+app.get('/health', (req, res) => res.status(200).json({ status: 'ok', uptime: process.uptime() }));
+
 
 const PORT = process.env.PORT || process.env.MAIL_SERVER_PORT || 5001;
 
@@ -84,7 +90,7 @@ const addTombstone = (uuid) => {
   const set = new Set(readTombstones());
   set.add(String(uuid));
   writeJSON(DELETED_UUIDS_FILE, [...set]);
-  console.log(`[Tombstone] UUID permanently tombstoned: ${uuid}`);
+  logger.info(`[Tombstone] UUID permanently tombstoned: ${uuid}`);
 };
 
 // Returns true when a UUID has been tombstoned (permanently deleted).
@@ -105,7 +111,7 @@ const writeJSON = (file, data) => fs.writeFileSync(file, JSON.stringify(data, nu
 
 // Tombstone file init (runs after readJSON/writeJSON are defined)
 if (!fs.existsSync(DELETED_UUIDS_FILE)) writeJSON(DELETED_UUIDS_FILE, []);
-console.log(`[Tombstone] Loaded ${readTombstones().length} deleted UUID(s) from tombstone store`);
+logger.info(`[Tombstone] Loaded ${readTombstones().length} deleted UUID(s) from tombstone store`);
 
 const emailStore = readJSON(EMAIL_STORE_FILE, {}); // { userId: { inbox: [], sent: [], drafts: [], trash: [] } }
 const deliveryLogs = readJSON(DELIVERY_LOGS_FILE, []);
@@ -218,7 +224,7 @@ kP2TZdg75NQZEFd/Gf30Gu79dAsRMFtlQ/2YoumtN+Rgq7HoUjAt7vhDrHIbTPkN
     secure: port === 465,
     auth: { 
       user: config.email || config.user || smtpConfig.auth?.user || process.env.SMTP_USER || 'AKIAZS4KXICMRDCBUKW4', 
-      pass: (config.password ? decrypt(config.password) : null) || (config.pass ? decrypt(config.pass) : null) || smtpConfig.auth?.pass || process.env.SMTP_PASS || 'BJQzaBD98bf2GhOT2CxT2Bo5yPy4RnuixXj6N2hgkrF1' 
+      pass: (config.password ? decrypt(config.password) : null) || (config.pass ? decrypt(config.pass) : null) || smtpConfig.auth?.pass || process.env.SMTP_PASSWORD || process.env.SMTP_PASS || 'BJQzaBD98bf2GhOT2CxT2Bo5yPy4RnuixXj6N2hgkrF1' 
     },
     tls: { rejectUnauthorized: false },
     pool: true,
@@ -230,8 +236,8 @@ kP2TZdg75NQZEFd/Gf30Gu79dAsRMFtlQ/2YoumtN+Rgq7HoUjAt7vhDrHIbTPkN
   });
 };
 
-// ─── Health check (Robust) ───────────────────────────────────────────────────
-app.get('/health', async (req, res) => {
+// ─── Detailed Health check (Robust) ───────────────────────────────────────────────────
+app.get('/health/detailed', async (req, res) => {
   const health = {
     status: 'healthy',
     smtp: 'unknown',
@@ -335,7 +341,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
     writeJSON(OTP_FILE, filtered);
 
     // Log OTP to console for dev/recovery (always available even if email fails)
-    console.log(`[OTP] Code for ${normalizedEmail}: ${otp} (sessionId: ${sessionId})`);
+    logger.info(`[OTP] Code for ${normalizedEmail}: ${otp} (sessionId: ${sessionId})`);
 
     // ─── Build SMTP config: prioritize user's custom SMTP, then system env, then Postmark fallback ───
     let smtpConfig = null;
@@ -350,7 +356,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
         auth: { user: mailConfig.systemSmtpUser, pass: mailConfig.systemSmtpPass }
       };
       emailConfigSource = 'admin_dashboard_smtp';
-      console.log(`[OTP] Using admin dashboard SMTP: ${smtpConfig.host}`);
+      logger.info(`[OTP] Using admin dashboard SMTP: ${smtpConfig.host}`);
     }
 
     // 1. Check user's custom SMTP from stripe_config.json (same as CRM email settings)
@@ -361,7 +367,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
         auth: { user: stripeConfig.smtp.user, pass: stripeConfig.smtp.pass }
       };
       emailConfigSource = 'custom_smtp';
-      console.log(`[OTP] Using custom SMTP: ${stripeConfig.smtp.host}`);
+      logger.info(`[OTP] Using custom SMTP: ${stripeConfig.smtp.host}`);
     }
 
     // 2. Fall back to system .env SMTP
@@ -376,14 +382,14 @@ app.post('/api/auth/send-otp', async (req, res) => {
           auth: { user: envUser, pass: envPass }
         };
         emailConfigSource = 'env_smtp';
-        console.log(`[OTP] Using env SMTP: ${envHost}`);
+        logger.info(`[OTP] Using env SMTP: ${envHost}`);
       }
     }
 
     // 3. Last resort: Postmark (with outbound stream header for transactional emails)
     if (!smtpConfig) {
       emailConfigSource = 'postmark_outbound_stream';
-      console.log('[OTP] Using Postmark SMTP (outbound stream)');
+      logger.info('[OTP] Using Postmark SMTP (outbound stream)');
     }
 
     // Build transporter — if SMTP is used
@@ -421,8 +427,10 @@ app.post('/api/auth/send-otp', async (req, res) => {
     let lastError = null;
     let messageId = null;
 
+    const fromName = process.env.DEFAULT_FROM_NAME || 'ZSM CRM';
+    const fromEmail = process.env.DEFAULT_FROM_EMAIL || process.env.SMTP_USER || 'noreply@zsmeservices.com';
     const fromEmailAddress = smtpConfig 
-      ? '"ZSM CRM" <noreply@zsmeservices.com>'
+      ? `"${fromName}" <${fromEmail}>`
       : (process.env.POSTMARK_FROM_EMAIL || 'tanmoy.mondal@zsmeservices.com');
 
     for (let attempt = 1; attempt <= 3; attempt++) {
@@ -432,9 +440,9 @@ app.post('/api/auth/send-otp', async (req, res) => {
           if (attempt === 1) {
             try {
               await transporter.verify();
-              console.log(`[OTP] SMTP verified for attempt 1 (${emailConfigSource})`);
+              logger.info(`[OTP] SMTP verified for attempt 1 (${emailConfigSource})`);
             } catch (verifyErr) {
-              console.error(`[OTP] SMTP verify failed: ${verifyErr.message}`);
+              logger.error(`[OTP] SMTP verify failed: ${verifyErr.message}`);
             }
           }
 
@@ -452,9 +460,9 @@ app.post('/api/auth/send-otp', async (req, res) => {
             await postmarkClient.deleteSuppressions("outbound", {
               Suppressions: [{ EmailAddress: normalizedEmail }]
             });
-            console.log(`[OTP] Pre-emptively cleared suppressions for: ${normalizedEmail}`);
+            logger.info(`[OTP] Pre-emptively cleared suppressions for: ${normalizedEmail}`);
           } catch (suppressErr) {
-            console.warn(`[OTP] Suppression clear warning for ${normalizedEmail}: ${suppressErr.message}`);
+            logger.warn(`[OTP] Suppression clear warning for ${normalizedEmail}: ${suppressErr.message}`);
           }
 
           // Send via official Postmark Client SDK
@@ -470,12 +478,12 @@ app.post('/api/auth/send-otp', async (req, res) => {
         }
 
         addDeliveryLog({ type: 'otp', recipient: normalizedEmail, status: 'delivered', messageId, attempt, smtpSource: emailConfigSource });
-        console.log(`[OTP] Email delivered to ${normalizedEmail} (attempt ${attempt}, messageId: ${messageId})`);
+        logger.info(`[OTP] Email delivered to ${normalizedEmail} (attempt ${attempt}, messageId: ${messageId})`);
         sent = true;
         break;
       } catch (e) {
         addDeliveryLog({ type: 'otp', recipient: normalizedEmail, status: 'failed', error: e.message, attempt, smtpSource: emailConfigSource });
-        console.error(`[OTP] Send failed attempt ${attempt}: ${e.message}`);
+        logger.error(`[OTP] Send failed attempt ${attempt}: ${e.message}`);
         lastError = e.message;
         if (attempt < 3) await new Promise(r => setTimeout(r, 3000));
       }
@@ -491,11 +499,11 @@ app.post('/api/auth/send-otp', async (req, res) => {
     });
 
     if (!sent) {
-      console.error(`[OTP] ALL SMTP ATTEMPTS FAILED for ${normalizedEmail}. Last error: ${lastError}`);
-      console.log(`[OTP] MANUAL RECOVERY — Code for ${normalizedEmail}: ${otp} (sessionId: ${sessionId})`);
+      logger.error(`[OTP] ALL SMTP ATTEMPTS FAILED for ${normalizedEmail}. Last error: ${lastError}`);
+      logger.info(`[OTP] MANUAL RECOVERY — Code for ${normalizedEmail}: ${otp} (sessionId: ${sessionId})`);
     }
   } catch (e) {
-    console.error('Send OTP error:', e);
+    logger.error('Send OTP error:', e);
     return res.status(500).json({ success: false, message: 'Server error. Please try again.' });
   }
 });
@@ -524,7 +532,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
 
     return res.json({ success: true, userId: record.userId, email: record.email, message: 'OTP verified successfully.' });
   } catch (e) {
-    console.error('Verify OTP error:', e);
+    logger.error('Verify OTP error:', e);
     return res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
@@ -580,7 +588,7 @@ app.post('/api/auth/reset-password-otp', async (req, res) => {
     record.used = true;
     writeJSON(OTP_FILE, otpStore);
 
-    console.log(`[RESET] Password reset completed for ${record.email} (userId: ${record.userId})`);
+    logger.info(`[RESET] Password reset completed for ${record.email} (userId: ${record.userId})`);
     addDeliveryLog({ type: 'password_reset', email: record.email, status: 'completed' });
 
     return res.json({
@@ -590,7 +598,7 @@ app.post('/api/auth/reset-password-otp', async (req, res) => {
       message: 'Password has been reset successfully.',
     });
   } catch (e) {
-    console.error('Reset password error:', e);
+    logger.error('Reset password error:', e);
     return res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
@@ -701,9 +709,9 @@ app.post('/api/mail/send', async (req, res) => {
         await postmarkClient.deleteSuppressions("outbound", {
           Suppressions: [{ EmailAddress: recipientEmail }]
         });
-        console.log(`[Mail Send] Pre-emptively cleared suppressions for: ${recipientEmail}`);
+        logger.info(`[Mail Send] Pre-emptively cleared suppressions for: ${recipientEmail}`);
       } catch (suppressErr) {
-        console.warn(`[Mail Send] Suppression clear warning: ${suppressErr.message}`);
+        logger.warn(`[Mail Send] Suppression clear warning: ${suppressErr.message}`);
       }
 
       const fromEmailAddress = process.env.POSTMARK_FROM_EMAIL || 'tanmoy.mondal@zsmeservices.com';
@@ -728,11 +736,11 @@ app.post('/api/mail/send', async (req, res) => {
           };
         })
       });
-      console.log(`[Mail Send] Postmark delivery success, messageId: ${response.MessageID}`);
+      logger.info(`[Mail Send] Postmark delivery success, messageId: ${response.MessageID}`);
       addDeliveryLog({ type: 'user_mail', sender: fromEmailAddress, recipient: recipientEmail, status: 'delivered', messageId: response.MessageID });
       return res.json({ success: true, messageId: response.MessageID });
     } catch (err) {
-      console.error(`[Mail Send] Postmark delivery failed: ${err.message}`);
+      logger.error(`[Mail Send] Postmark delivery failed: ${err.message}`);
       addDeliveryLog({ type: 'user_mail', sender: 'postmark', recipient: mailOptions.to, status: 'failed', error: err.message });
       return res.status(500).json({ success: false, message: `Delivery Failed: ${err.message}` });
     }
@@ -1389,7 +1397,7 @@ app.get('/api/activity-reports/date/:date', (req, res) => {
 
 app.post('/api/reports/daily', (req, res) => {
   const { userId, userName, department, reportText, date } = req.body;
-  console.log(`[REPORT] Submission attempt from ${userName} (${userId}) for date ${date}`);
+  logger.info(`[REPORT] Submission attempt from ${userName} (${userId}) for date ${date}`);
   const allowedDepts = ['Backend', 'Support', 'Quality', 'Graphics', 'Account', 'Accounts', 'HR', 'Management'];
   
   // 1. Dept check
@@ -1400,7 +1408,7 @@ app.post('/api/reports/daily', (req, res) => {
   // 2. Date check (Local YYYY-MM-DD)
   const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
   if (date !== today) {
-    console.warn(`[REPORT] Date mismatch: Submitted ${date}, Server thinks it is ${today}`);
+    logger.warn(`[REPORT] Date mismatch: Submitted ${date}, Server thinks it is ${today}`);
     return res.status(400).json({ success: false, message: `Only today's report (${today}) is allowed` });
   }
 
@@ -1438,7 +1446,7 @@ const startImapListener = async (userId, config) => {
   try {
     await client.connect();
     let lock = await client.getMailboxLock('INBOX');
-    console.log(`[IMAP] Listener active for ${config.user}`);
+    logger.info(`[IMAP] Listener active for ${config.user}`);
 
     // Listen for new mail
     client.on('exists', async (data) => {
@@ -1455,22 +1463,22 @@ const startImapListener = async (userId, config) => {
         store.inbox.unshift(email);
         saveEmails();
         io.emit('mail:new', { userId, email });
-        console.log(`[IMAP] New mail received for ${config.user}: ${msg.envelope.subject}`);
+        logger.info(`[IMAP] New mail received for ${config.user}: ${msg.envelope.subject}`);
       }
     });
 
     client.on('error', (err) => {
-      console.error(`[IMAP] Error for ${config.user}:`, err.message);
+      logger.error(`[IMAP] Error for ${config.user}:`, err.message);
       setTimeout(() => startImapListener(userId, config), 5000);
     });
 
     client.on('close', () => {
-      console.log(`[IMAP] Connection closed for ${config.user}. Reconnecting...`);
+      logger.info(`[IMAP] Connection closed for ${config.user}. Reconnecting...`);
       setTimeout(() => startImapListener(userId, config), 5000);
     });
 
   } catch (e) {
-    console.error(`[IMAP] Failed to start listener for ${config.user}:`, e.message);
+    logger.error(`[IMAP] Failed to start listener for ${config.user}:`, e.message);
     setTimeout(() => startImapListener(userId, config), 10000);
   }
 };
@@ -1503,9 +1511,9 @@ app.post('/api/users/seed', (req, res) => {
   // FIX #5: Strip tombstoned UUIDs from seed payload — prevents resurrection via fresh seed
   const safe = filterTombstoned(users);
   const stripped = users.length - safe.length;
-  if (stripped > 0) console.log(`[UserDB] Seed: stripped ${stripped} tombstoned UUID(s) from payload`);
+  if (stripped > 0) logger.info(`[UserDB] Seed: stripped ${stripped} tombstoned UUID(s) from payload`);
   writeUsers(safe);
-  console.log(`[UserDB] Seeded backend DB with ${safe.length} users`);
+  logger.info(`[UserDB] Seeded backend DB with ${safe.length} users`);
   res.json({ success: true, data: safe });
 });
 
@@ -1515,7 +1523,7 @@ app.post('/api/users', async (req, res) => {
     const { uuid } = req.body;
     // FIX #4 (backend guard): Refuse to create a user whose UUID has been tombstoned
     if (uuid && isTombstoned(uuid)) {
-      console.warn(`[UserDB] Blocked creation of tombstoned UUID: ${uuid}`);
+      logger.warn(`[UserDB] Blocked creation of tombstoned UUID: ${uuid}`);
       return res.status(409).json({ success: false, message: 'Cannot recreate a permanently deleted user.', tombstoned: true });
     }
     const users = readUsers() || [];
@@ -1524,16 +1532,16 @@ app.post('/api/users', async (req, res) => {
     let userData = { ...req.body };
     if (userData.password && !userData.password.startsWith('$2b$')) {
       userData.password = await bcrypt.hash(userData.password, 12);
-      console.log(`[UserDB] Hashed password for new user: ${userData.uuid}`);
+      logger.info(`[UserDB] Hashed password for new user: ${userData.uuid}`);
     }
     
     const newUser = { ...userData, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
     users.push(newUser);
     writeUsers(users);
-    console.log(`[UserDB] Created user: ${newUser.uuid}`);
+    logger.info(`[UserDB] Created user: ${newUser.uuid}`);
     res.json({ success: true, data: newUser });
   } catch (e) {
-    console.error('[UserDB] Create user error:', e.message);
+    logger.error('[UserDB] Create user error:', e.message);
     res.status(500).json({ success: false, message: e.message });
   }
 });
@@ -1544,7 +1552,7 @@ app.put('/api/users/:uuid', async (req, res) => {
     const { uuid } = req.params;
     // FIX #5: Block upsert (create-if-not-found) for tombstoned UUIDs — the primary ghost-create vector
     if (isTombstoned(uuid)) {
-      console.warn(`[UserDB] Blocked PUT upsert for tombstoned UUID: ${uuid}`);
+      logger.warn(`[UserDB] Blocked PUT upsert for tombstoned UUID: ${uuid}`);
       return res.status(410).json({ success: false, message: 'User has been permanently deleted and cannot be modified.', tombstoned: true });
     }
     const users = readUsers() || [];
@@ -1561,7 +1569,7 @@ app.put('/api/users/:uuid', async (req, res) => {
     // Hash password if provided and not already hashed
     if (updateData.password && !updateData.password.startsWith('$2b$')) {
       updateData.password = await bcrypt.hash(updateData.password, 12);
-      console.log(`[UserDB] Hashed password in PUT update for: ${uuid}`);
+      logger.info(`[UserDB] Hashed password in PUT update for: ${uuid}`);
     }
     
     if (idx === -1) {
@@ -1573,10 +1581,10 @@ app.put('/api/users/:uuid', async (req, res) => {
     }
     users[idx] = { ...users[idx], ...updateData, updatedAt: new Date().toISOString() };
     writeUsers(users);
-    console.log(`[UserDB] Updated user: ${uuid}`);
+    logger.info(`[UserDB] Updated user: ${uuid}`);
     res.json({ success: true, data: users[idx] });
   } catch (e) {
-    console.error('[UserDB] Update user error:', e.message);
+    logger.error('[UserDB] Update user error:', e.message);
     res.status(500).json({ success: false, message: e.message });
   }
 });
@@ -1596,7 +1604,7 @@ app.delete('/api/users/:uuid', (req, res) => {
   addTombstone(uuid);
   const filtered = users.filter(u => u.uuid !== uuid);
   writeUsers(filtered);
-  console.log(`[UserDB] Permanently deleted user: ${uuid} — tombstoned`);
+  logger.info(`[UserDB] Permanently deleted user: ${uuid} — tombstoned`);
   res.json({ success: true });
 });
 
@@ -1638,7 +1646,7 @@ app.post('/api/users/deletion-log', (req, res) => {
     log.unshift(entry);
     if (log.length > 1000) log.length = 1000;
     writeJSON(DELETION_AUDIT_FILE, log);
-    console.log('[DeletionAudit] SQL-Mapped Logged: ' + entry.deleted_user_email + ' by ' + (raw.deletedByName || entry.deleted_by_email || 'SYSTEM'));
+    logger.info('[DeletionAudit] SQL-Mapped Logged: ' + entry.deleted_user_email + ' by ' + (raw.deletedByName || entry.deleted_by_email || 'SYSTEM'));
     res.json({ success: true, auditId: entry.id });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
@@ -1655,7 +1663,7 @@ app.post('/api/users/sync-blocked-log', (req, res) => {
     log.unshift(entry);
     if (log.length > 1000) log.length = 1000;
     writeJSON(SYNC_BLOCKED_FILE, log);
-    console.log('[SyncBlockedLog] Blocked resurrect sync of: ' + entry.email + ' due to tombstone match');
+    logger.info('[SyncBlockedLog] Blocked resurrect sync of: ' + entry.email + ' due to tombstone match');
     res.json({ success: true, logId: entry.id });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
@@ -1676,7 +1684,7 @@ app.post('/api/auth/revoke-tokens', (req, res) => {
     const store = readJSON(OTP_FILE, []);
     const filtered = store.filter(function(o) { return o.email !== norm; });
     writeJSON(OTP_FILE, filtered);
-    console.log('[TokenRevoke] Purged ' + (store.length - filtered.length) + ' token(s) for: ' + norm);
+    logger.info('[TokenRevoke] Purged ' + (store.length - filtered.length) + ' token(s) for: ' + norm);
     res.json({ success: true, revoked: store.length - filtered.length });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
@@ -1720,7 +1728,7 @@ app.put('/api/users/:uuid/auth-update', async (req, res) => {
     if (!isAdminReset && currentPassword) {
       const passwordMatch = await bcrypt.compare(currentPassword, user.password);
       if (!passwordMatch) {
-        console.warn(`[PasswordAPI] Failed password verification for user: ${uuid}`);
+        logger.warn(`[PasswordAPI] Failed password verification for user: ${uuid}`);
         return res.status(401).json({ success: false, message: 'Current password is incorrect' });
       }
     }
@@ -1757,7 +1765,7 @@ app.put('/api/users/:uuid/auth-update', async (req, res) => {
     if (auditStore.length > 1000) auditStore.length = 1000;
     writeJSON(PASSWORD_AUDIT_FILE, auditStore);
 
-    console.log(`[PasswordAPI] Password changed for ${user.email} by ${changedByEmail || 'self'} (type: ${isAdminReset ? 'admin' : 'self'})`);
+    logger.info(`[PasswordAPI] Password changed for ${user.email} by ${changedByEmail || 'self'} (type: ${isAdminReset ? 'admin' : 'self'})`);
 
     res.json({
       success: true,
@@ -1766,7 +1774,7 @@ app.put('/api/users/:uuid/auth-update', async (req, res) => {
       message: 'Password changed successfully'
     });
   } catch (e) {
-    console.error('[PasswordAPI] Password change error:', e.message);
+    logger.error('[PasswordAPI] Password change error:', e.message);
     res.status(500).json({ success: false, message: 'Server error during password change' });
   }
 });
@@ -1798,7 +1806,7 @@ app.post('/api/users/:uuid/auth-verify', async (req, res) => {
       message: isValid ? 'Password verified' : 'Invalid password'
     });
   } catch (e) {
-    console.error('[PasswordVerify] Error:', e.message);
+    logger.error('[PasswordVerify] Error:', e.message);
     res.status(500).json({ success: false, message: 'Server error during verification' });
   }
 });
@@ -1819,7 +1827,7 @@ app.delete('/api/mail/user/:uuid', (req, res) => {
   try {
     const { uuid } = req.params;
     if (emailStore[uuid]) { delete emailStore[uuid]; saveEmails(); }
-    console.log('[MailCleanup] Removed email store for deleted user: ' + uuid);
+    logger.info('[MailCleanup] Removed email store for deleted user: ' + uuid);
     res.json({ success: true });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
@@ -1855,7 +1863,7 @@ const logProjectDelete = (deleted, adminId, adminName) => {
     });
     fs.writeFileSync(PROJECT_DELETE_LOG_KEY, JSON.stringify(logs.slice(0, 500), null, 2));
   } catch (e) {
-    console.error('[Project Delete Log] Failed:', e.message);
+    logger.error('[Project Delete Log] Failed:', e.message);
   }
 };
 
@@ -1890,7 +1898,7 @@ app.delete('/api/projects/:projectId', (req, res) => {
     setProjectStore(projects);
     logProjectDelete(deleted, userId, req.body?.userName || 'Admin');
 
-    console.log(`[Project Delete] Admin: ${userId} | Project: ${deleted.projectName} (ID: ${projectId})`);
+    logger.info(`[Project Delete] Admin: ${userId} | Project: ${deleted.projectName} (ID: ${projectId})`);
 
     return res.json({
       success: true,
@@ -1898,7 +1906,7 @@ app.delete('/api/projects/:projectId', (req, res) => {
       deletedProject: deleted.projectName
     });
   } catch (e) {
-    console.error('[Project Delete] Error:', e.message);
+    logger.error('[Project Delete] Error:', e.message);
     return res.status(500).json({ success: false, message: 'Project deletion failed. Please try again.' });
   }
 });
@@ -1954,7 +1962,7 @@ app.post('/api/migration/log', (req, res) => {
     if (logs.length > 1000) logs.length = 1000;
     writeJSON(MIGRATION_LOGS_FILE, logs);
 
-    console.log(
+    logger.info(
       `[MIGRATION LOG] Agent: ${entry.agent_id} | ` +
       `Migrated: ${entry.total_migrated} | Skipped: ${entry.total_skipped} | ` +
       `Failed: ${entry.total_failed} | Status: ${entry.status}`
@@ -1962,7 +1970,7 @@ app.post('/api/migration/log', (req, res) => {
 
     return res.json({ success: true, id: entry.id });
   } catch (e) {
-    console.error('[MIGRATION LOG] Error:', e.message);
+    logger.error('[MIGRATION LOG] Error:', e.message);
     return res.status(500).json({ success: false, message: e.message });
   }
 });
@@ -1996,7 +2004,7 @@ app.post('/api/migration/log-error', (req, res) => {
     if (errors.length > 1000) errors.length = 1000;
     writeJSON(MIGRATION_ERRORS_FILE, errors);
 
-    console.log(`[MIGRATION ERROR] Logged error for lead ${entry.lead_name}: ${entry.error_response}`);
+    logger.info(`[MIGRATION ERROR] Logged error for lead ${entry.lead_name}: ${entry.error_response}`);
     return res.json({ success: true, id: entry.id });
   } catch (e) {
     return res.status(500).json({ success: false, message: e.message });
@@ -2021,7 +2029,7 @@ if (!chatData.messages) chatData.messages = {};
 if (!chatData.presence) chatData.presence = {};
 
 const saveChatData = () => {
-  try { writeJSON(CHAT_DATA_FILE, chatData); } catch (e) { console.error('[Chat] Save failed:', e.message); }
+  try { writeJSON(CHAT_DATA_FILE, chatData); } catch (e) { logger.error('[Chat] Save failed:', e.message); }
 };
 
 // Debounced save to avoid thrashing disk on rapid messages
@@ -2076,7 +2084,7 @@ io.on('connection', (socket) => {
   // ── Email subscription (existing functionality) ──
   socket.on('subscribe', ({ userId, config }) => {
     socket.join(`user_${userId}`);
-    console.log(`[Socket] User ${userId} joined`);
+    logger.info(`[Socket] User ${userId} joined`);
     if (config && config.user && config.pass) {
       startImapListener(userId, config);
     }
@@ -2101,7 +2109,7 @@ io.on('connection', (socket) => {
 
     // Broadcast presence to all connected chat users
     io.emit('chat:presence', { userId: socketUserId, status: 'online', lastSeen: chatData.presence[socketUserId].lastSeen });
-    console.log(`[Chat] User ${socketUserId} (${userName || 'unknown'}) online. Sockets: ${userSockets[socketUserId].size}`);
+    logger.info(`[Chat] User ${socketUserId} (${userName || 'unknown'}) online. Sockets: ${userSockets[socketUserId].size}`);
   });
 
   // ── Chat: Ensure a conversation exists ──
@@ -2240,9 +2248,9 @@ io.on('connection', (socket) => {
           debouncedSaveChatData();
         }
         io.emit('chat:presence', { userId: socketUserId, status: 'offline', lastSeen: new Date().toISOString() });
-        console.log(`[Chat] User ${socketUserId} offline (all tabs closed)`);
+        logger.info(`[Chat] User ${socketUserId} offline (all tabs closed)`);
       } else {
-        console.log(`[Chat] User ${socketUserId} closed a tab. Remaining sockets: ${userSockets[socketUserId].size}`);
+        logger.info(`[Chat] User ${socketUserId} closed a tab. Remaining sockets: ${userSockets[socketUserId].size}`);
       }
     }
   });
@@ -2252,7 +2260,7 @@ io.on('connection', (socket) => {
 
 // Start integrity checks on startup
 const { runGhostUserIntegrityCheck } = require('./services/integrityService');
-runGhostUserIntegrityCheck().catch(err => console.error('[IntegrityStartup] Failed:', err.message));
+runGhostUserIntegrityCheck().catch(err => logger.error('[IntegrityStartup] Failed:', err.message));
 
 // ─── Attendance APIs ─────────────────────────────────────────────────────────
 
@@ -2299,7 +2307,7 @@ app.post('/api/whatsapp/init', (req, res) => {
   if (!userId) return res.status(400).json({ success: false, message: 'connectionId is required' });
   
   startSession(userId, io).catch(err => {
-    console.error(`[WhatsApp] Init Error:`, err);
+    logger.error(`[WhatsApp] Init Error:`, err);
   });
   res.json({ success: true, message: 'WhatsApp session initialization started' });
 });
@@ -2413,7 +2421,7 @@ app.post('/api/whatsapp/messages/send', whatsappSendLimiter, upload.single('file
     
     res.json({ success: true, message: result });
   } catch (error) {
-    console.error(`[WhatsApp] Send message error:`, error);
+    logger.error(`[WhatsApp] Send message error:`, error);
     
     // Check if the error is our JSON serialized dummy result
     try {
@@ -2444,7 +2452,7 @@ app.post('/api/whatsapp/messages/edit', async (req, res) => {
     logAudit(connectionId, 'EDIT_MESSAGE', chatId, { messageId });
     res.json({ success: true, message: result });
   } catch (error) {
-    console.error(`[WhatsApp] Edit message error:`, error);
+    logger.error(`[WhatsApp] Edit message error:`, error);
     res.status(500).json({ success: false, message: error.message || 'Failed to edit message' });
   }
 });
@@ -2460,7 +2468,7 @@ app.post('/api/whatsapp/messages/delete', async (req, res) => {
     logAudit(connectionId, 'DELETE_MESSAGE', chatId, { messageId });
     res.json({ success: true, message: result });
   } catch (error) {
-    console.error(`[WhatsApp] Delete message error:`, error);
+    logger.error(`[WhatsApp] Delete message error:`, error);
     res.status(500).json({ success: false, message: error.message || 'Failed to delete message' });
   }
 });
@@ -2724,7 +2732,28 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../build', 'index.html'));
 });
 
-server.listen(PORT, () => {
-  console.log(`Mail Proxy REPAIRED on port ${PORT}`);
+const serverInstance = server.listen(PORT, '0.0.0.0', () => {
+  logger.info(`Mail Proxy REPAIRED on port ${PORT}`);
   initializeExistingSessions(io);
 });
+
+// Graceful Shutdown logic
+const gracefulShutdown = (signal) => {
+  logger.info(`\n[${signal}] signal received: closing HTTP server...`);
+  
+  serverInstance.close(() => {
+    logger.info('HTTP server closed. All remaining connections terminated.');
+    
+    // Add cleanup logic here for any open database/redis connections if needed
+    process.exit(0);
+  });
+
+  // Force shutdown if it takes longer than 10 seconds (e.g., hanging connections)
+  setTimeout(() => {
+    logger.error('Could not close connections in time, forcefully shutting down');
+    process.exit(1);
+  }, 10000).unref();
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

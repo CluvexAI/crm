@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { decrypt: decryptLlm } = require('../utils/crypto');
 const LLMFactory = require('./LLMFactory');
+const logger = require('../utils/logger.js');
 
 // Background job queue
 const jobs = {};
@@ -136,7 +137,7 @@ const fetchPlacesData = async (url) => {
       throw new Error("Could not extract business name from URL to perform Places API search.");
     }
     
-    const apiKey = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyDGSMMyMwQ3gL5jveNEb50ZdksfLlRNurA';
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
     
     // 1. Search for Place ID
     const searchRes = await fetch('https://places.googleapis.com/v1/places:searchText', {
@@ -220,6 +221,8 @@ const processAudit = async (jobId, type, url, userId) => {
     let prompt = '';
     if (type === 'gmb') {
       const { getSystemPrompt } = require('./prompts');
+
+
       prompt = `${getSystemPrompt('gmb')}
 
 URL: ${scrapedData.finalUrl}
@@ -282,7 +285,7 @@ Respond strictly with valid JSON only.`;
     try {
       reportObj = JSON.parse(rawText);
     } catch (e) {
-      console.error("LLM did not return valid JSON", rawText);
+      logger.error("LLM did not return valid JSON", rawText);
       throw new Error("AI analysis failed to produce a valid report format.");
     }
 

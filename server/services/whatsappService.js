@@ -2,6 +2,8 @@ const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLat
 const pino = require('pino');
 const path = require('path');
 const fs = require('fs');
+const logger = require('../utils/logger.js');
+
 
 const sessions = new Map();
 const qrCallbacks = new Map();
@@ -33,9 +35,9 @@ async function startSession(connectionId, io) {
   if (existingSock) {
     try {
       existingSock.ev.removeAllListeners();
-      existingSock.logout().catch(e => console.log(`[WhatsApp] Logout error for ${connectionId}:`, e.message));
+      existingSock.logout().catch(e => logger.info(`[WhatsApp] Logout error for ${connectionId}:`, e.message));
     } catch (e) {
-      console.log(`[WhatsApp] Error cleaning up old socket for ${connectionId}`, e);
+      logger.info(`[WhatsApp] Error cleaning up old socket for ${connectionId}`, e);
     }
     sessions.delete(connectionId);
   }
@@ -48,15 +50,15 @@ async function startSession(connectionId, io) {
 
   const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
   const { version, isLatest } = await fetchLatestBaileysVersion();
-  console.log(`[WhatsApp] Using WA v${version.join('.')}, isLatest: ${isLatest}`);
+  logger.info(`[WhatsApp] Using WA v${version.join('.')}, isLatest: ${isLatest}`);
 
-  const logger = pino({ level: 'debug' }); // Temporary debug logging for pairing issues
+  const pinoLogger = pino({ level: 'debug' }); // Temporary debug logging for pairing issues
 
   const sock = makeWASocket({
     version,
     auth: state,
     printQRInTerminal: false,
-    logger,
+    logger: pinoLogger,
     browser: ['Ubuntu', 'Chrome', '20.0.04'],
     syncFullHistory: true, // Request full chat history on connect
   });
@@ -69,27 +71,27 @@ async function startSession(connectionId, io) {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr) {
-      console.log(`[WhatsApp] New QR for user ${connectionId}`);
+      logger.info(`[WhatsApp] New QR for user ${connectionId}`);
       io.emit(`whatsapp:qr:${connectionId}`, qr);
     }
 
     if (connection === 'close') {
       const statusCode = (lastDisconnect?.error)?.output?.statusCode;
       const loggedOut = statusCode === DisconnectReason.loggedOut || statusCode === 401;
-      console.log(`[WhatsApp] Connection closed for user ${connectionId}. Reconnect: ${!loggedOut}, statusCode: ${statusCode}`);
+      logger.info(`[WhatsApp] Connection closed for user ${connectionId}. Reconnect: ${!loggedOut}, statusCode: ${statusCode}`);
       
       if (loggedOut) {
-        console.log(`[WhatsApp] User ${connectionId} logged out. Clearing session.`);
+        logger.info(`[WhatsApp] User ${connectionId} logged out. Clearing session.`);
         io.emit(`whatsapp:status:${connectionId}`, { status: 'disconnected', reason: 'logged_out' });
         // Defer deletion slightly on Windows to allow file handles to release, and wrap in try-catch to prevent crashes
         setTimeout(() => {
           try {
             if (fs.existsSync(sessionDir)) {
               fs.rmSync(sessionDir, { recursive: true, force: true });
-              console.log(`[WhatsApp] Successfully cleared session directory: ${sessionDir}`);
+              logger.info(`[WhatsApp] Successfully cleared session directory: ${sessionDir}`);
             }
           } catch (err) {
-            console.warn(`[WhatsApp] Warning: could not clear session directory ${sessionDir} (locked or already removed):`, err.message);
+            logger.warn(`[WhatsApp] Warning: could not clear session directory ${sessionDir} (locked or already removed):`, err.message);
           }
         }, 1000);
         sessions.delete(connectionId);
@@ -102,7 +104,7 @@ async function startSession(connectionId, io) {
         }, 2000);
       }
     } else if (connection === 'open') {
-      console.log(`[WhatsApp] Connection opened for user ${connectionId}`);
+      logger.info(`[WhatsApp] Connection opened for user ${connectionId}`);
       io.emit(`whatsapp:status:${connectionId}`, { status: 'connected' });
       
       // Update users.json
@@ -115,7 +117,7 @@ async function startSession(connectionId, io) {
   // Initial Sync (Historical Data)
   sock.ev.on('messaging-history.set', ({ chats, contacts, messages, isLatest }) => {
     try {
-      console.log(`[WhatsApp] History Set: ${chats.length} chats, ${messages.length} messages, ${contacts.length} contacts`);
+      logger.info(`[WhatsApp] History Set: ${chats.length} chats, ${messages.length} messages, ${contacts.length} contacts`);
       
       const storeChats = readJSON(paths.chats, []);
       const storeMessages = readJSON(paths.messages, {});
@@ -162,7 +164,7 @@ async function startSession(connectionId, io) {
 
       io.emit(`whatsapp:sync_complete:${connectionId}`);
     } catch (err) {
-      console.error('[WhatsApp] Error in messaging-history.set:', err);
+      logger.error('[WhatsApp] Error in messaging-history.set:', err);
     }
   });
 
@@ -182,7 +184,7 @@ async function startSession(connectionId, io) {
       });
       writeJSON(paths.contacts, storeContacts);
     } catch (err) {
-      console.error('[WhatsApp] Error in contacts.upsert:', err);
+      logger.error('[WhatsApp] Error in contacts.upsert:', err);
     }
   });
 
@@ -202,7 +204,7 @@ async function startSession(connectionId, io) {
       });
       writeJSON(paths.contacts, storeContacts);
     } catch (err) {
-      console.error('[WhatsApp] Error in contacts.update:', err);
+      logger.error('[WhatsApp] Error in contacts.update:', err);
     }
   });
 
@@ -222,7 +224,7 @@ async function startSession(connectionId, io) {
       writeJSON(paths.chats, storeChats);
       io.emit(`whatsapp:chats_update:${connectionId}`);
     } catch (err) {
-      console.error('[WhatsApp] Error in chats.upsert:', err);
+      logger.error('[WhatsApp] Error in chats.upsert:', err);
     }
   });
 
@@ -244,7 +246,7 @@ async function startSession(connectionId, io) {
         io.emit(`whatsapp:chats_update:${connectionId}`);
       }
     } catch (err) {
-      console.error('[WhatsApp] Error in chats.update:', err);
+      logger.error('[WhatsApp] Error in chats.update:', err);
     }
   });
 
@@ -283,7 +285,7 @@ async function startSession(connectionId, io) {
         io.emit(`whatsapp:chats_update:${connectionId}`);
       }
     } catch (err) {
-      console.error('[WhatsApp] Error in messages.upsert:', err);
+      logger.error('[WhatsApp] Error in messages.upsert:', err);
     }
   });
   // Handle incoming calls (reject and log)
@@ -295,7 +297,7 @@ async function startSession(connectionId, io) {
 
       for (const call of calls) {
         if (call.status === 'offer') {
-          console.log(`[WhatsApp] Incoming call from ${call.from}, rejecting...`);
+          logger.info(`[WhatsApp] Incoming call from ${call.from}, rejecting...`);
           
           // Reject the call
           try {
@@ -304,7 +306,7 @@ async function startSession(connectionId, io) {
               text: "We cannot accept WhatsApp calls. Please send a text message instead." 
             });
           } catch (e) {
-            console.error('[WhatsApp] Failed to reject call/send message:', e);
+            logger.error('[WhatsApp] Failed to reject call/send message:', e);
           }
 
           // Create a synthetic call log message
@@ -345,7 +347,7 @@ async function startSession(connectionId, io) {
         io.emit(`whatsapp:chats_update:${connectionId}`);
       }
     } catch (err) {
-      console.error('[WhatsApp] Error handling call event:', err);
+      logger.error('[WhatsApp] Error handling call event:', err);
     }
   });
 
@@ -374,7 +376,7 @@ async function startSession(connectionId, io) {
         writeJSON(paths.messages, storeMessages);
       }
     } catch (err) {
-      console.error('[WhatsApp] Error in messages.update:', err);
+      logger.error('[WhatsApp] Error in messages.update:', err);
     }
   });
 }
@@ -418,7 +420,7 @@ async function sendMessage(connectionId, chatId, content, options = {}) {
   try {
     result = await sock.sendMessage(chatId, content, baileysOptions);
   } catch (err) {
-    console.error('[WhatsApp] Send failed, creating dummy message:', err);
+    logger.error('[WhatsApp] Send failed, creating dummy message:', err);
     isFailed = true;
     result = {
       key: {
@@ -460,7 +462,7 @@ async function sendMessage(connectionId, chatId, content, options = {}) {
     writeJSON(paths.messages, storeMessages);
     writeJSON(paths.chats, storeChats);
   } catch (err) {
-    console.error('[WhatsApp] Error optimistically saving message:', err);
+    logger.error('[WhatsApp] Error optimistically saving message:', err);
   }
   
   if (isFailed) {
@@ -509,7 +511,7 @@ async function sendPresenceUpdate(connectionId, chatId, presence) {
 function logoutSession(connectionId) {
   const sock = sessions.get(connectionId);
   if (sock) {
-    sock.logout().catch(e => console.log(`[WhatsApp] Logout error for ${connectionId}:`, e.message));
+    sock.logout().catch(e => logger.info(`[WhatsApp] Logout error for ${connectionId}:`, e.message));
     sessions.delete(connectionId);
   }
   
@@ -519,10 +521,10 @@ function logoutSession(connectionId) {
     try {
       if (fs.existsSync(sessionDir)) {
         fs.rmSync(sessionDir, { recursive: true, force: true });
-        console.log(`[WhatsApp] Successfully cleared session directory on logout: ${sessionDir}`);
+        logger.info(`[WhatsApp] Successfully cleared session directory on logout: ${sessionDir}`);
       }
     } catch (err) {
-      console.warn(`[WhatsApp] Warning: could not clear session directory ${sessionDir} on logout:`, err.message);
+      logger.warn(`[WhatsApp] Warning: could not clear session directory ${sessionDir} on logout:`, err.message);
     }
   }, 1000);
   
@@ -557,7 +559,7 @@ function updateConnectionStatus(connectionId, status) {
       fs.writeFileSync(connFile, JSON.stringify(connections, null, 2));
     }
   } catch (error) {
-    console.error(`[WhatsApp] Failed to update connection status:`, error);
+    logger.error(`[WhatsApp] Failed to update connection status:`, error);
   }
 }
 
@@ -571,7 +573,7 @@ function initializeExistingSessions(io) {
   
   sessionDirs.forEach(dir => {
     const connectionId = dir.replace('whatsapp-auth-', '');
-    console.log(`[WhatsApp] Auto-starting session for ${connectionId}`);
+    logger.info(`[WhatsApp] Auto-starting session for ${connectionId}`);
     startSession(connectionId, io);
   });
 }

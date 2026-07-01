@@ -10,13 +10,13 @@
     "createdAt": "2026-06-23T11:54:38.097Z"
   },
   {
-    "sessionId": "2b024da27864ef7c5e86f6f9e394bb2a",
+    "sessionId": "5cf6674c8a475120cb798bb2f66f38c1",
     "userId": "1779867142556",
     "email": "tanmoy.mondal@zsmeservices.com",
-    "otpHash": "cd9770abfaf167bf693a3feeab0c464840a0b1d858d7613804f92d7c7dd53cda",
-    "expiresAt": "2026-06-30T14:52:25.803Z",
-    "used": true,
-    "verified": true,
-    "createdAt": "2026-06-30T13:52:25.803Z"
+    "otpHash": "f7c3a583061201758279d18adfc7ace084bc4b8b72480d35490fafa7769b050d",
+    "expiresAt": "2026-07-01T13:51:09.212Z",
+    "used": false,
+    "verified": false,
+    "createdAt": "2026-07-01T12:51:09.212Z"
   }
 ]

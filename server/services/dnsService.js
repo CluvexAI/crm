@@ -5,6 +5,8 @@
 
 const crypto = require('crypto');
 const dns = require('dns').promises;
+const logger = require('../utils/logger.js');
+
 
 // Default timeout for DNS queries (5 seconds)
 const DNS_QUERY_TIMEOUT = 5000;
@@ -275,7 +277,7 @@ class DNSService {
      } catch (err) {
        result.status = 'Error'; result.message = err.message.includes('timed out') ? '❌ DNS lookup timed out' : `❌ Verification error: ${err.message}`; result.log = { error: err.message };
      }
-     console.log('SPF Verification Log:', JSON.stringify(result.log, null, 2));
+     logger.info('SPF Verification Log:', JSON.stringify(result.log, null, 2));
      return result;
    }
 
@@ -298,7 +300,7 @@ class DNSService {
        result.status = (err.message.includes('failed')) ? 'Pending' : 'Error';
        result.message = err.message.includes('timed out') ? '❌ DNS lookup timed out' : `❌ Verification error: ${err.message}`; result.log = { error: err.message };
      }
-     console.log('DKIM Verification Log:', JSON.stringify(result.log, null, 2));
+     logger.info('DKIM Verification Log:', JSON.stringify(result.log, null, 2));
      return result;
    }
 
@@ -327,7 +329,7 @@ class DNSService {
        result.status = (err.message.includes('failed')) ? 'Invalid' : 'Error';
        result.message = err.message.includes('timed out') ? '❌ DNS lookup timed out' : `❌ Verification error: ${err.message}`; result.log = { error: err.message };
      }
-     console.log('DMARC Verification Log:', JSON.stringify(result.log, null, 2));
+     logger.info('DMARC Verification Log:', JSON.stringify(result.log, null, 2));
      return result;
    }
 
@@ -342,7 +344,7 @@ class DNSService {
         [settingId, recordType, status, expected, actual, userId]
       );
     } catch (err) {
-      console.error('Failed to log verification:', err);
+      logger.error('Failed to log verification:', err);
     }
   }
 
@@ -428,7 +430,7 @@ class DNSService {
 
       return summary;
     } catch (err) {
-      console.error('Failed to get DNS status summary:', err);
+      logger.error('Failed to get DNS status summary:', err);
       return {
         spf: { status: 'error', label: 'Error' },
         dkim: { status: 'error', label: 'Error' },

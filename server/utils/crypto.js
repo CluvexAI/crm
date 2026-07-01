@@ -1,8 +1,10 @@
 const crypto = require('crypto');
+const logger = require('./logger.js');
+
 
 const ALGORITHM = 'aes-256-gcm';
 // ENCRYPTION_KEY must be 32 bytes
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'zsmcrm_secure_encryption_key_123';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 const IV_LENGTH = 16;
 
 function encrypt(text) {
@@ -15,7 +17,7 @@ function encrypt(text) {
     const authTag = cipher.getAuthTag();
     return `${iv.toString('hex')}:${encrypted.toString('hex')}:${authTag.toString('hex')}`;
   } catch (error) {
-    console.error('Encryption error:', error);
+    logger.error('Encryption error:', error);
     return null;
   }
 }
@@ -39,7 +41,7 @@ function decrypt(text) {
     
     return decrypted.toString();
   } catch (error) {
-    console.error('Decryption error:', error);
+    logger.error('Decryption error:', error);
     return null;
   }
 }

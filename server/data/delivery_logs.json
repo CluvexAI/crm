@@ -942,5 +942,227 @@
     "email": "tanmoy.mondal@zsmeservices.com",
     "status": "completed",
     "timestamp": "2026-06-30T13:53:24.716Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<1029f8b9-fc12-0ac3-893a-9b365002b3cf@zsmeservices.com>",
+    "timestamp": "2026-07-01T10:04:31.013Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<8c35764b-4811-048c-499f-1a36a03e58d9@zsmeservices.com>",
+    "timestamp": "2026-07-01T10:37:05.225Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<9185d096-87ce-bc8b-dc7a-22b2f914be42@zsmeservices.com>",
+    "timestamp": "2026-07-01T10:43:06.837Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<99e54663-a875-0bcc-35f1-08b328e7b9d8@zsmeservices.com>",
+    "timestamp": "2026-07-01T10:54:23.322Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<e7179d64-d24e-00cc-7e12-d66f769f51e0@zsmeservices.com>",
+    "timestamp": "2026-07-01T10:59:13.278Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<f72e149d-e1d7-b59b-f7b5-65357780080e@zsmeservices.com>",
+    "timestamp": "2026-07-01T11:02:26.839Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "Mail command failed: 501 <AKIAZS4KXICMRDCBUKW4>: sender address must contain a domain",
+    "attempt": 1,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T11:03:04.660Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "Mail command failed: 501 <AKIAZS4KXICMRDCBUKW4>: sender address must contain a domain",
+    "attempt": 2,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T11:03:12.435Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "Mail command failed: 501 <AKIAZS4KXICMRDCBUKW4>: sender address must contain a domain",
+    "attempt": 3,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T11:03:17.405Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "D43D0000:error:0A00010B:SSL routines:tls_validate_record_header:wrong version number:openssl\\ssl\\record\\methods\\tlsany_meth.c:78:\n",
+    "attempt": 1,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T11:10:28.399Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "D43D0000:error:0A00010B:SSL routines:tls_validate_record_header:wrong version number:openssl\\ssl\\record\\methods\\tlsany_meth.c:78:\n",
+    "attempt": 2,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T11:10:32.362Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "D43D0000:error:0A00010B:SSL routines:tls_validate_record_header:wrong version number:openssl\\ssl\\record\\methods\\tlsany_meth.c:78:\n",
+    "attempt": 3,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T11:10:35.739Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "9C450000:error:0A00010B:SSL routines:tls_validate_record_header:wrong version number:openssl\\ssl\\record\\methods\\tlsany_meth.c:78:\n",
+    "attempt": 1,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T11:17:02.891Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "9C450000:error:0A00010B:SSL routines:tls_validate_record_header:wrong version number:openssl\\ssl\\record\\methods\\tlsany_meth.c:78:\n",
+    "attempt": 2,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T11:17:06.974Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "9C450000:error:0A00010B:SSL routines:tls_validate_record_header:wrong version number:openssl\\ssl\\record\\methods\\tlsany_meth.c:78:\n",
+    "attempt": 3,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T11:17:10.684Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "9C450000:error:0A00010B:SSL routines:tls_validate_record_header:wrong version number:openssl\\ssl\\record\\methods\\tlsany_meth.c:78:\n",
+    "attempt": 1,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T11:19:30.105Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "9C450000:error:0A00010B:SSL routines:tls_validate_record_header:wrong version number:openssl\\ssl\\record\\methods\\tlsany_meth.c:78:\n",
+    "attempt": 2,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T11:19:33.791Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "failed",
+    "error": "9C450000:error:0A00010B:SSL routines:tls_validate_record_header:wrong version number:openssl\\ssl\\record\\methods\\tlsany_meth.c:78:\n",
+    "attempt": 3,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T11:19:37.504Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<658d9f32-c4e3-f008-2047-e2253bac4db6@zsmeservices.com>",
+    "attempt": 1,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T11:22:32.933Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<469f636b-17a2-1e80-3ca0-8f4c37560ccd@zsmeservices.com>",
+    "attempt": 1,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T11:23:14.375Z"
+  },
+  {
+    "type": "password_reset",
+    "email": "tanmoy.mondal@zsmeservices.com",
+    "status": "completed",
+    "timestamp": "2026-07-01T11:24:10.166Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<1d3177ca-f137-081b-9fd7-fcf8e7b3a226@zsmeservices.com>",
+    "timestamp": "2026-07-01T11:24:54.786Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "failed",
+    "error": "48170000:error:0A00010B:SSL routines:tls_validate_record_header:wrong version number:openssl\\ssl\\record\\methods\\tlsany_meth.c:78:\n",
+    "timestamp": "2026-07-01T12:43:21.453Z"
+  },
+  {
+    "type": "user_mail",
+    "sender": "tanmoy.mondal@zsmeservices.com",
+    "recipient": "webzy.smith@gmail.com",
+    "status": "delivered",
+    "messageId": "<bb2edf23-944c-64c0-2a1e-e4af2169399a@zsmeservices.com>",
+    "timestamp": "2026-07-01T12:49:13.451Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<f213ae5c-c3ba-01ca-305e-b9776e56ab2b@zsmeservices.com>",
+    "attempt": 1,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T12:50:00.600Z"
+  },
+  {
+    "type": "otp",
+    "recipient": "tanmoy.mondal@zsmeservices.com",
+    "status": "delivered",
+    "messageId": "<bb023348-6863-df55-39f0-5b99bb549b7d@zsmeservices.com>",
+    "attempt": 1,
+    "smtpSource": "admin_dashboard_smtp",
+    "timestamp": "2026-07-01T12:51:14.916Z"
   }
 ]

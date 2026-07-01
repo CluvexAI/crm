@@ -110,9 +110,9 @@
     "uuid": "8102000e-bec4-4924-8553-157b47c0c149",
     "id": 1779867142556,
     "createdAt": "2026-05-27T07:32:22.720Z",
-    "updatedAt": "2026-06-30T13:53:24.631Z",
+    "updatedAt": "2026-07-01T11:24:10.081Z",
     "version": 44,
-    "password": "$2a$12$5vShkn.BMBBIVUCS5AwPr.DJgpAxZBoh9Rt.MscSRrHmgU07h1m9S",
+    "password": "$2a$12$4EtKDsVyx/y0KA8cPVq3VuH83viIO18LJ5X1zJno3fHdXwWbDbW8K",
     "phone": "+91",
     "foodPref": "Veg",
     "role": "Admin",
@@ -126,7 +126,7 @@
       "smtpHost": "mail.zsmeservices.com",
       "smtpPort": 465
     },
-    "passwordChangedAt": "2026-06-30T13:53:24.631Z",
+    "passwordChangedAt": "2026-07-01T11:24:10.081Z",
     "must_change_password": false,
     "whatsappSession": {
       "status": "connected",
@@ -1100,8 +1100,8 @@
     "department": "Operations",
     "status": "active",
     "employeeId": "EMP-OPS-001",
-    "createdAt": "2026-06-30T14:18:43.782Z",
-    "updatedAt": "2026-06-30T14:18:43.782Z"
+    "createdAt": "2026-07-01T12:46:45.408Z",
+    "updatedAt": "2026-07-01T12:46:45.408Z"
   },
   {
     "uuid": "3fc54ade-f756-46ee-a571-43191703de19",
@@ -1112,7 +1112,7 @@
     "department": "Billing",
     "status": "active",
     "employeeId": "EMP-BIL-001",
-    "createdAt": "2026-06-30T14:18:43.799Z",
-    "updatedAt": "2026-06-30T14:18:43.799Z"
+    "createdAt": "2026-07-01T12:46:45.411Z",
+    "updatedAt": "2026-07-01T12:46:45.411Z"
   }
 ]

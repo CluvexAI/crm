@@ -8,6 +8,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const logger = require('../utils/logger.js');
+
 
 const DATA_DIR = path.resolve(__dirname, '../data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
@@ -30,7 +32,7 @@ const writeJSON = (file, data) => {
   try {
     fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
   } catch (e) {
-    console.error(`[Integrity] Write failed for ${file}:`, e.message);
+    logger.error(`[Integrity] Write failed for ${file}:`, e.message);
   }
 };
 
@@ -74,7 +76,7 @@ const serverHardDeleteUser = (userId, reason) => {
  * Runs integrity checks on CRM data files
  */
 const runGhostUserIntegrityCheck = async () => {
-  console.log('[INTEGRITY] Starting ghost user and database consistency check...');
+  logger.info('[INTEGRITY] Starting ghost user and database consistency check...');
 
   let ghostsFound = 0;
   let mockUsersFound = 0;
@@ -124,7 +126,7 @@ const runGhostUserIntegrityCheck = async () => {
 
     if (isGhost) {
       ghostsFound++;
-      console.warn(`[GHOST DETECTED] Auto-removing tombstoned user: ${user.email}`);
+      logger.warn(`[GHOST DETECTED] Auto-removing tombstoned user: ${user.email}`);
       serverHardDeleteUser(
         userUuid,
         `Ghost user auto-removed — tombstone match for email: ${user.email}`
@@ -146,7 +148,7 @@ const runGhostUserIntegrityCheck = async () => {
 
     if (userUuid && userUuid.startsWith('a1b2c3d4-')) {
       mockUsersFound++;
-      console.warn(`[MOCK UUID DETECTED] Auto-removing mock user: ${user.email}`);
+      logger.warn(`[MOCK UUID DETECTED] Auto-removing mock user: ${user.email}`);
       serverHardDeleteUser(
         userUuid,
         'Mock UUID auto-removed on integrity check'
@@ -166,7 +168,7 @@ const runGhostUserIntegrityCheck = async () => {
     const exists = finalUsers.find(u => u.uuid === uuid || u.id === uuid || (uuid === 'a1b2c3d4-0001-4e5f-8a9b-000000000001' && u.email?.toLowerCase() === 'admin@zsmeservices.com'));
 
     if (!exists) {
-      console.error(`[INTEGRITY FAIL] Required production user missing: ${uuid} — provisioning`);
+      logger.error(`[INTEGRITY FAIL] Required production user missing: ${uuid} — provisioning`);
       
       let newUser;
       if (uuid === 'a1b2c3d4-0001-4e5f-8a9b-000000000001') {
@@ -231,7 +233,7 @@ const runGhostUserIntegrityCheck = async () => {
   if (integrityLogs.length > 500) integrityLogs.length = 500;
   writeJSON(INTEGRITY_LOG_FILE, integrityLogs);
 
-  console.log(
+  logger.info(
     `[INTEGRITY DONE] Auto-Check Complete. Ghosts removed: ${ghostsFound} | ` +
     `Mock users removed: ${mockUsersFound}`
   );

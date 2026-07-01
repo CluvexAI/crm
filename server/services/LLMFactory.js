@@ -2,6 +2,8 @@ const OpenRouterProvider = require('./OpenRouterProvider');
 const InsforgeProvider = require('./InsforgeProvider');
 const GoogleGeminiProvider = require('./GoogleGeminiProvider');
 const OpenAIProvider = require('./OpenAIProvider');
+const logger = require('../utils/logger.js');
+
 
 class LLMFactory {
   static create(providerName, apiKey, baseUrl, defaultModel) {
@@ -24,12 +26,12 @@ class LLMFactory {
     if (!url) return url;
     if (url.includes('maps.app.goo.gl') || url.includes('g.page')) {
       try {
-        console.log(`[LLM] Expanding short URL: ${url}`);
+        logger.info(`[LLM] Expanding short URL: ${url}`);
         const response = await fetch(url, { method: 'HEAD' });
-        console.log(`[LLM] Expanded URL: ${response.url}`);
+        logger.info(`[LLM] Expanded URL: ${response.url}`);
         return response.url || url;
       } catch (err) {
-        console.error(`[LLM] Failed to expand short URL: ${err.message}`);
+        logger.error(`[LLM] Failed to expand short URL: ${err.message}`);
         return url;
       }
     }
@@ -49,17 +51,17 @@ class LLMFactory {
     
     const primaryProvider = LLMFactory.create(primaryProviderStr, primaryKey, primaryUrl, default_model);
     
-    console.log(`[LLM] Attempting research via primary provider: ${primaryProviderStr}`);
+    logger.info(`[LLM] Attempting research via primary provider: ${primaryProviderStr}`);
     let result = await primaryProvider.generateResearch(type, expandedUrl, default_model);
     
     if (result.success) {
       return result;
     }
 
-    console.error(`[LLM] Primary provider (${primaryProviderStr}) failed: ${result.message}`);
+    logger.error(`[LLM] Primary provider (${primaryProviderStr}) failed: ${result.message}`);
     
     if (fallbackProviderStr && fallbackProviderStr !== primaryProviderStr && fallbackProviderStr !== 'None') {
-      console.log(`[LLM] Attempting fallback to ${fallbackProviderStr}`);
+      logger.info(`[LLM] Attempting fallback to ${fallbackProviderStr}`);
       // For fallback, we assume the same API key and URL structure might NOT apply if it's a completely different provider.
       // But in this CRM's DB schema, we only have one API key and URL set. 
       // Wait, if the user configures Insforge as primary and OpenRouter as fallback, where does the OpenRouter key come from?
@@ -72,10 +74,10 @@ class LLMFactory {
       
       let fallbackResult = await fallbackProvider.generateResearch(type, expandedUrl, 'google/gemini-2.5-pro');
       if (fallbackResult.success) {
-        console.log(`[LLM] Fallback successful`);
+        logger.info(`[LLM] Fallback successful`);
         return fallbackResult;
       }
-      console.error(`[LLM] Fallback provider (${fallbackProviderStr}) also failed: ${fallbackResult.message}`);
+      logger.error(`[LLM] Fallback provider (${fallbackProviderStr}) also failed: ${fallbackResult.message}`);
     }
 
     // Return the original failure if fallback didn't work or wasn't configured

@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const logger = require('../utils/logger.js');
+
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const AUDIT_LOG_FILE = path.join(DATA_DIR, 'audit.log');
@@ -23,7 +25,7 @@ function logAudit(userId, action, target, details = {}) {
     
     fs.appendFileSync(AUDIT_LOG_FILE, logEntry, 'utf8');
   } catch (error) {
-    console.error('[AuditLogger] Failed to write audit log:', error);
+    logger.error('[AuditLogger] Failed to write audit log:', error);
   }
 }
 

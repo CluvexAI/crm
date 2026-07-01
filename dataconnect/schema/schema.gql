@@ -1,0 +1,40 @@
+type Company @table {
+  name: String!
+  industry: String
+  website: String
+  address: String
+}
+
+type Contact @table {
+  firstName: String!
+  lastName: String!
+  email: String!
+  phone: String
+  jobTitle: String
+  company: Company
+}
+
+type Deal @table {
+  name: String!
+  value: Float!
+  stage: String!
+  expectedCloseDate: Date
+  company: Company
+}
+
+type Interaction @table {
+  type: String!
+  date: Timestamp!
+  notes: String!
+  contact: Contact
+  deal: Deal
+}
+
+type Task @table {
+  title: String!
+  dueDate: Timestamp!
+  status: String!
+  description: String
+  contact: Contact
+  deal: Deal
+}
